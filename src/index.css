@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #FAF7F2;
+    --bg-surface: #FFFFFF;
+    --border: #E8DDD0;
+    --text-primary: #1C1917;
+    --text-muted: #78716C;
+    --accent: #0F766E;
+    --accent-light: #CCFBF1;
+    --star: #F59E0B;
+  }
+
+  .dark {
+    --bg-primary: #1C1917;
+    --bg-surface: #292524;
+    --border: #44403C;
+    --text-primary: #FAF7F2;
+    --text-muted: #A8A29E;
+    --accent: #14B8A6;
+    --accent-light: #115E59;
+    --star: #FBBF24;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-paper-50 text-ink-900 font-sans;
+    min-height: 100vh;
+  }
+
+  .dark body {
+    @apply bg-ink-900 text-paper-50;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-teal-700 text-white rounded-lg font-medium text-sm
+           hover:bg-teal-800 active:bg-teal-900 transition-colors duration-150 cursor-pointer
+           focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-4 py-2 border border-ink-300 text-ink-700 rounded-lg font-medium text-sm
+           hover:bg-paper-100 active:bg-paper-200 transition-colors duration-150 cursor-pointer
+           focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2
+           dark:border-ink-600 dark:text-ink-300;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-3 py-1.5 text-ink-600 rounded-md font-medium text-sm
+           hover:bg-paper-100 hover:text-ink-900 active:bg-paper-200 transition-colors duration-150 cursor-pointer
+           focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1
+           dark:text-ink-400;
+  }
+
+  .card {
+    @apply bg-white rounded-xl border border-paper-200 shadow-card
+           dark:bg-ink-800 dark:border-ink-700;
+  }
+
+  .input {
+    @apply w-full px-3 py-2 bg-white border border-paper-200 rounded-lg text-sm text-ink-900
+           placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500
+           transition-colors duration-150
+           dark:bg-ink-800 dark:border-ink-600 dark:text-paper-50 dark:placeholder:text-ink-500;
+  }
+
+  .page-title {
+    @apply font-serif text-2xl font-semibold text-ink-900 dark:text-paper-50;
+  }
+
+  .section-label {
+    @apply text-xs font-semibold uppercase tracking-widest text-ink-400 dark:text-ink-500;
+  }
+
+  .tag-pill {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+           bg-teal-50 text-teal-800 border border-teal-100
+           dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-800;
+  }
+
+  .status-read {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+           bg-emerald-50 text-emerald-700 border border-emerald-100
+           dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800;
+  }
+
+  .status-tbr {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+           bg-amber-50 text-amber-700 border border-amber-100
+           dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800;
+  }
+
+  .status-reading {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+           bg-blue-50 text-blue-700 border border-blue-100
+           dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800;
+  }
+
+  .status-dnf {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+           bg-rose-50 text-rose-700 border border-rose-100
+           dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-800;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { @apply bg-ink-300 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-ink-400; }
+.dark ::-webkit-scrollbar-thumb { @apply bg-ink-600; }
+
+/* Book cover aspect ratio */
+.book-cover { aspect-ratio: 2/3; }
+
+/* Swipe card */
+.swipe-card { touch-action: none; user-select: none; }
+
+/* Skeleton animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #f0ebe3 25%, #e8ddd0 50%, #f0ebe3 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.dark .skeleton {
+  background: linear-gradient(90deg, #292524 25%, #44403C 50%, #292524 75%);
+  background-size: 200% 100%;
+}
