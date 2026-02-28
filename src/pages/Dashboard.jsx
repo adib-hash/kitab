@@ -1,27 +1,30 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, BookOpen, ArrowRight, Target, Sparkles } from 'lucide-react'
+import { Plus, BookOpen, ArrowRight, Target, Sparkles, Settings } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useLibrary } from '../hooks/useLibrary'
 import { useReadingGoal } from '../hooks/useTags'
 import { BookCard } from '../components/books/BookCard'
-import { BookCover } from '../components/books/BookCover'
 import { ProgressBar, StatCard, EmptyState, BookCardSkeleton } from '../components/ui/index.jsx'
 import { BookSearchModal } from '../components/books/BookSearch'
 import { BookForm } from '../components/books/BookForm'
-import { computeStats, formatDate, pluralize } from '../lib/utils'
+import { computeStats, pluralize } from '../lib/utils'
+import { useUIStore } from '../store/uiStore'
+import { Moon, Sun } from 'lucide-react'
 
 export function Dashboard() {
   const { data: books = [], isLoading } = useLibrary()
   const thisYear = new Date().getFullYear()
   const { data: goal } = useReadingGoal(thisYear)
+  const { darkMode, toggleDarkMode } = useUIStore()
 
   const [searchOpen, setSearchOpen] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
   const [selectedBook, setSelectedBook] = useState(null)
 
   const currentlyReading = books.filter(b => b.status === 'reading')
-  const recentlyRead = books.filter(b => b.status === 'read' && b.date_finished).sort((a,b) => b.date_finished.localeCompare(a.date_finished)).slice(0, 6)
+  const recentlyRead = books.filter(b => b.status === 'read' && b.date_finished)
+    .sort((a,b) => b.date_finished.localeCompare(a.date_finished)).slice(0, 6)
   const stats = computeStats(books)
   const booksThisYear = stats.booksThisYear
 
@@ -31,81 +34,82 @@ export function Dashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-serif text-3xl font-semibold text-ink-900 dark:text-paper-50">
+          <h1 className="font-serif text-2xl md:text-3xl font-semibold text-ink-900 dark:text-paper-50">
             Your Library
           </h1>
-          <p className="text-ink-500 dark:text-ink-400 text-sm mt-1">
+          <p className="text-ink-500 dark:text-ink-400 text-xs md:text-sm mt-0.5">
             {books.length > 0
-              ? `${pluralize(stats.totalRead, 'book')} read · ${pluralize(books.filter(b=>b.status==='tbr').length, 'book')} on your shelf`
+              ? `${pluralize(stats.totalRead, 'book')} read · ${pluralize(books.filter(b=>b.status==='tbr').length, 'book')} on shelf`
               : 'Start building your reading life'}
           </p>
         </div>
-        <button onClick={() => setSearchOpen(true)} className="btn-primary">
-          <Plus size={16} /> Add Book
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Dark mode toggle - mobile only (desktop has it in sidebar) */}
+          <button onClick={toggleDarkMode} className="md:hidden p-2 rounded-xl text-ink-500 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors">
+            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+          <Link to="/settings" className="md:hidden p-2 rounded-xl text-ink-500 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors">
+            <Settings size={20} />
+          </Link>
+          <button onClick={() => setSearchOpen(true)} className="btn-primary">
+            <Plus size={16} /> <span className="hidden sm:inline">Add Book</span><span className="sm:hidden">Add</span>
+          </button>
+        </div>
       </div>
 
-      {/* Reading goal progress */}
+      {/* Reading goal */}
       {goal && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="card p-5">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="card p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Target size={16} className="text-amber-600" />
+              <Target size={15} className="text-amber-600" />
               <p className="font-medium text-sm text-ink-800 dark:text-ink-200">{thisYear} Reading Goal</p>
             </div>
             <p className="text-sm font-semibold text-ink-900 dark:text-paper-50">
               {booksThisYear} / {goal.target}
             </p>
           </div>
-          <ProgressBar value={booksThisYear} max={goal.target} className="h-2.5" color="amber" />
+          <ProgressBar value={booksThisYear} max={goal.target} className="h-2" color="amber" />
           <p className="text-xs text-ink-500 dark:text-ink-400 mt-2">
-            {booksThisYear >= goal.target
-              ? '🎉 Goal achieved!'
-              : `${goal.target - booksThisYear} more to reach your goal`}
+            {booksThisYear >= goal.target ? '🎉 Goal achieved!' : `${goal.target - booksThisYear} more to go`}
           </p>
         </motion.div>
       )}
 
       {/* Currently Reading */}
       <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-serif text-xl font-semibold text-ink-900 dark:text-paper-50">Currently Reading</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-serif text-lg md:text-xl font-semibold text-ink-900 dark:text-paper-50">Currently Reading</h2>
           <Link to="/library?status=reading" className="text-sm text-teal-700 dark:text-teal-400 hover:underline flex items-center gap-1">
             View all <ArrowRight size={14} />
           </Link>
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
             {[...Array(3)].map((_, i) => <BookCardSkeleton key={i} />)}
           </div>
         ) : currentlyReading.length === 0 ? (
-          <div className="card p-8 text-center">
-            <BookOpen size={32} className="mx-auto mb-3 text-ink-300" />
+          <div className="card p-6 text-center">
+            <BookOpen size={28} className="mx-auto mb-2 text-ink-300" />
             <p className="text-sm text-ink-500">You're not reading anything right now.</p>
-            <button onClick={() => setSearchOpen(true)} className="btn-ghost mt-2 text-teal-700">
+            <button onClick={() => setSearchOpen(true)} className="btn-ghost mt-2 text-teal-700 text-sm">
               Start a book →
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
             {currentlyReading.map((book, i) => (
               <div key={book.id} className="space-y-2">
                 <BookCard book={book} index={i} />
                 {book.page_count && book.current_page && (
                   <div>
-                    <ProgressBar
-                      value={book.current_page}
-                      max={book.page_count}
-                      className="h-1.5"
-                    />
-                    <p className="text-xs text-ink-400 mt-1">
-                      p.{book.current_page} of {book.page_count}
-                    </p>
+                    <ProgressBar value={book.current_page} max={book.page_count} className="h-1" />
+                    <p className="text-[10px] text-ink-400 mt-1">p.{book.current_page}/{book.page_count}</p>
                   </div>
                 )}
               </div>
@@ -117,17 +121,17 @@ export function Dashboard() {
       {/* Quick stats */}
       {!isLoading && books.length > 0 && (
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-serif text-xl font-semibold text-ink-900 dark:text-paper-50">At a Glance</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-serif text-lg md:text-xl font-semibold text-ink-900 dark:text-paper-50">At a Glance</h2>
             <Link to="/stats" className="text-sm text-teal-700 dark:text-teal-400 hover:underline flex items-center gap-1">
               Full stats <ArrowRight size={14} />
             </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <StatCard label="Books Read" value={stats.totalRead} icon="📚" />
+            <StatCard label="This Year" value={booksThisYear} sub={String(thisYear)} icon="📅" />
             <StatCard label="Pages Read" value={stats.totalPages.toLocaleString()} icon="📄" />
             <StatCard label="Avg Rating" value={stats.avgRating ? `${stats.avgRating}★` : null} icon="⭐" />
-            <StatCard label="Read this Year" value={booksThisYear} sub={String(thisYear)} icon="📅" />
           </div>
         </section>
       )}
@@ -135,13 +139,13 @@ export function Dashboard() {
       {/* Recently Read */}
       {recentlyRead.length > 0 && (
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-serif text-xl font-semibold text-ink-900 dark:text-paper-50">Recently Read</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-serif text-lg md:text-xl font-semibold text-ink-900 dark:text-paper-50">Recently Read</h2>
             <Link to="/library" className="text-sm text-teal-700 dark:text-teal-400 hover:underline flex items-center gap-1">
               Library <ArrowRight size={14} />
             </Link>
           </div>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
             {recentlyRead.map((book, i) => <BookCard key={book.id} book={book} index={i} />)}
           </div>
         </section>
@@ -152,7 +156,7 @@ export function Dashboard() {
         <EmptyState
           icon="📖"
           title="Your library is empty"
-          description="Add your first book to get started. Search for anything you've read, are reading, or want to read."
+          description="Add your first book to get started."
           action={
             <button onClick={() => setSearchOpen(true)} className="btn-primary">
               <Plus size={16} /> Add Your First Book
@@ -166,15 +170,15 @@ export function Dashboard() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="card p-5 flex items-center gap-4 bg-gradient-to-r from-teal-50 to-transparent dark:from-teal-900/20 border-teal-100 dark:border-teal-800"
+          className="card p-4 flex items-center gap-3 bg-gradient-to-r from-teal-50 to-transparent dark:from-teal-900/20 border-teal-100 dark:border-teal-800"
         >
-          <Sparkles size={24} className="text-teal-600 flex-shrink-0" />
-          <div className="flex-1">
-            <p className="font-medium text-sm text-ink-800 dark:text-ink-200">Ready to discover your next read?</p>
-            <p className="text-xs text-ink-500 dark:text-ink-400">Get AI-powered recommendations based on your library.</p>
+          <Sparkles size={20} className="text-teal-600 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-sm text-ink-800 dark:text-ink-200">Ready for your next read?</p>
+            <p className="text-xs text-ink-500 dark:text-ink-400 hidden sm:block">AI recommendations based on your library.</p>
           </div>
-          <Link to="/recommendations" className="btn-primary whitespace-nowrap">
-            Discover Books
+          <Link to="/recommendations" className="btn-primary whitespace-nowrap text-sm">
+            Discover
           </Link>
         </motion.div>
       )}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, GripVertical, ArrowRight, BookMarked } from 'lucide-react'
+import { Plus, GripVertical } from 'lucide-react'
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -33,25 +33,37 @@ function SortableBook({ book }) {
   }
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center gap-4 p-4 bg-white dark:bg-ink-800 rounded-xl border border-paper-200 dark:border-ink-700 group">
-      <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-ink-300 hover:text-ink-500 touch-none">
-        <GripVertical size={18} />
+    <div ref={setNodeRef} style={style} className="flex items-center gap-3 p-3 bg-white dark:bg-ink-800 rounded-xl border border-paper-200 dark:border-ink-700">
+      {/* Drag handle */}
+      <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-ink-300 hover:text-ink-500 touch-none flex-shrink-0 p-1">
+        <GripVertical size={16} />
       </button>
+
+      {/* Cover */}
       <BookCover book={book} size="sm" className="flex-shrink-0" />
+
+      {/* Info */}
       <div className="flex-1 min-w-0">
-        <Link to={`/library/${book.id}`} className="font-medium text-sm text-ink-900 dark:text-paper-50 hover:text-teal-700 truncate block">
+        <Link to={`/library/${book.id}`} className="font-medium text-sm text-ink-900 dark:text-paper-50 hover:text-teal-700 truncate block leading-snug">
           {book.title}
         </Link>
         <p className="text-xs text-ink-500 truncate">{book.author}</p>
-        {book.tags?.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
-            {book.tags.slice(0, 3).map(t => <span key={t.id} className="tag-pill">{t.name}</span>)}
-          </div>
-        )}
       </div>
-      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button size="sm" variant="secondary" onClick={startReading}>Reading</Button>
-        <Button size="sm" onClick={markRead}>Done ✓</Button>
+
+      {/* Actions — always visible on mobile */}
+      <div className="flex flex-col gap-1 flex-shrink-0">
+        <button
+          onClick={startReading}
+          className="text-[11px] px-2 py-1 rounded-lg border border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-400 hover:bg-paper-50 dark:hover:bg-ink-700 transition-colors whitespace-nowrap"
+        >
+          Reading
+        </button>
+        <button
+          onClick={markRead}
+          className="text-[11px] px-2 py-1 rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition-colors whitespace-nowrap"
+        >
+          Done ✓
+        </button>
       </div>
     </div>
   )
@@ -82,9 +94,7 @@ export function TBR() {
     const { active, over } = event
     if (!over || active.id === over.id) return
     const ids = displayBooks.map(b => b.id)
-    const oldIdx = ids.indexOf(active.id)
-    const newIdx = ids.indexOf(over.id)
-    const newOrder = arrayMove(ids, oldIdx, newIdx)
+    const newOrder = arrayMove(ids, ids.indexOf(active.id), ids.indexOf(over.id))
     setLocalOrder(newOrder)
     reorderTBR.mutate(newOrder)
   }
@@ -92,30 +102,28 @@ export function TBR() {
   function handleSearchSelect(book) { setSelectedBook({ ...book, status: 'tbr' }); setFormOpen(true) }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">To Be Read</h1>
-          <p className="text-sm text-ink-500 dark:text-ink-400 mt-0.5">
+          <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">
             {isLoading ? '...' : `${tbrBooks.length} ${tbrBooks.length === 1 ? 'book' : 'books'} on your shelf`}
           </p>
         </div>
         <button onClick={() => setSearchOpen(true)} className="btn-primary">
-          <Plus size={16} /> Add Book
+          <Plus size={16} /> <span className="hidden sm:inline">Add Book</span>
         </button>
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-20 skeleton rounded-xl" />
-          ))}
+        <div className="space-y-2">
+          {[...Array(5)].map((_, i) => <div key={i} className="h-16 skeleton rounded-xl" />)}
         </div>
       ) : tbrBooks.length === 0 ? (
         <EmptyState
           icon="📋"
           title="Your reading list is empty"
-          description="Add books you want to read — then drag to prioritize them."
+          description="Add books you want to read — then drag to prioritize."
           action={
             <button onClick={() => setSearchOpen(true)} className="btn-primary">
               <Plus size={16} /> Add Your First Book
@@ -133,11 +141,7 @@ export function TBR() {
       )}
 
       <BookSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} onSelect={handleSearchSelect} />
-      <BookForm
-        open={formOpen}
-        onClose={() => { setFormOpen(false); setSelectedBook(null) }}
-        initialBook={selectedBook}
-      />
+      <BookForm open={formOpen} onClose={() => { setFormOpen(false); setSelectedBook(null) }} initialBook={selectedBook} />
     </div>
   )
 }

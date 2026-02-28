@@ -2,13 +2,12 @@ import { Link } from 'react-router-dom'
 import { BookCover } from './BookCover'
 import { StarRating } from './StarRating'
 import { StatusBadge } from './StatusBadge'
-import { formatDate } from '../../lib/utils'
 
 export function BookRow({ book }) {
   return (
     <Link
       to={`/library/${book.id}`}
-      className="group flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-paper-50 dark:hover:bg-ink-800/60 transition-colors"
+      className="group flex items-center gap-3 px-4 py-3 hover:bg-paper-50 dark:hover:bg-ink-800/60 transition-colors"
     >
       <BookCover book={book} size="sm" className="flex-shrink-0" />
 
@@ -17,24 +16,24 @@ export function BookRow({ book }) {
           {book.title}
         </p>
         <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
+        {/* Tags on mobile */}
+        {book.tags?.length > 0 && (
+          <div className="flex gap-1 mt-1 sm:hidden">
+            {book.tags.slice(0, 2).map(tag => (
+              <span key={tag.id} className="tag-pill">{tag.name}</span>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="hidden sm:flex items-center gap-1 flex-wrap justify-end min-w-0 max-w-[200px]">
+      {/* Tags — tablet+ */}
+      <div className="hidden sm:flex items-center gap-1 flex-wrap justify-end min-w-0 max-w-[160px]">
         {book.tags?.slice(0, 3).map(tag => (
           <span key={tag.id} className="tag-pill">{tag.name}</span>
         ))}
       </div>
 
-      <div className="hidden md:block w-28 text-right">
-        {book.date_finished && (
-          <p className="text-xs text-ink-500">{formatDate(book.date_finished)}</p>
-        )}
-        {book.published_year && (
-          <p className="text-xs text-ink-400">{book.published_year}</p>
-        )}
-      </div>
-
-      <div className="w-28 flex justify-end">
+      <div className="flex-shrink-0">
         {book.rating ? (
           <StarRating value={book.rating} readOnly size="sm" />
         ) : (
