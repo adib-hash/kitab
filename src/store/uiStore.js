@@ -14,7 +14,7 @@ export const useUIStore = create(
       sidebarOpen: true,
 
       // Dark mode
-      darkMode: false,
+      darkMode: true,
 
       // Reading goal
       readingGoal: null,
@@ -33,7 +33,12 @@ export const useUIStore = create(
         else document.documentElement.classList.remove('dark')
       },
       initDarkMode: () => {
-        if (get().darkMode) document.documentElement.classList.add('dark')
+        // Apply dark class on load; default is dark unless user has toggled it off
+        if (get().darkMode) {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
+        }
       },
       setReadingGoal: (goal) => set({ readingGoal: goal }),
     }),

@@ -72,7 +72,7 @@ export function StarRating({ value, onChange, size = 'md', readOnly = false }) {
               {/* Empty star */}
               <path
                 d="M10 1.5l2.39 4.84 5.34.78-3.87 3.77.91 5.33L10 13.77l-4.77 2.45.91-5.33L2.27 7.12l5.34-.78L10 1.5z"
-                fill={state === 'empty' ? '#E8DDD0' : '#F59E0B'}
+                fill={state === 'empty' ? '#44403C' : '#F59E0B'}
                 className="transition-colors duration-75"
               />
               {/* Half star overlay */}

@@ -95,31 +95,31 @@ export function BookDetail() {
             {book.published_year && (
               <div>
                 <p className="section-label">Published</p>
-                <p className="text-sm text-ink-800 dark:text-ink-200 mt-0.5">{book.published_year}</p>
+                <p className="text-sm text-ink-800 dark:text-ink-200 dark:text-ink-200 mt-0.5">{book.published_year}</p>
               </div>
             )}
             {book.page_count && (
               <div>
                 <p className="section-label">Pages</p>
-                <p className="text-sm text-ink-800 dark:text-ink-200 mt-0.5">{book.page_count}</p>
+                <p className="text-sm text-ink-800 dark:text-ink-200 dark:text-ink-200 mt-0.5">{book.page_count}</p>
               </div>
             )}
             {book.date_finished && (
               <div>
                 <p className="section-label">Finished</p>
-                <p className="text-sm text-ink-800 dark:text-ink-200 mt-0.5">{formatDate(book.date_finished)}</p>
+                <p className="text-sm text-ink-800 dark:text-ink-200 dark:text-ink-200 mt-0.5">{formatDate(book.date_finished)}</p>
               </div>
             )}
             {book.date_started && (
               <div>
                 <p className="section-label">Started</p>
-                <p className="text-sm text-ink-800 dark:text-ink-200 mt-0.5">{formatDate(book.date_started)}</p>
+                <p className="text-sm text-ink-800 dark:text-ink-200 dark:text-ink-200 mt-0.5">{formatDate(book.date_started)}</p>
               </div>
             )}
             {readingDays != null && (
               <div>
                 <p className="section-label">Read in</p>
-                <p className="text-sm text-ink-800 dark:text-ink-200 mt-0.5">{readingDays} days</p>
+                <p className="text-sm text-ink-800 dark:text-ink-200 dark:text-ink-200 mt-0.5">{readingDays} days</p>
               </div>
             )}
           </div>

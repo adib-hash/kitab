@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { BookOpen, List, BarChart2, Swords, Settings, Moon, Sun, ChevronLeft, BookMarked, Home } from 'lucide-react'
+import { BookOpen, List, BarChart2, Swords, Settings, Moon, Sun, ChevronLeft, BookMarked, Home, Search } from 'lucide-react'
 import { useUIStore } from '../../store/uiStore'
 import { useTags } from '../../hooks/useTags'
 import { clsx } from 'clsx'
@@ -47,7 +47,7 @@ function NavItem({ item, collapsed }) {
   )
 }
 
-export function Sidebar() {
+export function Sidebar({ onSearch }) {
   const { sidebarOpen, toggleSidebar, darkMode, toggleDarkMode, setLibraryFilters, clearLibraryFilters } = useUIStore()
   const { data: tags = [] } = useTags()
   const collapsed = !sidebarOpen
@@ -72,6 +72,26 @@ export function Sidebar() {
             <ChevronLeft size={16} />
           </button>
         )}
+      </div>
+
+      {/* Search button */}
+      <div className="px-2 pt-2">
+        <button
+          onClick={onSearch}
+          className={clsx(
+            "flex items-center gap-3 px-3 py-2 rounded-xl w-full transition-colors",
+            "text-ink-500 dark:text-ink-400 hover:bg-paper-100 dark:hover:bg-ink-800 border border-paper-200 dark:border-ink-700",
+            collapsed ? "justify-center" : ""
+          )}
+        >
+          <Search size={16} className="flex-shrink-0" />
+          {!collapsed && (
+            <span className="flex-1 text-sm text-left">Search...</span>
+          )}
+          {!collapsed && (
+            <kbd className="text-[10px] text-ink-400 border border-paper-200 dark:border-ink-600 rounded px-1 font-mono">⌘K</kbd>
+          )}
+        </button>
       </div>
 
       {/* Navigation */}
