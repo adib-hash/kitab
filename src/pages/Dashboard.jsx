@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, BookOpen, ArrowRight, Target, Sparkles, Settings } from 'lucide-react'
+import { Plus, BookOpen, ArrowRight, Target, Settings } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useLibrary } from '../hooks/useLibrary'
 import { useReadingGoal } from '../hooks/useTags'
@@ -165,23 +165,6 @@ export function Dashboard() {
         />
       )}
 
-      {/* Discover promo */}
-      {books.filter(b=>b.status==='read').length >= 3 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="card p-4 flex items-center gap-3 bg-gradient-to-r from-teal-50 to-transparent dark:from-teal-900/20 border-teal-100 dark:border-teal-800"
-        >
-          <Sparkles size={20} className="text-teal-600 flex-shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm text-ink-800 dark:text-ink-200">Ready for your next read?</p>
-            <p className="text-xs text-ink-500 dark:text-ink-400 hidden sm:block">AI recommendations based on your library.</p>
-          </div>
-          <Link to="/recommendations" className="btn-primary whitespace-nowrap text-sm">
-            Discover
-          </Link>
-        </motion.div>
-      )}
 
       <BookSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} onSelect={handleSearchSelect} onManual={() => { setSelectedBook(null); setFormOpen(true) }} />
       <BookForm open={formOpen} onClose={() => { setFormOpen(false); setSelectedBook(null) }} initialBook={selectedBook} />
