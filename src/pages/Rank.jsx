@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trophy, Swords, StopCircle, RotateCcw, BookOpen } from 'lucide-react'
-import { useLibrary } from '../hooks/useLibrary'
+import { Trophy, Swords, StopCircle, RotateCcw, BookOpen, Loader2 } from 'lucide-react'
+import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
+import { supabase } from '../lib/supabase'
 import { BookCover } from '../components/books/BookCover'
 import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 // ── ELO ──────────────────────────────────────────────────────────────────────
 const K = 32
@@ -35,20 +37,10 @@ function pickPair(books, seen) {
     const key = [a.id, b.id].sort().join('_')
     if (!seen.has(key)) { seen.add(key); return [a, b] }
   }
-  // Fallback: any unseen pair
   return [books[0], books[1]]
 }
 
-// ── STORAGE ───────────────────────────────────────────────────────────────────
-const STORAGE_KEY = 'kitab-rank-elo-v1'
-function loadElo() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') } catch { return {} }
-}
-function saveElo(scores) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(scores)) } catch {}
-}
-
-// ── BATTLE VIEW ───────────────────────────────────────────────────────────────
+// ── BATTLE CARD ───────────────────────────────────────────────────────────────
 function BattleCard({ book, onClick, disabled, isWinner, isLoser }) {
   return (
     <motion.button
@@ -61,32 +53,19 @@ function BattleCard({ book, onClick, disabled, isWinner, isLoser }) {
       }
       transition={{ duration: 0.2 }}
       className="flex-1 flex flex-col items-center rounded-2xl border-2 overflow-hidden transition-colors duration-150 cursor-pointer group"
-      style={{
-        borderColor: isWinner ? '#0d9488' : undefined,
-        background: 'transparent',
-        border: isWinner ? '2px solid #0d9488' : '2px solid transparent',
-      }}
+      style={{ borderColor: isWinner ? '#0d9488' : 'transparent' }}
     >
-      {/* Fixed-size cover area — same height for both cards always */}
       <div
         className="w-full relative bg-ink-900 flex items-center justify-center"
         style={{ height: '52vw', maxHeight: 300 }}
       >
         {book.cover_url ? (
-          <img
-            src={book.cover_url}
-            alt={book.title}
-            className="h-full w-full object-cover"
-          />
+          <img src={book.cover_url} alt={book.title} className="h-full w-full object-cover" />
         ) : (
-          <div
-            className="h-full w-full flex items-center justify-center font-serif font-bold text-white text-4xl"
-            style={{ backgroundColor: '#2d6a6a' }}
-          >
+          <div className="h-full w-full flex items-center justify-center font-serif font-bold text-white text-4xl" style={{ backgroundColor: '#2d6a6a' }}>
             {book.title.slice(0, 2).toUpperCase()}
           </div>
         )}
-        {/* Hover teal overlay */}
         <div className="absolute inset-0 bg-teal-500/0 group-hover:bg-teal-500/10 transition-all duration-150" />
         {isWinner && (
           <div className="absolute inset-0 flex items-center justify-center bg-teal-900/30">
@@ -94,12 +73,8 @@ function BattleCard({ book, onClick, disabled, isWinner, isLoser }) {
           </div>
         )}
       </div>
-
-      {/* Title block — fixed height so both cards stay aligned */}
       <div className="w-full px-3 py-3 text-center" style={{ minHeight: 64 }}>
-        <p className="font-serif font-semibold text-ink-900 dark:text-paper-50 text-sm leading-snug line-clamp-2">
-          {book.title}
-        </p>
+        <p className="font-serif font-semibold text-ink-900 dark:text-paper-50 text-sm leading-snug line-clamp-2">{book.title}</p>
         <p className="text-xs text-ink-400 dark:text-ink-500 mt-0.5 truncate">{book.author}</p>
       </div>
     </motion.button>
@@ -107,15 +82,13 @@ function BattleCard({ book, onClick, disabled, isWinner, isLoser }) {
 }
 
 // ── RESULTS VIEW ──────────────────────────────────────────────────────────────
-function ResultsView({ rankedBooks, matchCount, onContinue, onReset }) {
+function ResultsView({ rankedBooks, matchCount, onContinue, onReset, resetting }) {
   return (
     <div className="space-y-5">
       <div className="text-center space-y-1">
         <div className="flex items-center justify-center gap-2">
           <Trophy size={20} className="text-amber-500" />
-          <h2 className="font-serif text-xl font-semibold text-ink-900 dark:text-paper-50">
-            Your Rankings
-          </h2>
+          <h2 className="font-serif text-xl font-semibold text-ink-900 dark:text-paper-50">Your Rankings</h2>
         </div>
         <p className="text-xs text-ink-500 dark:text-ink-400">{matchCount} matchups completed</p>
       </div>
@@ -127,15 +100,12 @@ function ResultsView({ rankedBooks, matchCount, onContinue, onReset }) {
             to={`/library/${book.id}`}
             className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-ink-800 border border-paper-200 dark:border-ink-700 hover:border-teal-400 transition-colors"
           >
-            {/* Rank number */}
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
               i === 0 ? 'bg-amber-400 text-amber-900' :
               i === 1 ? 'bg-slate-300 text-slate-700' :
               i === 2 ? 'bg-amber-700 text-amber-100' :
               'bg-paper-100 dark:bg-ink-700 text-ink-500 dark:text-ink-400'
-            }`}>
-              {i + 1}
-            </div>
+            }`}>{i + 1}</div>
             <BookCover book={book} size="sm" className="flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-ink-900 dark:text-paper-50 truncate">{book.title}</p>
@@ -143,7 +113,7 @@ function ResultsView({ rankedBooks, matchCount, onContinue, onReset }) {
             </div>
             <div className="text-right flex-shrink-0">
               <p className="text-xs font-mono text-ink-400">{book.elo}</p>
-              <p className="text-[10px] text-ink-300">{book.wins}W / {book.losses}L</p>
+              <p className="text-[10px] text-ink-300">{book.elo_wins}W / {book.elo_losses}L</p>
             </div>
           </Link>
         ))}
@@ -155,41 +125,38 @@ function ResultsView({ rankedBooks, matchCount, onContinue, onReset }) {
         </button>
         <button
           onClick={onReset}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-paper-200 dark:border-ink-700 text-ink-500 text-sm hover:bg-paper-50 dark:hover:bg-ink-800 transition-colors"
+          disabled={resetting}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-paper-200 dark:border-ink-700 text-ink-500 text-sm hover:bg-paper-50 dark:hover:bg-ink-800 transition-colors disabled:opacity-50"
         >
-          <RotateCcw size={14} /> Reset
+          {resetting ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />} Reset
         </button>
       </div>
     </div>
   )
 }
 
-// ── MAIN COMPONENT ────────────────────────────────────────────────────────────
+// ── MAIN ──────────────────────────────────────────────────────────────────────
 export function Rank() {
   const { data: books = [], isLoading } = useLibrary()
-  const [view, setView] = useState('home') // home | battle | results
-  const [eloScores, setEloScores] = useState({})
+  const updateBook = useUpdateBook()
+  const [view, setView] = useState('home')
   const [seen, setSeen] = useState(new Set())
   const [pair, setPair] = useState(null)
-  const [matchCount, setMatchCount] = useState(0)
   const [winner, setWinner] = useState(null)
+  const [resetting, setResetting] = useState(false)
 
   const readBooks = books.filter(b => b.status === 'read')
 
-  // Load saved ELO scores on mount
-  useEffect(() => {
-    setEloScores(loadElo())
-  }, [])
-
-  // Merge books with ELO scores
+  // Books with ELO defaults if null
   const booksWithElo = readBooks.map(b => ({
     ...b,
-    elo: eloScores[b.id]?.elo ?? 1500,
-    wins: eloScores[b.id]?.wins ?? 0,
-    losses: eloScores[b.id]?.losses ?? 0,
+    elo: b.elo ?? 1500,
+    elo_wins: b.elo_wins ?? 0,
+    elo_losses: b.elo_losses ?? 0,
   }))
 
   const rankedBooks = [...booksWithElo].sort((a, b) => b.elo - a.elo)
+  const matchCount = booksWithElo.reduce((s, b) => s + (b.elo_wins ?? 0), 0)
 
   function startRanking() {
     if (booksWithElo.length < 2) return
@@ -201,39 +168,33 @@ export function Rank() {
     setView('battle')
   }
 
-  function handlePick(chosenBook, otherBook) {
+  async function handlePick(chosenBook, otherBook) {
     setWinner(chosenBook.id)
 
-    const winnerElo = chosenBook.elo
-    const loserElo = otherBook.elo
-    const { winnerNew, loserNew } = calcElo(winnerElo, loserElo)
+    const { winnerNew, loserNew } = calcElo(chosenBook.elo, otherBook.elo)
 
-    const newScores = {
-      ...eloScores,
-      [chosenBook.id]: {
-        elo: winnerNew,
-        wins: (eloScores[chosenBook.id]?.wins ?? 0) + 1,
-        losses: eloScores[chosenBook.id]?.losses ?? 0,
-      },
-      [otherBook.id]: {
-        elo: loserNew,
-        wins: eloScores[otherBook.id]?.wins ?? 0,
-        losses: (eloScores[otherBook.id]?.losses ?? 0) + 1,
-      },
+    // Optimistically update pair display, then persist to Supabase
+    try {
+      await Promise.all([
+        updateBook.mutateAsync({
+          id: chosenBook.id,
+          updates: { elo: winnerNew, elo_wins: (chosenBook.elo_wins ?? 0) + 1 },
+        }),
+        updateBook.mutateAsync({
+          id: otherBook.id,
+          updates: { elo: loserNew, elo_losses: (otherBook.elo_losses ?? 0) + 1 },
+        }),
+      ])
+    } catch {
+      toast.error('Failed to save result — check your connection')
     }
 
-    setEloScores(newScores)
-    saveElo(newScores)
-    setMatchCount(c => c + 1)
-
-    // Brief pause to show winner, then next pair
     setTimeout(() => {
-      const updatedBooks = readBooks.map(b => ({
-        ...b,
-        elo: newScores[b.id]?.elo ?? 1500,
-        wins: newScores[b.id]?.wins ?? 0,
-        losses: newScores[b.id]?.losses ?? 0,
-      }))
+      const updatedBooks = booksWithElo.map(b => {
+        if (b.id === chosenBook.id) return { ...b, elo: winnerNew, elo_wins: (b.elo_wins ?? 0) + 1 }
+        if (b.id === otherBook.id) return { ...b, elo: loserNew, elo_losses: (b.elo_losses ?? 0) + 1 }
+        return b
+      })
       const newSeen = new Set(seen)
       const nextPair = pickPair(updatedBooks, newSeen)
       setSeen(newSeen)
@@ -242,23 +203,31 @@ export function Rank() {
     }, 600)
   }
 
-  function handleStop() {
-    setView('results')
-  }
-
-  function handleReset() {
-    const cleared = {}
-    setEloScores(cleared)
-    saveElo(cleared)
-    setSeen(new Set())
-    setMatchCount(0)
-    setView('home')
+  async function handleReset() {
+    if (!confirm('Reset all rankings? This cannot be undone.')) return
+    setResetting(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const { error } = await supabase
+        .from('books')
+        .update({ elo: 1500, elo_wins: 0, elo_losses: 0 })
+        .eq('user_id', user.id)
+        .eq('status', 'read')
+      if (error) throw error
+      setSeen(new Set())
+      setView('home')
+      toast.success('Rankings reset')
+    } catch {
+      toast.error('Failed to reset rankings')
+    } finally {
+      setResetting(false)
+    }
   }
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="text-ink-400 text-sm">Loading your books...</div>
+        <Loader2 size={20} className="animate-spin text-ink-400" />
       </div>
     )
   }
@@ -283,7 +252,7 @@ export function Rank() {
         <h1 className="page-title">Rank</h1>
         {view === 'battle' && (
           <button
-            onClick={handleStop}
+            onClick={() => setView('results')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-ink-500 border border-paper-200 dark:border-ink-700 hover:bg-paper-50 dark:hover:bg-ink-800 transition-colors"
           >
             <StopCircle size={14} /> Stop
@@ -292,24 +261,13 @@ export function Rank() {
       </div>
 
       <AnimatePresence mode="wait">
-        {/* HOME */}
         {view === 'home' && (
-          <motion.div
-            key="home"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-5"
-          >
+          <motion.div key="home" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-5">
             <div className="card p-6 text-center space-y-4">
               <div className="text-5xl">⚔️</div>
               <div>
-                <h2 className="font-serif text-xl font-semibold text-ink-900 dark:text-paper-50">
-                  Head-to-Head Rankings
-                </h2>
-                <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
-                  Pick the better book in each matchup. Build your definitive ranked list.
-                </p>
+                <h2 className="font-serif text-xl font-semibold text-ink-900 dark:text-paper-50">Head-to-Head Rankings</h2>
+                <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">Pick the better book in each matchup. Build your definitive ranked list.</p>
               </div>
               <div className="flex items-center justify-center gap-6 text-sm text-ink-500">
                 <div className="text-center">
@@ -321,7 +279,7 @@ export function Rank() {
                   <p className="text-xs">matchups done</p>
                 </div>
               </div>
-              <div className="flex gap-3 justify-center">
+              <div className="flex gap-3 justify-center flex-wrap">
                 <button onClick={startRanking} className="btn-primary">
                   <Swords size={15} /> {matchCount > 0 ? 'Continue Ranking' : 'Start Ranking'}
                 </button>
@@ -332,13 +290,12 @@ export function Rank() {
                 )}
               </div>
               {matchCount > 0 && (
-                <button onClick={handleReset} className="text-xs text-ink-400 hover:text-ink-600 transition-colors">
+                <button onClick={handleReset} disabled={resetting} className="text-xs text-ink-400 hover:text-ink-600 transition-colors">
                   Reset all rankings
                 </button>
               )}
             </div>
 
-            {/* Preview top 3 if rankings exist */}
             {matchCount > 0 && (
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-widest text-ink-400">Current Top 3</p>
@@ -357,20 +314,9 @@ export function Rank() {
           </motion.div>
         )}
 
-        {/* BATTLE */}
         {view === 'battle' && pair && (
-          <motion.div
-            key="battle"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-4"
-          >
-            <p className="text-center text-xs font-semibold uppercase tracking-widest text-ink-400">
-              Which book is better?
-            </p>
-
-            {/* Cards row */}
+          <motion.div key="battle" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            <p className="text-center text-xs font-semibold uppercase tracking-widest text-ink-400">Which book is better?</p>
             <div className="flex gap-2 items-stretch">
               {pair.map((book, i) => (
                 <BattleCard
@@ -383,33 +329,23 @@ export function Rank() {
                 />
               ))}
             </div>
-
-            {/* VS divider */}
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-paper-200 dark:bg-ink-700" />
               <span className="text-xs font-bold text-ink-300 uppercase tracking-widest">VS</span>
               <div className="flex-1 h-px bg-paper-200 dark:bg-ink-700" />
             </div>
-
-            <p className="text-center text-xs text-ink-400">
-              {matchCount} matchups completed · Tap a book to choose
-            </p>
+            <p className="text-center text-xs text-ink-400">{matchCount} matchups completed · Tap a book to choose</p>
           </motion.div>
         )}
 
-        {/* RESULTS */}
         {view === 'results' && (
-          <motion.div
-            key="results"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-          >
+          <motion.div key="results" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
             <ResultsView
               rankedBooks={rankedBooks}
               matchCount={matchCount}
               onContinue={startRanking}
               onReset={handleReset}
+              resetting={resetting}
             />
           </motion.div>
         )}
