@@ -64,7 +64,7 @@ export function BookSearchModal({ open, onClose, onSelect }) {
           </div>
         )}
 
-        <div className="space-y-1 max-h-96 overflow-y-auto">
+        <div className="space-y-1 overflow-y-auto">
           {results.map(book => (
             <button
               key={book.google_books_id}
