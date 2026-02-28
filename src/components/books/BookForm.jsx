@@ -10,6 +10,53 @@ import { useAddBook } from '../../hooks/useLibrary'
 import { useUpdateBook } from '../../hooks/useLibrary'
 import { AlertTriangle } from 'lucide-react'
 
+// ── Cover presets ─────────────────────────────────────────────────────────────
+const COVER_PRESETS = [
+  { id: 'teal',    label: 'Teal',    bg: '#0F766E', text: '#CCFBF1', pattern: 'none' },
+  { id: 'navy',    label: 'Navy',    bg: '#1E3A5F', text: '#BAE6FD', pattern: 'none' },
+  { id: 'plum',    label: 'Plum',    bg: '#581C87', text: '#E9D5FF', pattern: 'none' },
+  { id: 'crimson', label: 'Crimson', bg: '#9B1C1C', text: '#FEE2E2', pattern: 'none' },
+  { id: 'forest',  label: 'Forest',  bg: '#14532D', text: '#BBF7D0', pattern: 'none' },
+  { id: 'amber',   label: 'Amber',   bg: '#92400E', text: '#FEF3C7', pattern: 'none' },
+  { id: 'slate',   label: 'Slate',   bg: '#1E293B', text: '#CBD5E1', pattern: 'none' },
+  { id: 'rose',    label: 'Rose',    bg: '#881337', text: '#FFE4E6', pattern: 'none' },
+]
+
+function makeCoverSvg(title, author, bg, textColor) {
+  const initials = (title || '?')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(w => w[0].toUpperCase())
+    .join('')
+  const authorShort = (author || '').split(' ').slice(-1)[0] || ''
+  const titleLine = (title || '').length > 22 ? (title || '').slice(0, 20) + '…' : (title || '')
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${bg}" stop-opacity="1"/>
+        <stop offset="100%" stop-color="${bg}" stop-opacity="0.75"/>
+      </linearGradient>
+      <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="${textColor}" stroke-width="0.3" stroke-opacity="0.15"/>
+      </pattern>
+    </defs>
+    <rect width="200" height="300" fill="url(#bg)"/>
+    <rect width="200" height="300" fill="url(#grid)"/>
+    <rect x="0" y="240" width="200" height="60" fill="${bg}" opacity="0.6"/>
+    <line x1="20" y1="238" x2="180" y2="238" stroke="${textColor}" stroke-width="0.8" stroke-opacity="0.4"/>
+    <text x="100" y="145" font-family="Georgia, serif" font-size="64" font-weight="bold"
+      fill="${textColor}" text-anchor="middle" dominant-baseline="middle" opacity="0.9">${initials}</text>
+    <text x="100" y="258" font-family="Georgia, serif" font-size="11" font-weight="600"
+      fill="${textColor}" text-anchor="middle" dominant-baseline="middle" opacity="0.95">${titleLine}</text>
+    <text x="100" y="278" font-family="Arial, sans-serif" font-size="9"
+      fill="${textColor}" text-anchor="middle" dominant-baseline="middle" opacity="0.6">${authorShort}</text>
+  </svg>`
+  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)))
+}
+
+
 const DEFAULT_STATUS = 'tbr'
 
 export function BookForm({ open, onClose, initialBook, editingId, editingTags }) {
@@ -92,13 +139,31 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags })
     <Modal open={open} onClose={onClose} title={editingId ? 'Edit Book' : 'Add to Library'} size="xl">
       <form onSubmit={handleSubmit}>
         <div className="flex gap-6 p-6">
-          {/* Cover preview */}
+          {/* Cover preview + presets */}
           <div className="flex-shrink-0 flex flex-col items-center gap-3">
             <BookCover book={form} size="lg" />
+            {/* Preset swatches */}
+            <div className="grid grid-cols-4 gap-1.5 w-36">
+              {COVER_PRESETS.map(p => (
+                <button
+                  key={p.id}
+                  type="button"
+                  title={p.label}
+                  onClick={() => set('cover_url', makeCoverSvg(form.title, form.author, p.bg, p.text))}
+                  className="w-7 h-7 rounded-md border-2 transition-all hover:scale-110"
+                  style={{
+                    backgroundColor: p.bg,
+                    borderColor: form.cover_url?.includes(p.bg.slice(1))
+                      ? p.text : 'transparent',
+                  }}
+                />
+              ))}
+            </div>
+            <p className="text-[10px] text-ink-400 text-center w-36">Pick a cover style</p>
             <input
-              value={form.cover_url}
+              value={form.cover_url?.startsWith('data:') ? '' : (form.cover_url || '')}
               onChange={e => set('cover_url', e.target.value)}
-              placeholder="Cover image URL"
+              placeholder="Or paste image URL"
               className="input text-xs w-36"
             />
           </div>

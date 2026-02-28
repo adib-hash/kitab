@@ -14,7 +14,7 @@ function useDebounce(value, delay) {
   return deb
 }
 
-export function BookSearchModal({ open, onClose, onSelect }) {
+export function BookSearchModal({ open, onClose, onSelect, onManual }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
@@ -64,7 +64,7 @@ export function BookSearchModal({ open, onClose, onSelect }) {
           </div>
         )}
 
-        <div className="space-y-1 overflow-y-auto">
+        <div className="space-y-1 overflow-y-auto" style={{maxHeight: "40vh"}}>
           {results.map(book => (
             <button
               key={book.google_books_id}
@@ -86,6 +86,19 @@ export function BookSearchModal({ open, onClose, onSelect }) {
             </button>
           ))}
         </div>
+      </div>
+
+        {onManual && (
+          <div className="px-4 pb-4 pt-1 text-center">
+            <button
+              type="button"
+              onClick={() => { onClose(); setQuery(''); setResults([]); onManual(); }}
+              className="text-xs text-ink-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors underline underline-offset-2"
+            >
+              Can't find it? Add manually →
+            </button>
+          </div>
+        )}
       </div>
     </Modal>
   )
