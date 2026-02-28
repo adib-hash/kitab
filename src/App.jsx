@@ -10,7 +10,7 @@ import { Library } from './pages/Library'
 import { BookDetail } from './pages/BookDetail'
 import { TBR } from './pages/TBR'
 import { Stats } from './pages/Stats'
-import { Recommendations } from './pages/Recommendations'
+import { Rank } from './pages/Rank'
 import { Settings } from './pages/Settings'
 
 const queryClient = new QueryClient({
@@ -64,7 +64,7 @@ export default function App() {
           <Route path="/library/:id" element={<ProtectedRoute session={session}><BookDetail /></ProtectedRoute>} />
           <Route path="/tbr" element={<ProtectedRoute session={session}><TBR /></ProtectedRoute>} />
           <Route path="/stats" element={<ProtectedRoute session={session}><Stats /></ProtectedRoute>} />
-          <Route path="/recommendations" element={<ProtectedRoute session={session}><Recommendations /></ProtectedRoute>} />
+          <Route path="/rank" element={<ProtectedRoute session={session}><Rank /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute session={session}><Settings /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

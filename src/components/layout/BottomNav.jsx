@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, BookOpen, BookMarked, BarChart2, Sparkles } from 'lucide-react'
+import { Home, BookOpen, BookMarked, BarChart2, Swords } from 'lucide-react'
 import { clsx } from 'clsx'
 
 const NAV_ITEMS = [
@@ -7,7 +7,7 @@ const NAV_ITEMS = [
   { path: '/library', icon: BookOpen, label: 'Library' },
   { path: '/tbr', icon: BookMarked, label: 'TBR' },
   { path: '/stats', icon: BarChart2, label: 'Stats' },
-  { path: '/recommendations', icon: Sparkles, label: 'Discover' },
+  { path: '/rank', icon: Swords, label: 'Rank' },
 ]
 
 export function BottomNav() {

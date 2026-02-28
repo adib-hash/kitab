@@ -1,0 +1,387 @@
+import { useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Trophy, Swords, StopCircle, RotateCcw, BookOpen } from 'lucide-react'
+import { useLibrary } from '../hooks/useLibrary'
+import { BookCover } from '../components/books/BookCover'
+import { Link } from 'react-router-dom'
+
+// ── ELO ──────────────────────────────────────────────────────────────────────
+const K = 32
+function calcElo(winnerElo, loserElo) {
+  const expected = 1 / (1 + Math.pow(10, (loserElo - winnerElo) / 400))
+  return {
+    winnerNew: Math.round(winnerElo + K * (1 - expected)),
+    loserNew: Math.round(loserElo + K * (0 - (1 - expected))),
+  }
+}
+
+// ── PAIR PICKER ───────────────────────────────────────────────────────────────
+function pickPair(books, seen) {
+  const sorted = [...books].sort((a, b) => b.elo - a.elo)
+  for (let t = 0; t < 200; t++) {
+    let a, b
+    if (Math.random() < 0.6 && sorted.length > 4) {
+      const i = Math.floor(Math.random() * (sorted.length - 1))
+      const offset = 1 + Math.floor(Math.random() * Math.min(5, sorted.length - i - 1))
+      a = sorted[i]
+      b = sorted[Math.min(i + offset, sorted.length - 1)]
+    } else {
+      const i = Math.floor(Math.random() * books.length)
+      let j = Math.floor(Math.random() * books.length)
+      while (j === i) j = Math.floor(Math.random() * books.length)
+      a = books[i]; b = books[j]
+    }
+    if (!a || !b || a.id === b.id) continue
+    const key = [a.id, b.id].sort().join('_')
+    if (!seen.has(key)) { seen.add(key); return [a, b] }
+  }
+  // Fallback: any unseen pair
+  return [books[0], books[1]]
+}
+
+// ── STORAGE ───────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'kitab-rank-elo-v1'
+function loadElo() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') } catch { return {} }
+}
+function saveElo(scores) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(scores)) } catch {}
+}
+
+// ── BATTLE VIEW ───────────────────────────────────────────────────────────────
+function BattleCard({ book, onClick, disabled }) {
+  return (
+    <motion.button
+      onClick={onClick}
+      disabled={disabled}
+      whileTap={{ scale: 0.97 }}
+      className="flex-1 flex flex-col items-center gap-4 p-6 rounded-2xl border-2 border-paper-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-teal-500 dark:hover:border-teal-500 hover:shadow-lg transition-all duration-150 active:border-teal-600 group cursor-pointer"
+    >
+      <div className="relative">
+        <BookCover book={book} size="xl" className="shadow-xl" />
+        <div className="absolute inset-0 rounded-md bg-teal-600/0 group-hover:bg-teal-600/10 transition-all duration-150" />
+      </div>
+      <div className="text-center space-y-1">
+        <p className="font-serif font-semibold text-ink-900 dark:text-paper-50 text-sm leading-snug line-clamp-2">
+          {book.title}
+        </p>
+        <p className="text-xs text-ink-400 dark:text-ink-500">{book.author}</p>
+      </div>
+    </motion.button>
+  )
+}
+
+// ── RESULTS VIEW ──────────────────────────────────────────────────────────────
+function ResultsView({ rankedBooks, matchCount, onContinue, onReset }) {
+  return (
+    <div className="space-y-5">
+      <div className="text-center space-y-1">
+        <div className="flex items-center justify-center gap-2">
+          <Trophy size={20} className="text-amber-500" />
+          <h2 className="font-serif text-xl font-semibold text-ink-900 dark:text-paper-50">
+            Your Rankings
+          </h2>
+        </div>
+        <p className="text-xs text-ink-500 dark:text-ink-400">{matchCount} matchups completed</p>
+      </div>
+
+      <div className="space-y-2">
+        {rankedBooks.map((book, i) => (
+          <Link
+            key={book.id}
+            to={`/library/${book.id}`}
+            className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-ink-800 border border-paper-200 dark:border-ink-700 hover:border-teal-400 transition-colors"
+          >
+            {/* Rank number */}
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+              i === 0 ? 'bg-amber-400 text-amber-900' :
+              i === 1 ? 'bg-slate-300 text-slate-700' :
+              i === 2 ? 'bg-amber-700 text-amber-100' :
+              'bg-paper-100 dark:bg-ink-700 text-ink-500 dark:text-ink-400'
+            }`}>
+              {i + 1}
+            </div>
+            <BookCover book={book} size="sm" className="flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-ink-900 dark:text-paper-50 truncate">{book.title}</p>
+              <p className="text-xs text-ink-400 truncate">{book.author}</p>
+            </div>
+            <div className="text-right flex-shrink-0">
+              <p className="text-xs font-mono text-ink-400">{book.elo}</p>
+              <p className="text-[10px] text-ink-300">{book.wins}W / {book.losses}L</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      <div className="flex gap-3 pt-2">
+        <button onClick={onContinue} className="btn-primary flex-1 justify-center">
+          <Swords size={15} /> Keep Ranking
+        </button>
+        <button
+          onClick={onReset}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-paper-200 dark:border-ink-700 text-ink-500 text-sm hover:bg-paper-50 dark:hover:bg-ink-800 transition-colors"
+        >
+          <RotateCcw size={14} /> Reset
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── MAIN COMPONENT ────────────────────────────────────────────────────────────
+export function Rank() {
+  const { data: books = [], isLoading } = useLibrary()
+  const [view, setView] = useState('home') // home | battle | results
+  const [eloScores, setEloScores] = useState({})
+  const [seen, setSeen] = useState(new Set())
+  const [pair, setPair] = useState(null)
+  const [matchCount, setMatchCount] = useState(0)
+  const [winner, setWinner] = useState(null)
+
+  const readBooks = books.filter(b => b.status === 'read')
+
+  // Load saved ELO scores on mount
+  useEffect(() => {
+    setEloScores(loadElo())
+  }, [])
+
+  // Merge books with ELO scores
+  const booksWithElo = readBooks.map(b => ({
+    ...b,
+    elo: eloScores[b.id]?.elo ?? 1500,
+    wins: eloScores[b.id]?.wins ?? 0,
+    losses: eloScores[b.id]?.losses ?? 0,
+  }))
+
+  const rankedBooks = [...booksWithElo].sort((a, b) => b.elo - a.elo)
+
+  function startRanking() {
+    if (booksWithElo.length < 2) return
+    const newSeen = new Set(seen)
+    const nextPair = pickPair(booksWithElo, newSeen)
+    setSeen(newSeen)
+    setPair(nextPair)
+    setWinner(null)
+    setView('battle')
+  }
+
+  function handlePick(chosenBook, otherBook) {
+    setWinner(chosenBook.id)
+
+    const winnerElo = chosenBook.elo
+    const loserElo = otherBook.elo
+    const { winnerNew, loserNew } = calcElo(winnerElo, loserElo)
+
+    const newScores = {
+      ...eloScores,
+      [chosenBook.id]: {
+        elo: winnerNew,
+        wins: (eloScores[chosenBook.id]?.wins ?? 0) + 1,
+        losses: eloScores[chosenBook.id]?.losses ?? 0,
+      },
+      [otherBook.id]: {
+        elo: loserNew,
+        wins: eloScores[otherBook.id]?.wins ?? 0,
+        losses: (eloScores[otherBook.id]?.losses ?? 0) + 1,
+      },
+    }
+
+    setEloScores(newScores)
+    saveElo(newScores)
+    setMatchCount(c => c + 1)
+
+    // Brief pause to show winner, then next pair
+    setTimeout(() => {
+      const updatedBooks = readBooks.map(b => ({
+        ...b,
+        elo: newScores[b.id]?.elo ?? 1500,
+        wins: newScores[b.id]?.wins ?? 0,
+        losses: newScores[b.id]?.losses ?? 0,
+      }))
+      const newSeen = new Set(seen)
+      const nextPair = pickPair(updatedBooks, newSeen)
+      setSeen(newSeen)
+      setPair(nextPair)
+      setWinner(null)
+    }, 600)
+  }
+
+  function handleStop() {
+    setView('results')
+  }
+
+  function handleReset() {
+    const cleared = {}
+    setEloScores(cleared)
+    saveElo(cleared)
+    setSeen(new Set())
+    setMatchCount(0)
+    setView('home')
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-ink-400 text-sm">Loading your books...</div>
+      </div>
+    )
+  }
+
+  if (readBooks.length < 2) {
+    return (
+      <div className="space-y-4">
+        <h1 className="page-title">Rank</h1>
+        <div className="card p-10 text-center space-y-3">
+          <BookOpen size={36} className="mx-auto text-ink-300" />
+          <p className="font-medium text-ink-700 dark:text-ink-300">Not enough books yet</p>
+          <p className="text-sm text-ink-500">Mark at least 2 books as Read to start ranking.</p>
+          <Link to="/library" className="btn-primary inline-flex mx-auto">Go to Library</Link>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <h1 className="page-title">Rank</h1>
+        {view === 'battle' && (
+          <button
+            onClick={handleStop}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-ink-500 border border-paper-200 dark:border-ink-700 hover:bg-paper-50 dark:hover:bg-ink-800 transition-colors"
+          >
+            <StopCircle size={14} /> Stop
+          </button>
+        )}
+      </div>
+
+      <AnimatePresence mode="wait">
+        {/* HOME */}
+        {view === 'home' && (
+          <motion.div
+            key="home"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-5"
+          >
+            <div className="card p-6 text-center space-y-4">
+              <div className="text-5xl">⚔️</div>
+              <div>
+                <h2 className="font-serif text-xl font-semibold text-ink-900 dark:text-paper-50">
+                  Head-to-Head Rankings
+                </h2>
+                <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
+                  Pick the better book in each matchup. Build your definitive ranked list.
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-6 text-sm text-ink-500">
+                <div className="text-center">
+                  <p className="font-semibold text-ink-900 dark:text-paper-50 text-lg">{readBooks.length}</p>
+                  <p className="text-xs">books to rank</p>
+                </div>
+                <div className="text-center">
+                  <p className="font-semibold text-ink-900 dark:text-paper-50 text-lg">{matchCount}</p>
+                  <p className="text-xs">matchups done</p>
+                </div>
+              </div>
+              <div className="flex gap-3 justify-center">
+                <button onClick={startRanking} className="btn-primary">
+                  <Swords size={15} /> {matchCount > 0 ? 'Continue Ranking' : 'Start Ranking'}
+                </button>
+                {matchCount > 0 && (
+                  <button onClick={() => setView('results')} className="btn-secondary">
+                    <Trophy size={15} /> See Rankings
+                  </button>
+                )}
+              </div>
+              {matchCount > 0 && (
+                <button onClick={handleReset} className="text-xs text-ink-400 hover:text-ink-600 transition-colors">
+                  Reset all rankings
+                </button>
+              )}
+            </div>
+
+            {/* Preview top 3 if rankings exist */}
+            {matchCount > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-widest text-ink-400">Current Top 3</p>
+                {rankedBooks.slice(0, 3).map((book, i) => (
+                  <div key={book.id} className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-ink-800 border border-paper-200 dark:border-ink-700">
+                    <span className="text-lg">{['🥇','🥈','🥉'][i]}</span>
+                    <BookCover book={book} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-ink-900 dark:text-paper-50 truncate">{book.title}</p>
+                      <p className="text-xs text-ink-400 truncate">{book.author}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* BATTLE */}
+        {view === 'battle' && pair && (
+          <motion.div
+            key="battle"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="space-y-4"
+          >
+            <div className="text-center">
+              <p className="text-xs font-semibold uppercase tracking-widest text-ink-400">Which book is better?</p>
+              <p className="text-xs text-ink-300 mt-0.5">Match #{matchCount + 1}</p>
+            </div>
+
+            <div className="flex gap-3">
+              {pair.map((book, i) => (
+                <motion.div
+                  key={book.id}
+                  animate={winner === book.id ? { scale: 1.03, borderColor: '#0d9488' } : winner && winner !== book.id ? { opacity: 0.5 } : {}}
+                  transition={{ duration: 0.2 }}
+                  className="flex-1"
+                >
+                  <BattleCard
+                    book={book}
+                    onClick={() => !winner && handlePick(book, pair[1 - i])}
+                    disabled={!!winner}
+                  />
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-paper-200 dark:bg-ink-700" />
+              <span className="text-xs font-bold text-ink-300 uppercase tracking-widest">VS</span>
+              <div className="flex-1 h-px bg-paper-200 dark:bg-ink-700" />
+            </div>
+
+            <div className="text-center">
+              <p className="text-xs text-ink-400">{matchCount} matchups completed · Tap a book to choose</p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* RESULTS */}
+        {view === 'results' && (
+          <motion.div
+            key="results"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+          >
+            <ResultsView
+              rankedBooks={rankedBooks}
+              matchCount={matchCount}
+              onContinue={startRanking}
+              onReset={handleReset}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
