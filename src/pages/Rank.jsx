@@ -49,23 +49,58 @@ function saveElo(scores) {
 }
 
 // ── BATTLE VIEW ───────────────────────────────────────────────────────────────
-function BattleCard({ book, onClick, disabled }) {
+function BattleCard({ book, onClick, disabled, isWinner, isLoser }) {
   return (
     <motion.button
       onClick={onClick}
       disabled={disabled}
-      whileTap={{ scale: 0.97 }}
-      className="flex-1 flex flex-col items-center gap-4 p-6 rounded-2xl border-2 border-paper-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-teal-500 dark:hover:border-teal-500 hover:shadow-lg transition-all duration-150 active:border-teal-600 group cursor-pointer"
+      whileTap={!disabled ? { scale: 0.97 } : {}}
+      animate={
+        isWinner ? { scale: 1.03 } :
+        isLoser  ? { opacity: 0.45, scale: 0.97 } : {}
+      }
+      transition={{ duration: 0.2 }}
+      className="flex-1 flex flex-col items-center rounded-2xl border-2 overflow-hidden transition-colors duration-150 cursor-pointer group"
+      style={{
+        borderColor: isWinner ? '#0d9488' : undefined,
+        background: 'transparent',
+        border: isWinner ? '2px solid #0d9488' : '2px solid transparent',
+      }}
     >
-      <div className="relative">
-        <BookCover book={book} size="xl" className="shadow-xl" />
-        <div className="absolute inset-0 rounded-md bg-teal-600/0 group-hover:bg-teal-600/10 transition-all duration-150" />
+      {/* Fixed-size cover area — same height for both cards always */}
+      <div
+        className="w-full relative bg-ink-900 flex items-center justify-center"
+        style={{ height: '52vw', maxHeight: 300 }}
+      >
+        {book.cover_url ? (
+          <img
+            src={book.cover_url}
+            alt={book.title}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div
+            className="h-full w-full flex items-center justify-center font-serif font-bold text-white text-4xl"
+            style={{ backgroundColor: '#2d6a6a' }}
+          >
+            {book.title.slice(0, 2).toUpperCase()}
+          </div>
+        )}
+        {/* Hover teal overlay */}
+        <div className="absolute inset-0 bg-teal-500/0 group-hover:bg-teal-500/10 transition-all duration-150" />
+        {isWinner && (
+          <div className="absolute inset-0 flex items-center justify-center bg-teal-900/30">
+            <span className="text-4xl">✓</span>
+          </div>
+        )}
       </div>
-      <div className="text-center space-y-1">
+
+      {/* Title block — fixed height so both cards stay aligned */}
+      <div className="w-full px-3 py-3 text-center" style={{ minHeight: 64 }}>
         <p className="font-serif font-semibold text-ink-900 dark:text-paper-50 text-sm leading-snug line-clamp-2">
           {book.title}
         </p>
-        <p className="text-xs text-ink-400 dark:text-ink-500">{book.author}</p>
+        <p className="text-xs text-ink-400 dark:text-ink-500 mt-0.5 truncate">{book.author}</p>
       </div>
     </motion.button>
   )
@@ -331,37 +366,34 @@ export function Rank() {
             exit={{ opacity: 0 }}
             className="space-y-4"
           >
-            <div className="text-center">
-              <p className="text-xs font-semibold uppercase tracking-widest text-ink-400">Which book is better?</p>
-              <p className="text-xs text-ink-300 mt-0.5">Match #{matchCount + 1}</p>
-            </div>
+            <p className="text-center text-xs font-semibold uppercase tracking-widest text-ink-400">
+              Which book is better?
+            </p>
 
-            <div className="flex gap-3">
+            {/* Cards row */}
+            <div className="flex gap-2 items-stretch">
               {pair.map((book, i) => (
-                <motion.div
+                <BattleCard
                   key={book.id}
-                  animate={winner === book.id ? { scale: 1.03, borderColor: '#0d9488' } : winner && winner !== book.id ? { opacity: 0.5 } : {}}
-                  transition={{ duration: 0.2 }}
-                  className="flex-1"
-                >
-                  <BattleCard
-                    book={book}
-                    onClick={() => !winner && handlePick(book, pair[1 - i])}
-                    disabled={!!winner}
-                  />
-                </motion.div>
+                  book={book}
+                  onClick={() => !winner && handlePick(book, pair[1 - i])}
+                  disabled={!!winner}
+                  isWinner={winner === book.id}
+                  isLoser={!!winner && winner !== book.id}
+                />
               ))}
             </div>
 
+            {/* VS divider */}
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-paper-200 dark:bg-ink-700" />
               <span className="text-xs font-bold text-ink-300 uppercase tracking-widest">VS</span>
               <div className="flex-1 h-px bg-paper-200 dark:bg-ink-700" />
             </div>
 
-            <div className="text-center">
-              <p className="text-xs text-ink-400">{matchCount} matchups completed · Tap a book to choose</p>
-            </div>
+            <p className="text-center text-xs text-ink-400">
+              {matchCount} matchups completed · Tap a book to choose
+            </p>
           </motion.div>
         )}
 
