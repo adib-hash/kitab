@@ -32,11 +32,16 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-paper-50 text-ink-900 font-sans;
     min-height: 100vh;
+    overflow-x: hidden;
+    /* Native momentum scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
   }
 
   .dark body {
@@ -142,4 +147,44 @@
 .dark .skeleton {
   background: linear-gradient(90deg, #292524 25%, #44403C 50%, #292524 75%);
   background-size: 200% 100%;
+}
+
+/* Dark mode hover overrides (can't use stacked variants in @apply) */
+.dark .btn-ghost:hover {
+  background-color: rgb(68 64 60); /* ink-800 */
+  color: rgb(250 247 242);         /* paper-50 */
+}
+.dark .btn-secondary:hover {
+  background-color: rgb(68 64 60); /* ink-800 */
+}
+
+/* ── Mobile performance ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Prevent ANY element from causing horizontal scroll */
+  * {
+    max-width: 100%;
+  }
+
+  /* GPU-accelerate cards and interactive elements for smooth paint */
+  .card {
+    transform: translateZ(0);
+    will-change: auto;
+  }
+
+  /* Faster tap response - remove 300ms click delay */
+  a, button, [role="button"] {
+    touch-action: manipulation;
+  }
+
+  /* Prevent text from breaking layout */
+  p, h1, h2, h3, span {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Smoother image rendering */
+  img {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
 }
