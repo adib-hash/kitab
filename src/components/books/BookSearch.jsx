@@ -86,7 +86,6 @@ export function BookSearchModal({ open, onClose, onSelect, onManual }) {
             </button>
           ))}
         </div>
-      </div>
 
         {onManual && (
           <div className="px-4 pb-4 pt-1 text-center">
