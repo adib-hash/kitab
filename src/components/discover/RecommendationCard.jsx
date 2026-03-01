@@ -3,7 +3,7 @@ import { BookmarkPlus, Check, Star, Loader2 } from 'lucide-react'
 import { useAddBook } from '../../hooks/useLibrary'
 import { motion } from 'framer-motion'
 
-export function RecommendationCard({ book, index = 0, inLibrary = false }) {
+export function RecommendationCard({ book, index = 0, inLibrary = false, onClick }) {
   const addBook = useAddBook()
   const [added, setAdded] = useState(inLibrary)
 
@@ -34,7 +34,8 @@ export function RecommendationCard({ book, index = 0, inLibrary = false }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.3 }}
-      className="flex flex-col gap-2.5 group"
+      className="flex flex-col gap-2.5 group cursor-pointer"
+      onClick={() => onClick?.(book)}
     >
       {/* Cover */}
       <div className="relative overflow-hidden rounded-lg shadow-book group-hover:shadow-book-hover transition-all duration-200 group-hover:-translate-y-0.5">
@@ -43,10 +44,13 @@ export function RecommendationCard({ book, index = 0, inLibrary = false }) {
             src={book.cover_url}
             alt={book.title}
             className="w-full object-cover book-cover"
-            onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
+            onError={e => {
+              e.target.style.display = 'none'
+              e.target.nextSibling.style.display = 'flex'
+            }}
           />
         ) : null}
-        {/* Fallback */}
+        {/* Fallback cover */}
         <div
           className="book-cover w-full flex items-center justify-center rounded-lg text-2xl font-serif font-bold text-white"
           style={{
@@ -57,7 +61,10 @@ export function RecommendationCard({ book, index = 0, inLibrary = false }) {
           {book.title.slice(0, 2).toUpperCase()}
         </div>
 
-        {/* Add to TBR button overlay */}
+        {/* Hover overlay */}
+        <div className="absolute inset-0 bg-ink-900/0 group-hover:bg-ink-900/20 transition-all duration-200 rounded-lg" />
+
+        {/* Add to TBR */}
         <button
           onClick={handleAdd}
           disabled={added}

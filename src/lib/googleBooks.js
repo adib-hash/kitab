@@ -36,12 +36,13 @@ export function mapGoogleBook(volume) {
 /**
  * Search books by query string
  */
-export async function searchBooks(query, maxResults = 15) {
+export async function searchBooks(query, maxResults = 15, startIndex = 0) {
   if (!query?.trim()) return []
 
   const params = new URLSearchParams({
     q: query,
     maxResults,
+    startIndex,
     printType: 'books',
     ...(API_KEY && { key: API_KEY }),
   })

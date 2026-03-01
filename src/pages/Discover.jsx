@@ -8,16 +8,15 @@ import { Link } from 'react-router-dom'
 
 export function Discover() {
   const { data: books = [], isLoading: libraryLoading } = useLibrary()
+  const authorRecs  = useAuthorRecs()
+  const genreRecs   = useGenreRecs()
+  const stretchRecs = useStretchRecs()
 
-  // Build set of library titles for deduplication
+  // Library title set for in-library badge on cards
   const libraryTitles = useMemo(
     () => new Set(books.map(b => b.title.toLowerCase().trim())),
     [books]
   )
-
-  const authorRecs = useAuthorRecs(libraryTitles)
-  const genreRecs  = useGenreRecs(libraryTitles)
-  const stretchRecs = useStretchRecs(libraryTitles)
 
   const readBooks = books.filter(b => b.status === 'read')
 
@@ -46,12 +45,7 @@ export function Discover() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="space-y-10"
-    >
-      {/* Header */}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
       <div>
         <h1 className="page-title">Discover</h1>
         <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
@@ -59,7 +53,6 @@ export function Discover() {
         </p>
       </div>
 
-      {/* Section 1: Author recs */}
       <DiscoverSection
         title="More from authors you love"
         subtitle={
@@ -77,7 +70,6 @@ export function Discover() {
 
       <div className="border-t border-paper-200 dark:border-ink-700" />
 
-      {/* Section 2: Genre recs */}
       <DiscoverSection
         title="In your wheelhouse"
         subtitle={
@@ -95,7 +87,6 @@ export function Discover() {
 
       <div className="border-t border-paper-200 dark:border-ink-700" />
 
-      {/* Section 3: Stretch picks */}
       <DiscoverSection
         title="Stretch picks"
         subtitle="Award winners and hidden gems outside your usual"
