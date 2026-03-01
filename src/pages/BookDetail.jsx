@@ -20,6 +20,7 @@ export function BookDetail() {
   const deleteBook = useDeleteBook()
   const [editOpen, setEditOpen] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
+  const [descOpen, setDescOpen] = useState(false)
 
   if (isLoading) {
     return (
@@ -154,15 +155,7 @@ export function BookDetail() {
             >
               <ExternalLink size={12} /> Goodreads
             </a>
-            {book.isbn && (
-              <a
-                href={`https://www.worldcat.org/isbn/${book.isbn}`}
-                target="_blank" rel="noopener noreferrer"
-                className="btn-ghost text-xs"
-              >
-                <ExternalLink size={12} /> Worldcat
-              </a>
-            )}
+
           </div>
 
           {/* Actions */}
@@ -209,8 +202,26 @@ export function BookDetail() {
       {/* Description */}
       {book.description && (
         <div className="card p-6">
-          <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 mb-3">About this book</h2>
-          <p className="text-sm text-ink-700 dark:text-ink-300 leading-relaxed line-clamp-6">{book.description}</p>
+          <button
+            onClick={() => setDescOpen(o => !o)}
+            className="w-full flex items-center justify-between mb-3 group"
+          >
+            <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50">About this book</h2>
+            <span className="text-ink-400 group-hover:text-ink-600 dark:group-hover:text-ink-300 transition-colors">
+              {descOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </span>
+          </button>
+          <p className={"text-sm text-ink-700 dark:text-ink-300 leading-relaxed " + (descOpen ? "" : "line-clamp-3")}>
+            {book.description}
+          </p>
+          {!descOpen && book.description.length > 200 && (
+            <button
+              onClick={() => setDescOpen(true)}
+              className="mt-2 text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium"
+            >
+              Show more
+            </button>
+          )}
         </div>
       )}
 

@@ -22,7 +22,7 @@ export function Stats() {
   const readBooks = books.filter(b => b.status === 'read')
 
   if (isLoading) return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 gap-3">
       {[...Array(8)].map((_, i) => <div key={i} className="h-24 skeleton rounded-xl" />)}
     </div>
   )
@@ -47,13 +47,13 @@ export function Stats() {
       <h1 className="page-title">Statistics</h1>
 
       {/* Key metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <StatCard label="Books Read" value={stats.totalRead} icon="📚" sub="all time" />
         <StatCard label="Pages Read" value={stats.totalPages.toLocaleString()} icon="📄" sub="all time" />
         <StatCard label="Avg Rating" value={stats.avgRating ? `${stats.avgRating} ★` : null} icon="⭐" />
         <StatCard label="Avg Pace" value={stats.avgDays ? `${stats.avgDays}d` : null} icon="⏱" sub="per book" />
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <StatCard label="Read This Year" value={stats.booksThisYear} icon="📅" sub={String(thisYear)} />
         <StatCard
           label="Longest Book"
@@ -112,7 +112,7 @@ export function Stats() {
             )}
           </div>
         ) : (
-          <p className="text-sm text-ink-500">Set a reading goal to track your progress for {thisYear}.</p>
+          <p className="text-sm text-ink-500 dark:text-ink-400">Set a reading goal to track your progress for {thisYear}.</p>
         )}
       </div>
 

@@ -35,7 +35,7 @@ function SortableBook({ book }) {
   return (
     <div ref={setNodeRef} style={style} className="flex items-center gap-3 p-3 bg-white dark:bg-ink-800 rounded-xl border border-paper-200 dark:border-ink-700">
       {/* Drag handle */}
-      <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-ink-300 hover:text-ink-500 touch-none flex-shrink-0 p-1">
+      <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-ink-300 dark:text-ink-600 hover:text-ink-500 dark:hover:text-ink-400 touch-none flex-shrink-0 p-1">
         <GripVertical size={16} />
       </button>
 
@@ -47,7 +47,7 @@ function SortableBook({ book }) {
         <Link to={`/library/${book.id}`} className="font-medium text-sm text-ink-900 dark:text-paper-50 hover:text-teal-700 truncate block leading-snug">
           {book.title}
         </Link>
-        <p className="text-xs text-ink-500 truncate">{book.author}</p>
+        <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
       </div>
 
       {/* Actions — always visible on mobile */}

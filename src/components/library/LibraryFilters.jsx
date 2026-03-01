@@ -16,7 +16,6 @@ const SORT_OPTIONS = [
 const STATUS_OPTIONS = [
   { value: 'read', label: 'Read' },
   { value: 'reading', label: 'Currently Reading' },
-  { value: 'tbr', label: 'To Be Read' },
   { value: 'dnf', label: 'Did Not Finish' },
 ]
 

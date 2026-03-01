@@ -96,8 +96,8 @@ export function Dashboard() {
         ) : currentlyReading.length === 0 ? (
           <div className="card p-6 text-center">
             <BookOpen size={28} className="mx-auto mb-2 text-ink-300" />
-            <p className="text-sm text-ink-500">You're not reading anything right now.</p>
-            <button onClick={() => setSearchOpen(true)} className="btn-ghost mt-2 text-teal-700 text-sm">
+            <p className="text-sm text-ink-500 dark:text-ink-400">You're not reading anything right now.</p>
+            <button onClick={() => setSearchOpen(true)} className="btn-ghost mt-2 text-teal-700 dark:text-teal-400 text-sm">
               Start a book →
             </button>
           </div>
@@ -109,7 +109,7 @@ export function Dashboard() {
                 {book.page_count && book.current_page && (
                   <div>
                     <ProgressBar value={book.current_page} max={book.page_count} className="h-1" />
-                    <p className="text-[10px] text-ink-400 mt-1">p.{book.current_page}/{book.page_count}</p>
+                    <p className="text-[10px] text-ink-400 dark:text-ink-500 mt-1">p.{book.current_page}/{book.page_count}</p>
                   </div>
                 )}
               </div>

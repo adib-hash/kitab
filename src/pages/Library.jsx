@@ -33,7 +33,7 @@ export function Library() {
   const [selectedBook, setSelectedBook] = useState(null)
 
   const filtered = useMemo(() => {
-    let result = books
+    let result = books.filter(b => b.status !== "tbr")
     if (librarySearch.trim()) {
       const q = librarySearch.toLowerCase()
       result = result.filter(b => b.title.toLowerCase().includes(q) || (b.author || '').toLowerCase().includes(q))
@@ -104,7 +104,7 @@ export function Library() {
           {[...Array(12)].map((_, i) => <BookCardSkeleton key={i} />)}
         </div>
       ) : filtered.length === 0 ? (
-        <EmptyState icon="🔍" title="No books found" description="Try adjusting your filters or search." />
+        <EmptyState icon="🔍" title="No books found" description="Try adjusting your filters or add books to your library." />
       ) : libraryView === 'grid' ? (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
           {filtered.map((book, i) => <BookCard key={book.id} book={book} index={i} />)}

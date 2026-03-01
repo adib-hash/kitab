@@ -179,7 +179,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags })
                   className={`px-4 py-2 text-sm font-medium capitalize transition-colors -mb-px border-b-2 ${
                     tab === t
                       ? 'border-teal-600 text-teal-700 dark:text-teal-400'
-                      : 'border-transparent text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'
+                      : 'border-transparent text-ink-500 dark:text-ink-400 hover:text-ink-700 dark:hover:text-ink-300'
                   }`}
                 >
                   {t}

@@ -124,7 +124,7 @@ function EnrichLibrary({ books }) {
           <div className="w-full bg-paper-200 dark:bg-ink-700 rounded-full h-2">
             <div className="bg-teal-600 h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
           </div>
-          <p className="text-xs text-ink-400">{progress}% complete</p>
+          <p className="text-xs text-ink-400 dark:text-ink-500">{progress}% complete</p>
         </div>
       )}
 
@@ -152,7 +152,7 @@ function EnrichLibrary({ books }) {
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-ink-900 dark:text-paper-50 truncate">{book.title}</p>
-                  <p className="text-xs text-ink-500 truncate">{book.author}</p>
+                  <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
                   {hasUpdates && (
                     <p className="text-xs text-teal-600 dark:text-teal-400 mt-0.5">
                       Adding: {Object.keys(updates).join(', ').replace(/_/g, ' ')}
@@ -162,7 +162,7 @@ function EnrichLibrary({ books }) {
                 {hasUpdates ? (
                   <CheckCircle size={16} className="text-teal-600 flex-shrink-0" />
                 ) : (
-                  <XCircle size={16} className="text-ink-300 flex-shrink-0" />
+                  <XCircle size={16} className="text-ink-300 dark:text-ink-600 flex-shrink-0" />
                 )}
               </div>
             ))}
@@ -301,7 +301,7 @@ export function Settings() {
           <Tag size={18} className="text-teal-600" /> Manage Tags
         </h2>
         {tags.length === 0 ? (
-          <p className="text-sm text-ink-500">No tags yet. Tags are created when you add them to books.</p>
+          <p className="text-sm text-ink-500 dark:text-ink-400">No tags yet. Tags are created when you add them to books.</p>
         ) : (
           <div className="divide-y divide-paper-100 dark:divide-ink-700">
             {tags.map(tag => (
