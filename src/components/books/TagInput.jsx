@@ -68,7 +68,7 @@ export function TagInput({ selectedTagIds = [], onChange }) {
               key={tag.id}
               type="button"
               onClick={() => addTag(tag)}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-ink-800 dark:text-ink-200 hover:bg-paper-50 dark:hover:bg-ink-700 transition-colors text-left"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-ink-800 dark:text-ink-300 hover:bg-paper-50 dark:hover:bg-ink-700 transition-colors text-left"
             >
               <span className="tag-pill">{tag.name}</span>
             </button>

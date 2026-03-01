@@ -14,7 +14,7 @@ function TagRow({ tag, onEdit, onDelete }) {
   return (
     <div className="flex items-center gap-3 py-2.5 px-4 group hover:bg-paper-50 dark:hover:bg-ink-800 rounded-xl transition-colors">
       <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: tag.color }} />
-      <span className="flex-1 text-sm text-ink-800 dark:text-ink-200">{tag.name}</span>
+      <span className="flex-1 text-sm text-ink-800 dark:text-ink-300">{tag.name}</span>
       <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
         <button onClick={() => onEdit(tag)} className="p-1.5 rounded-lg hover:bg-paper-200 dark:hover:bg-ink-700 text-ink-500">
           <Edit2 size={13} />
@@ -131,7 +131,7 @@ function EnrichLibrary({ books }) {
       {status === 'done' && results.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-ink-800 dark:text-ink-200">
+            <p className="text-sm font-medium text-ink-800 dark:text-ink-300">
               Found data for {results.filter(r => r.hasUpdates).length} of {results.length} books
             </p>
             <div className="flex gap-2">

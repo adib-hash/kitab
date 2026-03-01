@@ -67,7 +67,7 @@ export function Dashboard() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Target size={15} className="text-amber-600" />
-              <p className="font-medium text-sm text-ink-800 dark:text-ink-200">{thisYear} Reading Goal</p>
+              <p className="font-medium text-sm text-ink-800 dark:text-ink-300">{thisYear} Reading Goal</p>
             </div>
             <p className="text-sm font-semibold text-ink-900 dark:text-paper-50">
               {booksThisYear} / {goal.target}
