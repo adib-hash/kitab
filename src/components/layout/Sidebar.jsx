@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { BookOpen, List, BarChart2, Swords, Settings, Moon, Sun, ChevronLeft, BookMarked, Home, Search } from 'lucide-react'
+import { BookOpen, List, BarChart2, Swords, Settings, Moon, Sun, ChevronLeft, BookMarked, Home, Search, Compass } from 'lucide-react'
 import { useUIStore } from '../../store/uiStore'
 import { useTags } from '../../hooks/useTags'
 import { clsx } from 'clsx'
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { path: '/tbr', icon: BookMarked, label: 'To Be Read' },
   { path: '/stats', icon: BarChart2, label: 'Statistics' },
   { path: '/rank', icon: Swords, label: 'Rank' },
+  { path: '/discover', icon: Compass, label: 'Discover' },
   { path: '/settings', icon: Settings, label: 'Settings' },
 ]
 

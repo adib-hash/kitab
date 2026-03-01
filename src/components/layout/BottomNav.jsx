@@ -1,12 +1,12 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, BookOpen, BookMarked, BarChart2, Swords } from 'lucide-react'
+import { Home, BookOpen, BookMarked, Compass, Swords } from 'lucide-react'
 import { clsx } from 'clsx'
 
 const NAV_ITEMS = [
   { path: '/', icon: Home, label: 'Home' },
   { path: '/library', icon: BookOpen, label: 'Library' },
   { path: '/tbr', icon: BookMarked, label: 'TBR' },
-  { path: '/stats', icon: BarChart2, label: 'Stats' },
+  { path: '/discover', icon: Compass, label: 'Discover' },
   { path: '/rank', icon: Swords, label: 'Rank' },
 ]
 
@@ -14,8 +14,10 @@ export function BottomNav() {
   const location = useLocation()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-ink-900 border-t border-paper-200 dark:border-ink-700 flex items-stretch md:hidden"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-ink-900 border-t border-paper-200 dark:border-ink-700 flex items-stretch md:hidden"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
       {NAV_ITEMS.map(item => {
         const active = item.path === '/'
           ? location.pathname === '/'

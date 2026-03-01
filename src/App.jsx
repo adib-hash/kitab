@@ -12,6 +12,7 @@ import { TBR } from './pages/TBR'
 import { Stats } from './pages/Stats'
 import { Rank } from './pages/Rank'
 import { Settings } from './pages/Settings'
+import { Discover } from './pages/Discover'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,6 +67,7 @@ export default function App() {
           <Route path="/stats" element={<ProtectedRoute session={session}><Stats /></ProtectedRoute>} />
           <Route path="/rank" element={<ProtectedRoute session={session}><Rank /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute session={session}><Settings /></ProtectedRoute>} />
+          <Route path="/discover" element={<ProtectedRoute session={session}><Discover /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
