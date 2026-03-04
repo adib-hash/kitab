@@ -174,18 +174,18 @@ export function QueryFlow({ library, onComplete }) {
             <p className="text-sm font-medium text-ink-700 dark:text-ink-300">
               What are you looking for?
             </p>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 divide-y divide-paper-200 dark:divide-ink-700">
               {MODES.map(mode => (
                 <button
                   key={mode.id}
                   onClick={() => { setSelectedMode(mode.id); setStep('input') }}
-                  className="flex items-center gap-3 p-3.5 rounded-xl border border-paper-200 dark:border-ink-600 bg-white dark:bg-ink-700 hover:border-teal-500 dark:hover:border-teal-500 hover:bg-teal-50/30 dark:hover:bg-teal-900/20 transition-all text-left group"
+                  className="flex items-center gap-3 py-3 text-left group hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
                 >
-                  <span className="text-xl w-8 text-center">{mode.emoji}</span>
-                  <span className="text-sm font-medium text-ink-800 dark:text-ink-200 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
+                  <span className="text-lg w-7 text-center flex-shrink-0">{mode.emoji}</span>
+                  <span className="text-sm font-medium text-paper-900 dark:text-paper-50 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
                     {mode.label}
                   </span>
-                  <ArrowRight size={14} className="ml-auto text-ink-300 group-hover:text-teal-500 transition-colors" />
+                  <ArrowRight size={13} className="ml-auto text-ink-400 group-hover:text-teal-500 dark:group-hover:text-teal-400 transition-colors flex-shrink-0" />
                 </button>
               ))}
             </div>
