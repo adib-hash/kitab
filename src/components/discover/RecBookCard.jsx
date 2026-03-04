@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { BookmarkPlus, Check, Loader2 } from 'lucide-react'
+import { BookmarkPlus, Check, Loader2, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAddBook } from '../../hooks/useLibrary'
 
-export function RecBookCard({ book, index = 0, inLibrary = false, onClick }) {
+export function RecBookCard({ book, index = 0, inLibrary = false, onClick, onDelete }) {
   const addBook = useAddBook()
   const [added, setAdded] = useState(inLibrary)
 
@@ -63,25 +63,36 @@ export function RecBookCard({ book, index = 0, inLibrary = false, onClick }) {
         )}
       </div>
 
-      {/* Add to TBR */}
-      <button
-        onClick={handleAdd}
-        disabled={added}
-        className={`flex-shrink-0 self-start mt-0.5 p-1.5 rounded-lg transition-all ${
-          added
-            ? 'bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400'
-            : 'text-ink-300 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20 dark:hover:text-teal-400'
-        }`}
-        title={added ? 'In your TBR' : 'Add to TBR'}
-      >
-        {addBook.isPending ? (
-          <Loader2 size={14} className="animate-spin" />
-        ) : added ? (
-          <Check size={14} />
-        ) : (
-          <BookmarkPlus size={14} />
+      {/* Actions */}
+      <div className="flex flex-col gap-1 flex-shrink-0 self-start mt-0.5">
+        <button
+          onClick={handleAdd}
+          disabled={added}
+          className={`p-1.5 rounded-lg transition-all ${
+            added
+              ? 'bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400'
+              : 'text-ink-300 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20 dark:hover:text-teal-400'
+          }`}
+          title={added ? 'In your TBR' : 'Add to TBR'}
+        >
+          {addBook.isPending ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : added ? (
+            <Check size={14} />
+          ) : (
+            <BookmarkPlus size={14} />
+          )}
+        </button>
+        {onDelete && (
+          <button
+            onClick={e => { e.stopPropagation(); onDelete() }}
+            className="p-1.5 rounded-lg text-ink-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
+            title="Remove this recommendation"
+          >
+            <X size={14} />
+          </button>
         )}
-      </button>
+      </div>
     </motion.div>
   )
 }

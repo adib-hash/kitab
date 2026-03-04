@@ -40,7 +40,22 @@ export function useSaveRecommendation() {
   })
 }
 
-// Delete a recommendation session
+// Update a recommendation session (e.g. remove one book from the array)
+export function useUpdateRecommendation() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, books }) => {
+      const { error } = await supabase
+        .from('recommendations')
+        .update({ books })
+        .eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['recommendations'] }),
+    onError: (err) => toast.error(`Couldn't update: ${err.message}`),
+  })
+}
+
 export function useDeleteRecommendation() {
   const qc = useQueryClient()
   return useMutation({

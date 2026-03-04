@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Compass, Trash2, ChevronDown, ChevronUp, Plus, Sparkles } from 'lucide-react'
 import { useLibrary } from '../hooks/useLibrary'
-import { useRecommendations, useSaveRecommendation, useDeleteRecommendation } from '../hooks/useRecommendations'
+import { useRecommendations, useSaveRecommendation, useDeleteRecommendation, useUpdateRecommendation } from '../hooks/useRecommendations'
 import { QueryFlow } from '../components/discover/QueryFlow'
 import { RecBookCard } from '../components/discover/RecBookCard'
 import { RecDetailModal } from '../components/discover/RecDetailModal'
@@ -24,7 +24,7 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-function SessionCard({ session, libraryTitles, onBookClick, onDelete }) {
+function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBook }) {
   const [expanded, setExpanded] = useState(true)
 
   return (
@@ -81,6 +81,7 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete }) {
                   index={i}
                   inLibrary={libraryTitles.has(book.title?.toLowerCase().trim())}
                   onClick={onBookClick}
+                  onDelete={() => onDeleteBook(session.id, session.books, i)}
                 />
               ))}
             </div>
@@ -96,6 +97,16 @@ export function Discover() {
   const { data: sessions = [], isLoading: sessionsLoading } = useRecommendations()
   const saveRec = useSaveRecommendation()
   const deleteRec = useDeleteRecommendation()
+  const updateRec = useUpdateRecommendation()
+
+  function handleDeleteBook(sessionId, currentBooks, bookIndex) {
+    const updated = currentBooks.filter((_, i) => i !== bookIndex)
+    if (updated.length === 0) {
+      deleteRec.mutate(sessionId) // remove whole session if last book gone
+    } else {
+      updateRec.mutate({ id: sessionId, books: updated })
+    }
+  }
 
   const [showFlow, setShowFlow] = useState(false)
   const [previewBook, setPreviewBook] = useState(null)
@@ -234,6 +245,7 @@ export function Discover() {
                 libraryTitles={libraryTitles}
                 onBookClick={setPreviewBook}
                 onDelete={(id) => deleteRec.mutate(id)}
+                onDeleteBook={handleDeleteBook}
               />
             ))
           )}
