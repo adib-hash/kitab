@@ -7,7 +7,7 @@ import { useLibrary, useReorderTBR, useUpdateBook } from '../hooks/useLibrary'
 import { BookCover } from '../components/books/BookCover'
 import { BookSearchModal } from '../components/books/BookSearch'
 import { BookForm } from '../components/books/BookForm'
-import { EmptyState, Button } from '../components/ui/index.jsx'
+import { EmptyState } from '../components/ui/index.jsx'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
@@ -22,35 +22,47 @@ function SortableBook({ book }) {
     zIndex: isDragging ? 50 : 'auto',
   }
 
-  async function startReading() {
+  async function startReading(e) {
+    e.preventDefault()
+    e.stopPropagation()
     await updateBook.mutateAsync({ id: book.id, updates: { status: 'reading' } })
     toast.success(`Started reading "${book.title}"`)
   }
 
-  async function markRead() {
+  async function markRead(e) {
+    e.preventDefault()
+    e.stopPropagation()
     await updateBook.mutateAsync({ id: book.id, updates: { status: 'read', date_finished: new Date().toISOString().slice(0,10) } })
     toast.success(`Marked "${book.title}" as read`)
   }
 
   return (
     <div ref={setNodeRef} style={style} className="flex items-center gap-3 p-3 bg-white dark:bg-ink-800 rounded-xl border border-paper-200 dark:border-ink-700">
-      {/* Drag handle */}
-      <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-ink-300 dark:text-ink-600 hover:text-ink-500 dark:hover:text-ink-400 touch-none flex-shrink-0 p-1">
+      {/* Drag handle — stopPropagation so it doesn't fire the link */}
+      <button
+        {...attributes}
+        {...listeners}
+        onClick={e => e.preventDefault()}
+        className="cursor-grab active:cursor-grabbing text-ink-300 dark:text-ink-600 hover:text-ink-500 dark:hover:text-ink-400 touch-none flex-shrink-0 p-1"
+      >
         <GripVertical size={16} />
       </button>
 
-      {/* Cover */}
-      <BookCover book={book} size="sm" className="flex-shrink-0" />
+      {/* Tappable area: cover + title/author navigate to book detail */}
+      <Link
+        to={`/library/${book.id}`}
+        className="flex items-center gap-3 flex-1 min-w-0 group"
+      >
+        <BookCover book={book} size="sm" className="flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-sm text-ink-900 dark:text-paper-50 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors truncate leading-snug">
+            {book.title}
+          </p>
+          <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
+        </div>
+      </Link>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <Link to={`/library/${book.id}`} className="font-medium text-sm text-ink-900 dark:text-paper-50 hover:text-teal-700 truncate block leading-snug">
-          {book.title}
-        </Link>
-        <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
-      </div>
-
-      {/* Actions — always visible on mobile */}
+      {/* Action buttons — stopPropagation keeps them independent */}
       <div className="flex flex-col gap-1 flex-shrink-0">
         <button
           onClick={startReading}

@@ -155,7 +155,13 @@ export function BookDetail() {
             >
               <ExternalLink size={12} /> Goodreads
             </a>
-
+            <a
+              href={`https://libbylink.overdrive.com/libbylink/search?q=${encodeURIComponent((book.title || '') + ' ' + (book.author || ''))}`}
+              target="_blank" rel="noopener noreferrer"
+              className="btn-ghost text-xs"
+            >
+              <ExternalLink size={12} /> Check Libby
+            </a>
           </div>
 
           {/* Actions */}
