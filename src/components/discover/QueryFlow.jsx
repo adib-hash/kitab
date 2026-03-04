@@ -179,7 +179,7 @@ export function QueryFlow({ library, onComplete }) {
                 <button
                   key={mode.id}
                   onClick={() => { setSelectedMode(mode.id); setStep('input') }}
-                  className="flex items-center gap-3 p-3.5 rounded-xl border border-paper-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-teal-500 dark:hover:border-teal-500 hover:bg-teal-50/30 dark:hover:bg-teal-900/10 transition-all text-left group"
+                  className="flex items-center gap-3 p-3.5 rounded-xl border border-paper-200 dark:border-ink-600 bg-white dark:bg-ink-700 hover:border-teal-500 dark:hover:border-teal-500 hover:bg-teal-50/30 dark:hover:bg-teal-900/20 transition-all text-left group"
                 >
                   <span className="text-xl w-8 text-center">{mode.emoji}</span>
                   <span className="text-sm font-medium text-ink-800 dark:text-ink-200 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">

@@ -119,7 +119,7 @@ export function Discover() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 max-w-2xl">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -129,73 +129,116 @@ export function Discover() {
             AI-powered picks built around your taste
           </p>
         </div>
+        {/* New button — mobile only (desktop has it in the left panel) */}
         {!showFlow && (
-          <button
-            onClick={() => setShowFlow(true)}
-            className="btn-primary gap-2"
-          >
+          <button onClick={() => setShowFlow(true)} className="btn-primary gap-2 lg:hidden">
             <Sparkles size={14} /> New
           </button>
         )}
       </div>
 
-      {/* Query flow */}
-      <AnimatePresence>
-        {showFlow && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="card p-5"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-serif text-base font-semibold text-ink-900 dark:text-paper-50">Find your next read</h2>
-              <button
-                onClick={() => setShowFlow(false)}
-                className="text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
-              >
-                cancel
-              </button>
-            </div>
-            <QueryFlow
-              library={books}
-              onComplete={handleComplete}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── Desktop two-column layout ── */}
+      <div className="lg:grid lg:grid-cols-[340px_1fr] lg:gap-8 lg:items-start space-y-6 lg:space-y-0">
 
-      {/* Sessions */}
-      {sessionsLoading ? (
-        <div className="space-y-3">
-          {[...Array(2)].map((_, i) => <div key={i} className="h-40 skeleton rounded-xl" />)}
-        </div>
-      ) : sessions.length === 0 && !showFlow ? (
-        <div className="card p-10 text-center space-y-4">
-          <Compass size={36} className="mx-auto text-ink-300" />
-          <div>
-            <p className="font-medium text-ink-700 dark:text-ink-300">No recommendations yet</p>
-            <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
-              Hit "New" to get your first AI-powered picks
-            </p>
+        {/* Left column: query panel (sticky on desktop) */}
+        <div className="lg:sticky lg:top-6 space-y-4">
+          <div className="card p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-serif text-base font-semibold text-ink-900 dark:text-paper-50">
+                Find your next read
+              </h2>
+              {showFlow && (
+                <button
+                  onClick={() => setShowFlow(false)}
+                  className="text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors lg:hidden"
+                >
+                  cancel
+                </button>
+              )}
+            </div>
+
+            <AnimatePresence mode="wait">
+              {showFlow ? (
+                <motion.div key="flow" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <QueryFlow library={books} onComplete={handleComplete} />
+                  <button
+                    onClick={() => setShowFlow(false)}
+                    className="hidden lg:block mt-3 text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
+                  >
+                    ← cancel
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <p className="text-sm text-ink-500 dark:text-ink-400 mb-4">
+                    Tell me what you're looking for and I'll find your next read from your library's taste.
+                  </p>
+                  <button onClick={() => setShowFlow(true)} className="w-full btn-primary gap-2 justify-center">
+                    <Sparkles size={14} /> Get recommendations
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-          <button onClick={() => setShowFlow(true)} className="btn-primary gap-2 mx-auto">
-            <Sparkles size={14} /> Get recommendations
-          </button>
+
+          {/* Stats blurb — desktop only */}
+          {sessions.length > 0 && (
+            <p className="hidden lg:block text-xs text-ink-400 text-center">
+              {sessions.length} session{sessions.length !== 1 ? 's' : ''} · {sessions.reduce((n, s) => n + (s.books?.length || 0), 0)} recommendations
+            </p>
+          )}
         </div>
-      ) : (
+
+        {/* Right column: session history */}
         <div className="space-y-4">
-          {sessions.map(session => (
-            <SessionCard
-              key={session.id}
-              session={session}
-              libraryTitles={libraryTitles}
-              onBookClick={setPreviewBook}
-              onDelete={(id) => deleteRec.mutate(id)}
-            />
-          ))}
+          {/* Mobile: query flow appears inline above sessions */}
+          <AnimatePresence>
+            {showFlow && (
+              <motion.div
+                key="mobile-flow"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="card p-5 lg:hidden"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-serif text-base font-semibold text-ink-900 dark:text-paper-50">Find your next read</h2>
+                  <button onClick={() => setShowFlow(false)} className="text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors">
+                    cancel
+                  </button>
+                </div>
+                <QueryFlow library={books} onComplete={handleComplete} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {sessionsLoading ? (
+            <div className="space-y-3">
+              {[...Array(2)].map((_, i) => <div key={i} className="h-40 skeleton rounded-xl" />)}
+            </div>
+          ) : sessions.length === 0 ? (
+            <div className="card p-10 text-center space-y-3 lg:flex lg:flex-col lg:items-center lg:justify-center lg:min-h-[320px]">
+              <Compass size={36} className="mx-auto text-ink-300" />
+              <div>
+                <p className="font-medium text-ink-700 dark:text-ink-300">No recommendations yet</p>
+                <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
+                  Use the panel to get your first AI-powered picks
+                </p>
+              </div>
+            </div>
+          ) : (
+            sessions.map(session => (
+              <SessionCard
+                key={session.id}
+                session={session}
+                libraryTitles={libraryTitles}
+                onBookClick={setPreviewBook}
+                onDelete={(id) => deleteRec.mutate(id)}
+              />
+            ))
+          )}
         </div>
-      )}
+      </div>
 
       {/* Book detail modal */}
       <RecDetailModal
