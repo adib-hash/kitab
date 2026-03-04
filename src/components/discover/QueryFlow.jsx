@@ -121,14 +121,10 @@ export function QueryFlow({ library, onComplete }) {
     try {
       const prompt = buildPrompt(selectedMode, text || 'Surprise me based on my library', library)
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          messages: [{ role: 'user', content: prompt }],
-        }),
+        body: JSON.stringify({ prompt }),
       })
 
       if (!response.ok) throw new Error(`API error ${response.status}`)
