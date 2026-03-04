@@ -286,7 +286,7 @@ export function Settings() {
         </div>
         {librarySlug && (
           <p className="text-xs text-ink-400">
-            Links will open: <span className="font-mono">{librarySlug}.overdrive.com/search?q=…</span>
+            Links will open: <span className="font-mono">libbyapp.com/search/{librarySlug}/search/query-…</span>
           </p>
         )}
       </div>

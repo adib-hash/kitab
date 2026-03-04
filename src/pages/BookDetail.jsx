@@ -159,7 +159,7 @@ export function BookDetail() {
             </a>
             {librarySlug && (
               <a
-                href={`https://${librarySlug}.overdrive.com/search?q=${encodeURIComponent((book.title || '') + ' ' + (book.author || ''))}`}
+                href={`https://libbyapp.com/search/${librarySlug}/search/query-${encodeURIComponent((book.title || '') + ' ' + (book.author || ''))}/page-1`}
                 target="_blank" rel="noopener noreferrer"
                 className="btn-ghost text-xs"
               >
