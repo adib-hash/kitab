@@ -79,28 +79,38 @@ Rules:
 - The "why" must be specific, not generic ("you'll love the world-building" is bad; "the same slow-burn dread as McCarthy but set in modern Tokyo" is good)`
 }
 
-// Enrich a Claude-returned book with Google Books metadata (cover, description, page count)
+// Verify a Claude-returned book exists in Google Books and enrich with metadata.
+// Returns null if no credible match is found — caller must filter these out.
 async function enrichBook(book) {
   try {
     const query = `intitle:"${book.title}" inauthor:"${book.author}"`
-    const results = await searchBooks(query, 3)
-    if (!results.length) return book
-    // Pick best match: prefer exact title match
-    const exact = results.find(r =>
-      r.title.toLowerCase().includes(book.title.toLowerCase().slice(0, 15))
-    ) || results[0]
+    const results = await searchBooks(query, 5)
+    if (!results.length) return null
+
+    // Find a credible match: title must overlap significantly
+    const titleWords = book.title.toLowerCase().split(/\s+/).filter(w => w.length > 2)
+    const match = results.find(r => {
+      const rTitle = r.title.toLowerCase()
+      // At least half the significant words from Claude's title appear in the GB title
+      const hits = titleWords.filter(w => rTitle.includes(w))
+      return hits.length >= Math.ceil(titleWords.length * 0.5)
+    })
+
+    if (!match) return null // Book title doesn't match anything real in Google Books
+
     return {
       ...book,
-      cover_url: exact.cover_url || null,
-      description: exact.description || null,
-      page_count: exact.page_count || null,
-      published_year: book.published_year || exact.published_year || null,
-      google_books_id: exact.google_books_id || null,
-      isbn: exact.isbn || null,
-      genres: exact.genres || [],
+      title: match.title, // use canonical GB title
+      cover_url: match.cover_url || null,
+      description: match.description || null,
+      page_count: match.page_count || null,
+      published_year: book.published_year || match.published_year || null,
+      google_books_id: match.google_books_id || null,
+      isbn: match.isbn || null,
+      genres: match.genres || [],
     }
   } catch {
-    return book
+    return null
   }
 }
 
@@ -147,8 +157,12 @@ export function QueryFlow({ library, onComplete }) {
 
       if (!Array.isArray(books)) throw new Error('Invalid response format')
 
-      // Enrich all 5 books in parallel
-      const enriched = await Promise.all(books.map(enrichBook))
+      // Enrich and verify all books in parallel — drops any that can't be confirmed in Google Books
+      const enriched = (await Promise.all(books.map(enrichBook))).filter(Boolean)
+
+      if (enriched.length === 0) {
+        throw new Error('None of the suggested books could be verified. Please try again.')
+      }
 
       onComplete({
         mode: selectedMode,
