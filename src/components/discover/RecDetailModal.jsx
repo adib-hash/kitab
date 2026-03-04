@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, BookmarkPlus, Check, ChevronDown, ChevronUp, Loader2, BookOpen, Calendar, FileText, ExternalLink } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAddBook } from '../../hooks/useLibrary'
@@ -11,6 +11,15 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
   const [tagIds, setTagIds] = useState([])
   const addBook = useAddBook()
   const { librarySlug } = useUIStore()
+
+  // Lock background scroll while modal is open
+  useEffect(() => {
+    if (open) {
+      const prev = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => { document.body.style.overflow = prev }
+    }
+  }, [open])
 
   const libbySuffix = book ? encodeURIComponent(`${book.title} ${book.author}`) : ''
   const libbyUrl = librarySlug
@@ -53,9 +62,10 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 10 }}
             transition={{ type: 'spring', duration: 0.3 }}
-            className="fixed inset-x-4 top-[6vh] max-w-md mx-auto z-50 max-h-[88vh] flex flex-col"
+            className="fixed inset-x-3 z-50 flex flex-col"
+            style={{ top: '5dvh', maxHeight: '90dvh' }}
           >
-            <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col">
+            <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col" style={{ maxHeight: '90dvh' }}>
 
               {/* Close */}
               <div className="flex justify-end px-4 pt-4 flex-shrink-0">
@@ -64,7 +74,7 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
                 </button>
               </div>
 
-              <div className="overflow-y-auto px-5 pb-5 flex-1 min-h-0 space-y-5">
+              <div className="overflow-y-auto px-5 pb-5 flex-1 min-h-0 space-y-5 overscroll-contain">
 
                 {/* Cover + title */}
                 <div className="flex gap-4">

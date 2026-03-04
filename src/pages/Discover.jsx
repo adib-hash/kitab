@@ -25,7 +25,7 @@ function timeAgo(dateStr) {
 }
 
 function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBook }) {
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(false)
 
   return (
     <motion.div
