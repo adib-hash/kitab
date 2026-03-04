@@ -140,8 +140,8 @@ export function Discover() {
       {/* ── Desktop two-column layout ── */}
       <div className="lg:grid lg:grid-cols-[340px_1fr] lg:gap-8 lg:items-start space-y-6 lg:space-y-0">
 
-        {/* Left column: query panel (sticky on desktop) */}
-        <div className="lg:sticky lg:top-6 space-y-4">
+        {/* Left column: query panel — desktop only, sticky */}
+        <div className="hidden lg:block lg:sticky lg:top-6 space-y-4">
           <div className="card p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-serif text-base font-semibold text-ink-900 dark:text-paper-50">

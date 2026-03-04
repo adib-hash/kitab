@@ -64,7 +64,7 @@ export function Sidebar({ onSearch }) {
         {!collapsed && (
           <div className="flex items-center gap-2">
             <span className="text-xl">📖</span>
-            <span className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50">Kitab</span>
+            <Link to="/" className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 hover:text-teal-700 dark:hover:text-teal-400 transition-colors">Kitab</Link>
           </div>
         )}
         {collapsed && <span className="text-xl">📖</span>}

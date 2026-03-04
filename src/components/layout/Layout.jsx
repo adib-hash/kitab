@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Search } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { BottomNav } from './BottomNav'
 import { GlobalSearch } from '../search/GlobalSearch'
@@ -36,7 +37,7 @@ export function Layout({ children }) {
       <div className="md:hidden bg-paper-50 dark:bg-ink-900 min-h-screen">
         {/* Mobile top bar with search */}
         <div className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-paper-50/90 dark:bg-ink-900/90 backdrop-blur border-b border-paper-200 dark:border-ink-800">
-          <span className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50">Kitab</span>
+          <Link to="/" className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50">Kitab</Link>
           <button
             onClick={() => setSearchOpen(true)}
             className="p-2 rounded-xl text-ink-500 dark:text-ink-400 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors"
