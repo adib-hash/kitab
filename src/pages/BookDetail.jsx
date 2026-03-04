@@ -4,6 +4,7 @@ import { ArrowLeft, Edit2, Trash2, ExternalLink, AlertTriangle, ChevronDown, Che
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import { useBook, useDeleteBook, useLibrary } from '../hooks/useLibrary'
+import { useUIStore } from '../store/uiStore'
 import { BookCover } from '../components/books/BookCover'
 import { StarRating } from '../components/books/StarRating'
 import { StatusBadge } from '../components/books/StatusBadge'
@@ -18,6 +19,7 @@ export function BookDetail() {
   const { data: book, isLoading } = useBook(id)
   const { data: allBooks = [] } = useLibrary()
   const deleteBook = useDeleteBook()
+  const { librarySlug } = useUIStore()
   const [editOpen, setEditOpen] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [descOpen, setDescOpen] = useState(false)
@@ -155,13 +157,15 @@ export function BookDetail() {
             >
               <ExternalLink size={12} /> Goodreads
             </a>
-            <a
-              href={`https://libbyapp.com/search/search/query-${encodeURIComponent((book.title || '') + ' ' + (book.author || ''))}`}
-              target="_blank" rel="noopener noreferrer"
-              className="btn-ghost text-xs"
-            >
-              <ExternalLink size={12} /> Check Libby
-            </a>
+            {librarySlug && (
+              <a
+                href={`https://${librarySlug}.overdrive.com/search?q=${encodeURIComponent((book.title || '') + ' ' + (book.author || ''))}`}
+                target="_blank" rel="noopener noreferrer"
+                className="btn-ghost text-xs"
+              >
+                <ExternalLink size={12} /> Check Libby
+              </a>
+            )}
           </div>
 
           {/* Actions */}

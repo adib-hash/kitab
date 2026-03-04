@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2, BookOpen } from 'lucide-react'
 import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
 import { useTags, useUpdateTag, useDeleteTag } from '../hooks/useTags'
 import { Button, Divider } from '../components/ui/index.jsx'
+import { useUIStore } from '../store/uiStore'
 import { buildGoodreadsCSV } from '../lib/utils'
 import { searchBooks } from '../lib/googleBooks'
 import { BookCover } from '../components/books/BookCover'
@@ -182,6 +183,8 @@ export function Settings() {
   const [editingTag, setEditingTag] = useState(null)
   const [editName, setEditName] = useState('')
   const [importing, setImporting] = useState(false)
+  const { librarySlug, setLibrarySlug } = useUIStore()
+  const [slugInput, setSlugInput] = useState(librarySlug || '')
 
   function exportCSV() {
     const rows = buildGoodreadsCSV(books, tags)
@@ -256,7 +259,37 @@ export function Settings() {
     <div className="space-y-6 max-w-2xl">
       <h1 className="page-title">Settings</h1>
 
-      {/* Enrich Library */}
+      {/* Libby */}
+      <div className="card p-6 space-y-4">
+        <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 flex items-center gap-2">
+          <BookOpen size={18} className="text-teal-600" /> Libby
+        </h2>
+        <p className="text-sm text-ink-600 dark:text-ink-400">
+          Enter your library's OverDrive subdomain to enable "Check Libby" links on every book.
+          Find it in your library's Libby URL — e.g. <span className="font-mono text-xs bg-paper-100 dark:bg-ink-700 px-1.5 py-0.5 rounded">sfpl.overdrive.com</span> → enter <span className="font-mono text-xs bg-paper-100 dark:bg-ink-700 px-1.5 py-0.5 rounded">sfpl</span>.
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={slugInput}
+            onChange={e => setSlugInput(e.target.value.toLowerCase().trim())}
+            placeholder="e.g. sfpl"
+            className="input flex-1"
+          />
+          <Button
+            variant="primary"
+            onClick={() => setLibrarySlug(slugInput)}
+            disabled={!slugInput || slugInput === librarySlug}
+          >
+            Save
+          </Button>
+        </div>
+        {librarySlug && (
+          <p className="text-xs text-ink-400">
+            Links will open: <span className="font-mono">{librarySlug}.overdrive.com/search?q=…</span>
+          </p>
+        )}
+      </div>
       <div className="card p-6 space-y-4">
         <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 flex items-center gap-2">
           <Sparkles size={18} className="text-teal-600" /> Enrich Library

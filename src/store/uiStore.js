@@ -19,6 +19,9 @@ export const useUIStore = create(
       // Reading goal
       readingGoal: null,
 
+      // Libby library slug (OverDrive subdomain, e.g. "sfpl")
+      librarySlug: 'sfpl',
+
       // Actions
       setLibraryView: (view) => set({ libraryView: view }),
       setLibrarySort: (sort) => set({ librarySort: sort }),
@@ -41,6 +44,7 @@ export const useUIStore = create(
         }
       },
       setReadingGoal: (goal) => set({ readingGoal: goal }),
+      setLibrarySlug: (slug) => set({ librarySlug: slug }),
     }),
     {
       name: 'kitab-ui',
@@ -50,6 +54,7 @@ export const useUIStore = create(
         darkMode: state.darkMode,
         readingGoal: state.readingGoal,
         sidebarOpen: state.sidebarOpen,
+        librarySlug: state.librarySlug,
       }),
     }
   )
