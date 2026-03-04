@@ -12,12 +12,18 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
   const addBook = useAddBook()
   const { librarySlug } = useUIStore()
 
-  // Lock background scroll while modal is open
+  // iOS-compatible scroll lock — overflow:hidden alone doesn't work on Safari
   useEffect(() => {
-    if (open) {
-      const prev = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      return () => { document.body.style.overflow = prev }
+    if (!open) return
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      window.scrollTo(0, scrollY)
     }
   }, [open])
 
@@ -50,22 +56,28 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
     <AnimatePresence onExitComplete={() => { setDescOpen(false); setAdded(inLibrary) }}>
       {open && book && (
         <>
+          {/* Full-screen overlay — flex centers the modal, padding keeps it off the nav bar */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-ink-900/60 backdrop-blur-sm z-50"
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{ paddingBottom: 'calc(60px + env(safe-area-inset-bottom))', paddingTop: '16px', paddingLeft: '12px', paddingRight: '12px' }}
             onClick={onClose}
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 10 }}
-            transition={{ type: 'spring', duration: 0.3 }}
-            className="fixed inset-x-3 z-50 flex flex-col"
-            style={{ top: '5dvh', maxHeight: '90dvh' }}
           >
-            <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col" style={{ maxHeight: '90dvh' }}>
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-ink-900/60 backdrop-blur-sm -z-10" />
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            transition={{ type: 'spring', duration: 0.3 }}
+            onClick={e => e.stopPropagation()}
+            className="w-full max-w-md flex flex-col"
+            style={{ maxHeight: 'calc(100dvh - 76px - env(safe-area-inset-bottom))' }}
+          >
+            <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col h-full">
 
               {/* Close */}
               <div className="flex justify-end px-4 pt-4 flex-shrink-0">
@@ -195,6 +207,7 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
 
               </div>
             </div>
+          </motion.div>
           </motion.div>
         </>
       )}
