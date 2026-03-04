@@ -127,13 +127,23 @@ export function QueryFlow({ library, onComplete }) {
         body: JSON.stringify({ prompt }),
       })
 
-      if (!response.ok) throw new Error(`API error ${response.status}`)
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}))
+        throw new Error(`${response.status}: ${errData.error || 'Unknown error'}`)
+      }
       const data = await response.json()
 
       const rawText = data.content?.find(b => b.type === 'text')?.text || ''
+      if (!rawText) throw new Error('Empty response from API')
+
       // Strip any markdown fences
       const jsonText = rawText.replace(/```json|```/g, '').trim()
-      const books = JSON.parse(jsonText)
+      let books
+      try {
+        books = JSON.parse(jsonText)
+      } catch {
+        throw new Error(`JSON parse failed. Raw: ${rawText.slice(0, 200)}`)
+      }
 
       if (!Array.isArray(books)) throw new Error('Invalid response format')
 
@@ -147,7 +157,7 @@ export function QueryFlow({ library, onComplete }) {
       })
     } catch (err) {
       console.error(err)
-      setError('Something went wrong generating recommendations. Please try again.')
+      setError(`Error: ${err.message}`)
       setStep('input')
     }
   }
