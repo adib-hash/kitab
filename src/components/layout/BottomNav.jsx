@@ -15,7 +15,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-ink-900 border-t border-paper-200 dark:border-ink-700 flex items-stretch md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-[200] bg-white dark:bg-ink-900 border-t border-paper-200 dark:border-ink-700 flex items-stretch md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {NAV_ITEMS.map(item => {

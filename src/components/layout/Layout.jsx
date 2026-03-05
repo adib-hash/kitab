@@ -36,7 +36,7 @@ export function Layout({ children }) {
       {/* ── Mobile layout ── */}
       <div className="md:hidden bg-paper-50 dark:bg-ink-900 min-h-screen">
         {/* Mobile top bar with search */}
-        <div className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-paper-50/90 dark:bg-ink-900/90 backdrop-blur border-b border-paper-200 dark:border-ink-800">
+        <div className="sticky top-0 z-[150] flex items-center justify-between px-4 py-3 bg-paper-50/90 dark:bg-ink-900/90 backdrop-blur border-b border-paper-200 dark:border-ink-800">
           <Link to="/" className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50">Kitab</Link>
           <button
             onClick={() => setSearchOpen(true)}
@@ -45,7 +45,7 @@ export function Layout({ children }) {
             <Search size={20} />
           </button>
         </div>
-        <main className="px-4 py-5 pb-24">
+        <main className="px-4 py-5 pb-24" style={{ isolation: 'isolate' }}>
           <div className="max-w-2xl mx-auto">
             {children}
           </div>
