@@ -4,6 +4,18 @@ All changes since inception, in reverse chronological order.
 
 ---
 
+## v1.5.1 — March 2026
+*Polish pass on v1.5.0 features*
+
+- **Shuffle Pick: Pick Again** — modal now has a "Pick Again" button to reshuffle without closing
+- **Rank: Back button** — "Back" link at the top of the Rankings view returns to the main Rank page
+- **Discover: recent vs. older split** — sessions from the last 48 hours are expanded by default; older sessions are collapsed under an "Older Recommendations" toggle
+- **Discover: expand/collapse icon** — chevron icon on each session header makes expand/collapse behavior explicit
+- **Discover: centered card** — recommendation card art is now centered on screen
+
+---
+
+
 ## v1.5.0 — March 2026
 *TBR shuffle, Discover card deck, Rank animation*
 

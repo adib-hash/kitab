@@ -154,7 +154,8 @@ function SortableBook({ book }) {
 }
 
 function ShufflePickModal({ books, onClose }) {
-  const [pick] = useState(() => books[Math.floor(Math.random() * books.length)])
+  const [pick, setPick] = useState(() => books[Math.floor(Math.random() * books.length)])
+  function pickAgain() { setPick(books[Math.floor(Math.random() * books.length)]) }
   if (!pick) return null
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={onClose}>
@@ -174,13 +175,21 @@ function ShufflePickModal({ books, onClose }) {
         </div>
         <p className="font-serif font-bold text-ink-900 dark:text-paper-50 text-base leading-snug">{pick.title}</p>
         <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">{pick.author}</p>
-        <Link
-          to={`/library/${pick.id}`}
-          onClick={onClose}
-          className="mt-4 inline-block text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium"
-        >
-          View in library →
-        </Link>
+        <div className="flex flex-col items-center gap-2 mt-4">
+          <button
+            onClick={pickAgain}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 transition-colors"
+          >
+            <Shuffle size={14} /> Pick Again
+          </button>
+          <Link
+            to={`/library/${pick.id}`}
+            onClick={onClose}
+            className="text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium"
+          >
+            View in library →
+          </Link>
+        </div>
       </div>
     </div>
   )

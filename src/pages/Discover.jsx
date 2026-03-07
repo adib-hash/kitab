@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Compass, Trash2, Plus, Sparkles, Check, X, BookmarkPlus, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Compass, Trash2, Plus, Sparkles, Check, X, BookmarkPlus, Loader2, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react'
 import { useLibrary, useAddBook } from '../hooks/useLibrary'
 import { useRecommendations, useSaveRecommendation, useDeleteRecommendation, useUpdateRecommendation } from '../hooks/useRecommendations'
 import { QueryFlow } from '../components/discover/QueryFlow'
@@ -246,8 +246,11 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook, s
 }
 
 // ── Session card wrapping a deck ───────────────────────────────────────────
+const RECENT_MS = 48 * 60 * 60 * 1000
+
 function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBook }) {
-  const [expanded, setExpanded] = useState(true)
+  const isRecent = Date.now() - new Date(session.created_at).getTime() < RECENT_MS
+  const [expanded, setExpanded] = useState(isRecent)
 
   return (
     <motion.div
@@ -263,6 +266,10 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
             </span>
             <span className="text-xs text-ink-400">{timeAgo(session.created_at)}</span>
             <span className="text-xs text-ink-400">{session.books?.length || 0} picks</span>
+            {expanded
+              ? <ChevronUp size={13} className="text-ink-400 ml-auto" />
+              : <ChevronDown size={13} className="text-ink-400 ml-auto" />
+            }
           </div>
           {session.query && (
             <p className="text-sm text-ink-600 dark:text-ink-400 mt-1.5 italic">"{session.query}"</p>
@@ -285,18 +292,71 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-5">
+            <div className="px-4 pb-5 flex justify-center">
+              <div className="w-full max-w-[280px]">
               <RecommendationDeck
                 books={session.books}
                 libraryTitles={libraryTitles}
                 onBookClick={onBookClick}
                 onDeleteBook={(bookIndex) => onDeleteBook(session.id, session.books, bookIndex)}
               />
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </motion.div>
+  )
+}
+
+
+const RECENT_THRESHOLD_MS = 48 * 60 * 60 * 1000
+
+function SessionList({ sessions, libraryTitles, onBookClick, onDelete, onDeleteBook }) {
+  const [olderOpen, setOlderOpen] = useState(false)
+  const now = Date.now()
+  const recent = sessions.filter(s => now - new Date(s.created_at).getTime() < RECENT_THRESHOLD_MS)
+  const older = sessions.filter(s => now - new Date(s.created_at).getTime() >= RECENT_THRESHOLD_MS)
+
+  const renderCard = (session) => (
+    <SessionCard
+      key={session.id}
+      session={session}
+      libraryTitles={libraryTitles}
+      onBookClick={onBookClick}
+      onDelete={onDelete}
+      onDeleteBook={onDeleteBook}
+    />
+  )
+
+  return (
+    <div className="space-y-4">
+      {recent.map(renderCard)}
+      {older.length > 0 && (
+        <>
+          <button
+            onClick={() => setOlderOpen(o => !o)}
+            className="flex items-center gap-2 text-xs font-semibold text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors w-full py-1"
+          >
+            {olderOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            Older Recommendations ({older.length})
+          </button>
+          <AnimatePresence>
+            {olderOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-4 overflow-hidden"
+              >
+                {older.map(renderCard)}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      )}
+    </div>
   )
 }
 
@@ -407,16 +467,13 @@ export function Discover() {
               </div>
             </div>
           ) : (
-            sessions.map(session => (
-              <SessionCard
-                key={session.id}
-                session={session}
-                libraryTitles={libraryTitles}
-                onBookClick={setPreviewBook}
-                onDelete={(id) => deleteRec.mutate(id)}
-                onDeleteBook={handleDeleteBook}
-              />
-            ))
+            <SessionList
+              sessions={sessions}
+              libraryTitles={libraryTitles}
+              onBookClick={setPreviewBook}
+              onDelete={(id) => deleteRec.mutate(id)}
+              onDeleteBook={handleDeleteBook}
+            />
           )}
         </div>
       </div>

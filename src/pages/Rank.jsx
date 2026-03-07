@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trophy, Swords, StopCircle, RotateCcw, BookOpen, Loader2 } from 'lucide-react'
+import { Trophy, Swords, StopCircle, RotateCcw, BookOpen, Loader2, ChevronLeft } from 'lucide-react'
 import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
 import { supabase } from '../lib/supabase'
 import { BookCover } from '../components/books/BookCover'
@@ -82,9 +82,17 @@ function BattleCard({ book, onClick, disabled, isWinner, isLoser }) {
 }
 
 // ── RESULTS VIEW ──────────────────────────────────────────────────────────────
-function ResultsView({ rankedBooks, matchCount, onContinue, onReset, resetting }) {
+function ResultsView({ rankedBooks, matchCount, onContinue, onReset, resetting, onBack }) {
   return (
     <div className="space-y-5">
+      <div className="flex items-center justify-between mb-1">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1 text-xs text-ink-400 hover:text-ink-700 dark:hover:text-ink-300 transition-colors"
+        >
+          <ChevronLeft size={14} /> Back
+        </button>
+      </div>
       <div className="text-center space-y-1">
         <div className="flex items-center justify-center gap-2">
           <Trophy size={20} className="text-amber-500" />
@@ -352,6 +360,7 @@ export function Rank() {
               onContinue={startRanking}
               onReset={handleReset}
               resetting={resetting}
+              onBack={() => setView('home')}
             />
           </motion.div>
         )}
