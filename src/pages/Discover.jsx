@@ -89,9 +89,11 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook, s
 
   return (
     <div className="space-y-3">
-      {/* Card */}
+      {/* Card — centered, max-w so it looks like a proper book card */}
+      <div className="flex justify-center">
       <div
-        className="relative select-none"
+        className="relative select-none w-full"
+        style={{ maxWidth: 240 }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -194,6 +196,7 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook, s
         </AnimatePresence>
       </div>
 
+      </div>{/* end centering wrapper */}
       {/* Dot indicators + arrow nav */}
       <div className="flex items-center justify-center gap-3">
         <button

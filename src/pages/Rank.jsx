@@ -84,7 +84,7 @@ function BattleCard({ book, onClick, disabled, isWinner, isLoser }) {
 // ── RESULTS VIEW ──────────────────────────────────────────────────────────────
 function ResultsView({ rankedBooks, matchCount, onContinue, onReset, resetting, onBack }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-6">
       <div className="flex items-center justify-between mb-1">
         <button
           onClick={onBack}

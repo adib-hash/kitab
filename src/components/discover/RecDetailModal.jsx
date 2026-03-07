@@ -75,9 +75,9 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
             transition={{ type: 'spring', duration: 0.3 }}
             onClick={e => e.stopPropagation()}
             className="w-full max-w-md flex flex-col"
-            style={{ maxHeight: 'calc(100dvh - 76px - env(safe-area-inset-bottom))' }}
+            style={{ height: 'calc(100dvh - 76px - env(safe-area-inset-bottom))', maxHeight: 680 }}
           >
-            <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col h-full">
+            <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 flex flex-col overflow-hidden" style={{ height: '100%' }}>
 
               {/* Close */}
               <div className="flex justify-end px-4 pt-4 flex-shrink-0">

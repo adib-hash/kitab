@@ -4,6 +4,16 @@ All changes since inception, in reverse chronological order.
 
 ---
 
+## v1.5.2 — March 2026
+*Discover and Rank UI fixes*
+
+- **Discover: modal scroll** — book detail modal now has a fixed height cap; expanding the description scrolls within the modal rather than growing it; X button always accessible
+- **Discover: card centered** — recommendation card art properly centered on screen
+- **Rank: bottom gap** — added padding below the Rankings list so the Keep Ranking button clears the nav bar
+
+---
+
+
 ## v1.5.1 — March 2026
 *Polish pass on v1.5.0 features*
 
