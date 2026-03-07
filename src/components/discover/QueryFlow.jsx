@@ -239,7 +239,8 @@ export function QueryFlow({ library, onComplete }) {
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit() } }}
               placeholder={currentMode.placeholder}
               rows={3}
-              className="w-full input resize-none text-sm"
+              style={{ fontSize: '16px' }}
+              className="w-full input resize-none"
             />
 
             {error && (

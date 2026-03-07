@@ -1,3 +1,9 @@
+## v1.6.2 — 2026-03-07
+- Fix: Auto-zoom on Discover textarea (iOS zooms inputs <16px font-size; set explicit 16px)
+- Fix: Quick Actions menu item text was invisible (now wrapped in explicit <span> with concrete color)
+- Fix: Swipe visual feedback not showing (inner card ref now separate from outer container ref)
+- Fix: Swipe now shows confirm banner before executing — tap Confirm or Cancel
+
 ## v1.6.1 — 2026-03-07
 - Fix: Shuffle modal now centered on screen (was rendering too low)
 - Fix: Swipe animation no longer janky — swipe offset now written directly to DOM via ref instead of React state, eliminating per-pixel re-renders
