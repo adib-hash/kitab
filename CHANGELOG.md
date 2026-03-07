@@ -1,3 +1,13 @@
+## v1.6.6 — 2026-03-07
+- Feature: Loading screen redesigned — stacked book spines (CSS, no images), Playfair
+  wordmark, "your reading life" tagline, animated teal ink-dot pulse
+- Feature: Statistics page now scoped to current year (2026) only
+  — all stats (books, pages, rating, pace, genres, chart) reflect books finished in 2026
+  — year badge next to "Statistics" heading
+  — empty state message when no books finished yet this year
+  — goal progress now uses year-scoped book count (was already year-scoped)
+  — replaced "All time" labels with current year labels throughout
+
 ## v1.6.5 — 2026-03-07
 - Fix: Discover book covers restored — SessionCard rewritten with proper carousel
   (v1.6.4 regex introduced JSX syntax error that broke cover rendering)
