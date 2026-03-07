@@ -1,3 +1,8 @@
+## v1.6.1 — 2026-03-07
+- Fix: Shuffle modal now centered on screen (was rendering too low)
+- Fix: Swipe animation no longer janky — swipe offset now written directly to DOM via ref instead of React state, eliminating per-pixel re-renders
+- Swipe background tint/label animates smoothly at threshold
+
 # Kitab — Changelog
 
 All changes since inception, in reverse chronological order.
