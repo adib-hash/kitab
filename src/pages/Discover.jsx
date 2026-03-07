@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Compass, Trash2, ChevronDown, ChevronUp, Plus, Sparkles } from 'lucide-react'
+import { Compass, Trash2, ChevronDown, ChevronUp, Sparkles, Clock } from 'lucide-react'
 import { useLibrary } from '../hooks/useLibrary'
 import { useRecommendations, useSaveRecommendation, useDeleteRecommendation, useUpdateRecommendation } from '../hooks/useRecommendations'
 import { QueryFlow } from '../components/discover/QueryFlow'
@@ -13,6 +13,8 @@ const MODE_LABELS = {
   fresh: '🌍 Something totally new',
   favorites: '⭐ Based on my favorites',
 }
+
+const RECENT_MS = 48 * 60 * 60 * 1000 // 48 hours
 
 function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -33,7 +35,6 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
       animate={{ opacity: 1, y: 0 }}
       className="card overflow-hidden"
     >
-      {/* Session header */}
       <div className="flex items-start justify-between p-4 pb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -56,14 +57,12 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
           <button
             onClick={() => onDelete(session.id)}
             className="p-1.5 rounded-lg text-ink-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
-            title="Delete this session"
           >
             <Trash2 size={14} />
           </button>
         </div>
       </div>
 
-      {/* Books */}
       <AnimatePresence>
         {expanded && (
           <motion.div
@@ -78,9 +77,8 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
                 <RecBookCard
                   key={`${book.title}-${i}`}
                   book={book}
-                  index={i}
                   inLibrary={libraryTitles.has(book.title?.toLowerCase().trim())}
-                  onClick={onBookClick}
+                  onClick={() => onBookClick(book)}
                   onDelete={() => onDeleteBook(session.id, session.books, i)}
                 />
               ))}
@@ -89,6 +87,53 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
         )}
       </AnimatePresence>
     </motion.div>
+  )
+}
+
+function OlderSection({ sessions, libraryTitles, onBookClick, onDelete, onDeleteBook }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-2 w-full py-2 px-1 text-left group"
+      >
+        <Clock size={13} className="text-ink-400 flex-shrink-0" />
+        <span className="section-label flex-1">
+          Older recommendations ({sessions.length})
+        </span>
+        <ChevronDown
+          size={14}
+          className={`text-ink-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-3 pt-2">
+              {sessions.map(session => (
+                <SessionCard
+                  key={session.id}
+                  session={session}
+                  libraryTitles={libraryTitles}
+                  onBookClick={onBookClick}
+                  onDelete={onDelete}
+                  onDeleteBook={onDeleteBook}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
@@ -102,7 +147,7 @@ export function Discover() {
   function handleDeleteBook(sessionId, currentBooks, bookIndex) {
     const updated = currentBooks.filter((_, i) => i !== bookIndex)
     if (updated.length === 0) {
-      deleteRec.mutate(sessionId) // remove whole session if last book gone
+      deleteRec.mutate(sessionId)
     } else {
       updateRec.mutate({ id: sessionId, books: updated })
     }
@@ -120,6 +165,11 @@ export function Discover() {
     setShowFlow(false)
     await saveRec.mutateAsync(result)
   }
+
+  // Split sessions: recent (< 48h) vs older
+  const now = Date.now()
+  const recentSessions = sessions.filter(s => now - new Date(s.created_at).getTime() < RECENT_MS)
+  const olderSessions = sessions.filter(s => now - new Date(s.created_at).getTime() >= RECENT_MS)
 
   if (libraryLoading) {
     return (
@@ -140,7 +190,6 @@ export function Discover() {
             AI-powered picks built around your taste
           </p>
         </div>
-        {/* New button — mobile only (desktop has it in the left panel) */}
         {!showFlow && (
           <button onClick={() => setShowFlow(true)} className="btn-primary gap-2 lg:hidden">
             <Sparkles size={14} /> New
@@ -148,26 +197,17 @@ export function Discover() {
         )}
       </div>
 
-      {/* ── Desktop two-column layout ── */}
+      {/* Desktop two-column layout */}
       <div className="lg:grid lg:grid-cols-[340px_1fr] lg:gap-8 lg:items-start space-y-6 lg:space-y-0">
 
-        {/* Left column: query panel — desktop only, sticky */}
+        {/* Left panel – desktop only */}
         <div className="hidden lg:block lg:sticky lg:top-6 space-y-4">
           <div className="card p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-serif text-base font-semibold text-ink-900 dark:text-paper-50">
                 Find your next read
               </h2>
-              {showFlow && (
-                <button
-                  onClick={() => setShowFlow(false)}
-                  className="text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors lg:hidden"
-                >
-                  cancel
-                </button>
-              )}
             </div>
-
             <AnimatePresence mode="wait">
               {showFlow ? (
                 <motion.div key="flow" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -182,7 +222,7 @@ export function Discover() {
               ) : (
                 <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <p className="text-sm text-ink-500 dark:text-ink-400 mb-4">
-                    Tell me what you're looking for and I'll find your next read from your library's taste.
+                    Tell me what you're looking for and I'll find your next read.
                   </p>
                   <button onClick={() => setShowFlow(true)} className="w-full btn-primary gap-2 justify-center">
                     <Sparkles size={14} /> Get recommendations
@@ -191,8 +231,6 @@ export function Discover() {
               )}
             </AnimatePresence>
           </div>
-
-          {/* Stats blurb — desktop only */}
           {sessions.length > 0 && (
             <p className="hidden lg:block text-xs text-ink-400 text-center">
               {sessions.length} session{sessions.length !== 1 ? 's' : ''} · {sessions.reduce((n, s) => n + (s.books?.length || 0), 0)} recommendations
@@ -200,9 +238,9 @@ export function Discover() {
           )}
         </div>
 
-        {/* Right column: session history */}
+        {/* Right column: sessions */}
         <div className="space-y-4">
-          {/* Mobile: query flow appears inline above sessions */}
+          {/* Mobile query flow */}
           <AnimatePresence>
             {showFlow && (
               <motion.div
@@ -225,10 +263,10 @@ export function Discover() {
 
           {sessionsLoading ? (
             <div className="space-y-3">
-              {[...Array(2)].map((_, i) => <div key={i} className="h-40 skeleton rounded-xl" />)}
+              {[...Array(2)].map((_, i) => <div key={i} className="h-24 skeleton rounded-xl" />)}
             </div>
           ) : sessions.length === 0 ? (
-            <div className="card p-10 text-center space-y-3 lg:flex lg:flex-col lg:items-center lg:justify-center lg:min-h-[320px]">
+            <div className="card p-10 text-center space-y-3">
               <Compass size={36} className="mx-auto text-ink-300" />
               <div>
                 <p className="font-medium text-ink-700 dark:text-ink-300">No recommendations yet</p>
@@ -238,21 +276,48 @@ export function Discover() {
               </div>
             </div>
           ) : (
-            sessions.map(session => (
-              <SessionCard
-                key={session.id}
-                session={session}
-                libraryTitles={libraryTitles}
-                onBookClick={setPreviewBook}
-                onDelete={(id) => deleteRec.mutate(id)}
-                onDeleteBook={handleDeleteBook}
-              />
-            ))
+            <>
+              {/* Recent sessions */}
+              {recentSessions.length > 0 && (
+                <div className="space-y-3">
+                  {recentSessions.map(session => (
+                    <SessionCard
+                      key={session.id}
+                      session={session}
+                      libraryTitles={libraryTitles}
+                      onBookClick={setPreviewBook}
+                      onDelete={(id) => deleteRec.mutate(id)}
+                      onDeleteBook={handleDeleteBook}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Older sessions - collapsible */}
+              {olderSessions.length > 0 && (
+                <div className={recentSessions.length > 0 ? 'border-t border-paper-200 dark:border-ink-700 pt-3' : ''}>
+                  <OlderSection
+                    sessions={olderSessions}
+                    libraryTitles={libraryTitles}
+                    onBookClick={setPreviewBook}
+                    onDelete={(id) => deleteRec.mutate(id)}
+                    onDeleteBook={handleDeleteBook}
+                  />
+                </div>
+              )}
+
+              {/* Edge case: no recent, but older exists and that's it */}
+              {recentSessions.length === 0 && olderSessions.length === 0 && (
+                <div className="card p-10 text-center">
+                  <Compass size={36} className="mx-auto text-ink-300 mb-3" />
+                  <p className="font-medium text-ink-700 dark:text-ink-300">No recommendations yet</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
 
-      {/* Book detail modal */}
       <RecDetailModal
         book={previewBook}
         open={!!previewBook}

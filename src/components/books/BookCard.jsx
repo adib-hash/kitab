@@ -1,25 +1,28 @@
 import { Link } from 'react-router-dom'
+import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { BookCover } from './BookCover'
 import { StarRating } from './StarRating'
 import { StatusBadge } from './StatusBadge'
 import { clsx } from 'clsx'
 
-export function BookCard({ book, index = 0 }) {
+export const BookCard = memo(function BookCard({ book, index = 0 }) {
+  // Cap stagger at 9 items to avoid long entrance sequences on mobile
+  const delay = Math.min(index, 9) * 0.025
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03, duration: 0.3 }}
+      transition={{ delay, duration: 0.2, ease: 'easeOut' }}
     >
       <Link
         to={`/library/${book.id}`}
-        className="group flex flex-col gap-2.5"
+        className="group flex flex-col gap-2"
       >
-        <div className="relative overflow-hidden rounded-lg shadow-book group-hover:shadow-book-hover transition-all duration-200 group-hover:-translate-y-1">
+        <div className="relative overflow-hidden rounded-lg shadow-book group-hover:shadow-book-hover transition-shadow duration-200">
           <BookCover book={book} size="full" className="w-full" />
-          {/* Status overlay on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-ink-900/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-2.5">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-ink-900/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-2">
             <StatusBadge status={book.status} />
           </div>
         </div>
@@ -38,4 +41,4 @@ export function BookCard({ book, index = 0 }) {
       </Link>
     </motion.div>
   )
-}
+})

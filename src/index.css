@@ -25,9 +25,7 @@
     --star: #FBBF24;
   }
 
-  * {
-    box-sizing: border-box;
-  }
+  * { box-sizing: border-box; }
 
   html {
     -webkit-font-smoothing: antialiased;
@@ -39,13 +37,16 @@
     @apply bg-paper-50 text-ink-900 font-sans;
     min-height: 100vh;
     overflow-x: hidden;
-    /* Native momentum scrolling on iOS */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
   }
 
-  .dark body {
-    @apply bg-ink-900 text-paper-50;
+  .dark body { @apply bg-ink-900 text-paper-50; }
+
+  /* ── Prevent iOS auto-zoom on focused inputs (requires font-size >= 16px) ── */
+  input, select, textarea {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
   }
 }
 
@@ -76,10 +77,11 @@
   }
 
   .input {
-    @apply w-full px-3 py-2 bg-white border border-paper-200 rounded-lg text-sm text-ink-900
+    @apply w-full px-3 py-2 bg-white border border-paper-200 rounded-lg text-ink-900
            placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500
            transition-colors duration-150
            dark:bg-ink-800 dark:border-ink-600 dark:text-paper-50 dark:placeholder:text-ink-500;
+    font-size: 16px; /* override Tailwind text-sm to prevent iOS zoom */
   }
 
   .page-title {
@@ -131,9 +133,6 @@
 /* Book cover aspect ratio */
 .book-cover { aspect-ratio: 2/3; }
 
-/* Swipe card */
-.swipe-card { touch-action: none; user-select: none; }
-
 /* Skeleton animation */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
@@ -149,42 +148,18 @@
   background-size: 200% 100%;
 }
 
-/* Dark mode hover overrides (can't use stacked variants in @apply) */
+/* TBR swipe row */
+.tbr-row-swipe {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+}
+
+/* Dark mode hover overrides */
 .dark .btn-ghost:hover {
-  background-color: rgb(68 64 60); /* ink-800 */
-  color: rgb(250 247 242);         /* paper-50 */
+  background-color: rgb(68 64 60);
+  color: rgb(250 247 242);
 }
 .dark .btn-secondary:hover {
-  background-color: rgb(68 64 60); /* ink-800 */
-}
-
-/* ── Mobile performance ─────────────────────────────────────── */
-@media (max-width: 768px) {
-  /* Prevent ANY element from causing horizontal scroll */
-  * {
-    max-width: 100%;
-  }
-
-  /* GPU-accelerate cards and interactive elements for smooth paint */
-  .card {
-    transform: translateZ(0);
-    will-change: auto;
-  }
-
-  /* Faster tap response - remove 300ms click delay */
-  a, button, [role="button"] {
-    touch-action: manipulation;
-  }
-
-  /* Prevent text from breaking layout */
-  p, h1, h2, h3, span {
-    overflow-wrap: break-word;
-    word-break: break-word;
-  }
-
-  /* Smoother image rendering */
-  img {
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-  }
+  background-color: rgb(68 64 60);
 }

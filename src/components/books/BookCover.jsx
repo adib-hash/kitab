@@ -40,6 +40,8 @@ export function BookCover({ book, className, size = 'md' }) {
     <img
       src={book.cover_url}
       alt={`Cover of ${book.title}`}
+      loading="lazy"
+      decoding="async"
       onError={() => setError(true)}
       className={clsx(
         'book-cover object-cover rounded-md',

@@ -25,14 +25,8 @@ export function TagInput({ selectedTagIds = [], onChange }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  function removeTag(id) {
-    onChange(selectedTagIds.filter(t => t !== id))
-  }
-
-  function addTag(tag) {
-    onChange([...selectedTagIds, tag.id])
-    setInput('')
-  }
+  function removeTag(id) { onChange(selectedTagIds.filter(t => t !== id)) }
+  function addTag(tag) { onChange([...selectedTagIds, tag.id]); setInput('') }
 
   async function createAndAdd() {
     if (!canCreate) return
@@ -57,7 +51,12 @@ export function TagInput({ selectedTagIds = [], onChange }) {
           onChange={e => { setInput(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
           placeholder={selectedTags.length ? '' : 'Add tags...'}
-          className="flex-1 min-w-[80px] text-sm bg-transparent outline-none text-ink-900 dark:text-paper-50 placeholder:text-ink-400"
+          className="flex-1 min-w-[80px] bg-transparent outline-none text-ink-900 dark:text-paper-50 placeholder:text-ink-400"
+          style={{ fontSize: '16px' }} /* prevents iOS auto-zoom */
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
         />
       </div>
 
@@ -68,7 +67,7 @@ export function TagInput({ selectedTagIds = [], onChange }) {
               key={tag.id}
               type="button"
               onClick={() => addTag(tag)}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-ink-800 dark:text-ink-300 hover:bg-paper-50 dark:hover:bg-ink-700 transition-colors text-left"
+              className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-ink-800 dark:text-ink-300 hover:bg-paper-50 dark:hover:bg-ink-700 transition-colors text-left"
             >
               <span className="tag-pill">{tag.name}</span>
             </button>
@@ -77,7 +76,7 @@ export function TagInput({ selectedTagIds = [], onChange }) {
             <button
               type="button"
               onClick={createAndAdd}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors border-t border-paper-200 dark:border-ink-600"
+              className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors border-t border-paper-200 dark:border-ink-600"
             >
               <Plus size={14} />
               Create "{input.trim()}"

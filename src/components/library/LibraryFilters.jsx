@@ -1,4 +1,5 @@
-import { SlidersHorizontal, Search, X } from 'lucide-react'
+import { useState } from 'react'
+import { Search, X, ChevronDown } from 'lucide-react'
 import { useUIStore } from '../../store/uiStore'
 import { useTags } from '../../hooks/useTags'
 import { clsx } from 'clsx'
@@ -22,21 +23,19 @@ const STATUS_OPTIONS = [
 export function LibraryFilters() {
   const { librarySort, libraryFilters, librarySearch, setLibrarySort, setLibraryFilters, setLibrarySearch, clearLibraryFilters } = useUIStore()
   const { data: tags = [] } = useTags()
+  const [tagsOpen, setTagsOpen] = useState(false)
 
-  const hasActiveFilters = libraryFilters.status.length > 0 || libraryFilters.tags.length > 0 || libraryFilters.ratingMin
+  const hasActiveFilters = libraryFilters.status.length > 0 || libraryFilters.tags.length > 0
+  const activeTagCount = libraryFilters.tags.length
 
   function toggleStatus(status) {
     const current = libraryFilters.status
-    setLibraryFilters({
-      status: current.includes(status) ? current.filter(s => s !== status) : [...current, status]
-    })
+    setLibraryFilters({ status: current.includes(status) ? current.filter(s => s !== status) : [...current, status] })
   }
 
   function toggleTag(tagId) {
     const current = libraryFilters.tags
-    setLibraryFilters({
-      tags: current.includes(tagId) ? current.filter(t => t !== tagId) : [...current, tagId]
-    })
+    setLibraryFilters({ tags: current.includes(tagId) ? current.filter(t => t !== tagId) : [...current, tagId] })
   }
 
   return (
@@ -93,26 +92,48 @@ export function LibraryFilters() {
         </div>
       </div>
 
-      {/* Tag filters */}
+      {/* Tags – collapsible */}
       {tags.length > 0 && (
         <div>
-          <label className="section-label block mb-1.5">Tags</label>
-          <div className="flex flex-wrap gap-1.5">
-            {tags.map(tag => (
-              <button
-                key={tag.id}
-                onClick={() => toggleTag(tag.id)}
-                className={clsx(
-                  'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
-                  libraryFilters.tags.includes(tag.id)
-                    ? 'bg-teal-700 text-white border-teal-700'
-                    : 'bg-white dark:bg-ink-800 border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-400 hover:border-teal-400'
-                )}
-              >
-                {tag.name}
-              </button>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => setTagsOpen(o => !o)}
+            className="flex items-center justify-between w-full mb-1.5 group"
+          >
+            <span className="section-label">
+              Tags{activeTagCount > 0 && (
+                <span className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-teal-600 text-white text-[10px] font-bold">
+                  {activeTagCount}
+                </span>
+              )}
+            </span>
+            <ChevronDown
+              size={14}
+              className={clsx(
+                'text-ink-400 transition-transform duration-200',
+                tagsOpen && 'rotate-180'
+              )}
+            />
+          </button>
+
+          {tagsOpen && (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {tags.map(tag => (
+                <button
+                  key={tag.id}
+                  onClick={() => toggleTag(tag.id)}
+                  className={clsx(
+                    'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
+                    libraryFilters.tags.includes(tag.id)
+                      ? 'bg-teal-700 text-white border-teal-700'
+                      : 'bg-white dark:bg-ink-800 border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-400 hover:border-teal-400'
+                  )}
+                >
+                  {tag.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
