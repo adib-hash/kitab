@@ -95,8 +95,13 @@ function ResultsView({ rankedBooks, matchCount, onContinue, onReset, resetting }
 
       <div className="space-y-2">
         {rankedBooks.map((book, i) => (
-          <Link
+          <motion.div
             key={book.id}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.06, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          >
+          <Link
             to={`/library/${book.id}`}
             className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-ink-800 border border-paper-200 dark:border-ink-700 hover:border-teal-400 transition-colors"
           >
@@ -116,6 +121,7 @@ function ResultsView({ rankedBooks, matchCount, onContinue, onReset, resetting }
               <p className="text-[10px] text-ink-300">{book.elo_wins}W / {book.elo_losses}L</p>
             </div>
           </Link>
+          </motion.div>
         ))}
       </div>
 

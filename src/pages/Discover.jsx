@@ -1,10 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Compass, Trash2, ChevronDown, ChevronUp, Sparkles, Clock } from 'lucide-react'
-import { useLibrary } from '../hooks/useLibrary'
+import { Compass, Trash2, Plus, Sparkles, Check, X, BookmarkPlus, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useLibrary, useAddBook } from '../hooks/useLibrary'
 import { useRecommendations, useSaveRecommendation, useDeleteRecommendation, useUpdateRecommendation } from '../hooks/useRecommendations'
 import { QueryFlow } from '../components/discover/QueryFlow'
-import { RecBookCard } from '../components/discover/RecBookCard'
 import { RecDetailModal } from '../components/discover/RecDetailModal'
 
 const MODE_LABELS = {
@@ -13,8 +12,6 @@ const MODE_LABELS = {
   fresh: '🌍 Something totally new',
   favorites: '⭐ Based on my favorites',
 }
-
-const RECENT_MS = 48 * 60 * 60 * 1000 // 48 hours
 
 function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -26,8 +23,231 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
+// ── Single swipeable card deck for one session ─────────────────────────────
+function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook, sessionId }) {
+  const [index, setIndex] = useState(0)
+  const [direction, setDirection] = useState(0) // -1 left, 1 right
+  const [confirm, setConfirm] = useState(null) // 'add' | 'remove'
+  const addBook = useAddBook()
+  const [addedSet, setAddedSet] = useState(() =>
+    new Set(books.map((b, i) => libraryTitles.has(b.title?.toLowerCase().trim()) ? i : null).filter(v => v !== null))
+  )
+
+  const touchStartX = useRef(null)
+  const SWIPE_THRESHOLD = 60
+
+  const safeBooks = books || []
+  const book = safeBooks[index]
+  if (!book) return null
+
+  function goTo(newIndex, dir) {
+    setDirection(dir)
+    setIndex(newIndex)
+  }
+
+  function handleTouchStart(e) { touchStartX.current = e.touches[0].clientX }
+  function handleTouchEnd(e) {
+    if (touchStartX.current === null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    if (dx < -SWIPE_THRESHOLD && index < safeBooks.length - 1) goTo(index + 1, -1)
+    else if (dx > SWIPE_THRESHOLD && index > 0) goTo(index - 1, 1)
+    touchStartX.current = null
+  }
+
+  async function handleConfirmAdd() {
+    await addBook.mutateAsync({
+      book: {
+        title: book.title, author: book.author,
+        cover_url: book.cover_url || null,
+        published_year: book.published_year || null,
+        page_count: book.page_count || null,
+        genres: book.genres || [],
+        description: book.description || null,
+        google_books_id: book.google_books_id || null,
+        isbn: book.isbn || null,
+        status: 'tbr',
+      },
+      tagIds: [],
+    })
+    setAddedSet(prev => new Set([...prev, index]))
+    setConfirm(null)
+  }
+
+  function handleConfirmRemove() {
+    onDeleteBook(index)
+    setConfirm(null)
+    if (index >= safeBooks.length - 1 && index > 0) setIndex(index - 1)
+  }
+
+  const isAdded = addedSet.has(index)
+
+  const variants = {
+    enter: (dir) => ({ x: dir < 0 ? 60 : -60, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir) => ({ x: dir < 0 ? -60 : 60, opacity: 0 }),
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Card */}
+      <div
+        className="relative select-none"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={index}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.22, ease: 'easeInOut' }}
+            className="relative rounded-2xl overflow-hidden shadow-book cursor-pointer"
+            style={{ aspectRatio: '2/3', maxHeight: 340 }}
+          >
+            {/* Cover */}
+            <div className="absolute inset-0" onClick={() => onBookClick(book)}>
+              {book.cover_url ? (
+                <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover" />
+              ) : (
+                <div
+                  className="w-full h-full flex items-center justify-center font-serif font-bold text-white text-4xl"
+                  style={{ backgroundColor: `hsl(${(book.title.charCodeAt(0) * 37) % 360}, 35%, 30%)` }}
+                >
+                  {book.title.slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              {/* Gradient overlay for title legibility */}
+              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-3">
+                <p className="font-serif font-bold text-white text-sm leading-snug line-clamp-2 drop-shadow">{book.title}</p>
+                <p className="text-xs text-white/80 mt-0.5 drop-shadow">{book.author}</p>
+              </div>
+            </div>
+
+            {/* Top-left: Remove */}
+            <button
+              onClick={e => { e.stopPropagation(); setConfirm('remove') }}
+              className="absolute top-2 left-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-rose-500/80 transition-colors"
+            >
+              <X size={14} />
+            </button>
+
+            {/* Top-right: Add to TBR */}
+            <button
+              onClick={e => { e.stopPropagation(); if (!isAdded) setConfirm('add') }}
+              className={`absolute top-2 right-2 w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center transition-colors ${
+                isAdded
+                  ? 'bg-teal-500/90 text-white'
+                  : 'bg-black/50 text-white hover:bg-teal-500/80'
+              }`}
+            >
+              {isAdded ? <Check size={14} /> : <BookmarkPlus size={14} />}
+            </button>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Confirm overlays */}
+        <AnimatePresence>
+          {confirm === 'add' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 rounded-2xl bg-teal-900/85 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-10"
+            >
+              <p className="text-white text-sm font-medium text-center px-4">Add <span className="font-bold">"{book.title}"</span> to TBR?</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleConfirmAdd}
+                  disabled={addBook.isPending}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-teal-500 text-white rounded-xl text-sm font-semibold hover:bg-teal-400 transition-colors"
+                >
+                  {addBook.isPending ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Add
+                </button>
+                <button onClick={() => setConfirm(null)} className="px-4 py-2 bg-white/20 text-white rounded-xl text-sm font-semibold hover:bg-white/30 transition-colors">
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          )}
+          {confirm === 'remove' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 rounded-2xl bg-rose-900/85 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-10"
+            >
+              <p className="text-white text-sm font-medium text-center px-4">Remove <span className="font-bold">"{book.title}"</span>?</p>
+              <div className="flex gap-2">
+                <button onClick={handleConfirmRemove} className="flex items-center gap-1.5 px-4 py-2 bg-rose-500 text-white rounded-xl text-sm font-semibold hover:bg-rose-400 transition-colors">
+                  <Check size={13} /> Remove
+                </button>
+                <button onClick={() => setConfirm(null)} className="px-4 py-2 bg-white/20 text-white rounded-xl text-sm font-semibold hover:bg-white/30 transition-colors">
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Dot indicators + arrow nav */}
+      <div className="flex items-center justify-center gap-3">
+        <button
+          onClick={() => index > 0 && goTo(index - 1, 1)}
+          disabled={index === 0}
+          className="p-1 text-ink-400 disabled:opacity-30 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <div className="flex gap-1.5">
+          {safeBooks.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goTo(i, i > index ? -1 : 1)}
+              className={`rounded-full transition-all ${
+                i === index
+                  ? 'w-4 h-2 bg-teal-600 dark:bg-teal-400'
+                  : 'w-2 h-2 bg-paper-300 dark:bg-ink-600 hover:bg-teal-400/60'
+              }`}
+            />
+          ))}
+        </div>
+        <button
+          onClick={() => index < safeBooks.length - 1 && goTo(index + 1, -1)}
+          disabled={index === safeBooks.length - 1}
+          className="p-1 text-ink-400 disabled:opacity-30 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      {/* Why recommended */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.18 }}
+          className="bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800 rounded-xl px-4 py-3 min-h-[64px]"
+        >
+          <p className="text-xs font-semibold text-teal-700 dark:text-teal-400 uppercase tracking-wide mb-1">Why you'll love it</p>
+          <p className="text-sm text-teal-900 dark:text-teal-200 leading-relaxed">
+            {book.why || 'Recommended based on your reading taste.'}
+          </p>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  )
+}
+
+// ── Session card wrapping a deck ───────────────────────────────────────────
 function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBook }) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
 
   return (
     <motion.div
@@ -36,35 +256,28 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
       className="card overflow-hidden"
     >
       <div className="flex items-start justify-between p-4 pb-3">
-        <div className="flex-1 min-w-0">
+        <button className="flex-1 min-w-0 text-left" onClick={() => setExpanded(e => !e)}>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-0.5 rounded-full">
               {MODE_LABELS[session.mode] || session.mode}
             </span>
             <span className="text-xs text-ink-400">{timeAgo(session.created_at)}</span>
+            <span className="text-xs text-ink-400">{session.books?.length || 0} picks</span>
           </div>
           {session.query && (
             <p className="text-sm text-ink-600 dark:text-ink-400 mt-1.5 italic">"{session.query}"</p>
           )}
-        </div>
-        <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-          <button
-            onClick={() => setExpanded(e => !e)}
-            className="p-1.5 rounded-lg text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 hover:bg-paper-100 dark:hover:bg-ink-700 transition-colors"
-          >
-            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
-          <button
-            onClick={() => onDelete(session.id)}
-            className="p-1.5 rounded-lg text-ink-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
+        </button>
+        <button
+          onClick={() => onDelete(session.id)}
+          className="ml-2 flex-shrink-0 p-1.5 rounded-lg text-ink-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
+        >
+          <Trash2 size={14} />
+        </button>
       </div>
 
       <AnimatePresence>
-        {expanded && (
+        {expanded && session.books?.length > 0 && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
@@ -72,68 +285,18 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 space-y-2">
-              {(session.books || []).map((book, i) => (
-                <RecBookCard
-                  key={`${book.title}-${i}`}
-                  book={book}
-                  inLibrary={libraryTitles.has(book.title?.toLowerCase().trim())}
-                  onClick={() => onBookClick(book)}
-                  onDelete={() => onDeleteBook(session.id, session.books, i)}
-                />
-              ))}
+            <div className="px-4 pb-5">
+              <RecommendationDeck
+                books={session.books}
+                libraryTitles={libraryTitles}
+                onBookClick={onBookClick}
+                onDeleteBook={(bookIndex) => onDeleteBook(session.id, session.books, bookIndex)}
+              />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </motion.div>
-  )
-}
-
-function OlderSection({ sessions, libraryTitles, onBookClick, onDelete, onDeleteBook }) {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div>
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 w-full py-2 px-1 text-left group"
-      >
-        <Clock size={13} className="text-ink-400 flex-shrink-0" />
-        <span className="section-label flex-1">
-          Older recommendations ({sessions.length})
-        </span>
-        <ChevronDown
-          size={14}
-          className={`text-ink-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-        />
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="space-y-3 pt-2">
-              {sessions.map(session => (
-                <SessionCard
-                  key={session.id}
-                  session={session}
-                  libraryTitles={libraryTitles}
-                  onBookClick={onBookClick}
-                  onDelete={onDelete}
-                  onDeleteBook={onDeleteBook}
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
   )
 }
 
@@ -146,11 +309,8 @@ export function Discover() {
 
   function handleDeleteBook(sessionId, currentBooks, bookIndex) {
     const updated = currentBooks.filter((_, i) => i !== bookIndex)
-    if (updated.length === 0) {
-      deleteRec.mutate(sessionId)
-    } else {
-      updateRec.mutate({ id: sessionId, books: updated })
-    }
+    if (updated.length === 0) deleteRec.mutate(sessionId)
+    else updateRec.mutate({ id: sessionId, books: updated })
   }
 
   const [showFlow, setShowFlow] = useState(false)
@@ -166,29 +326,16 @@ export function Discover() {
     await saveRec.mutateAsync(result)
   }
 
-  // Split sessions: recent (< 48h) vs older
-  const now = Date.now()
-  const recentSessions = sessions.filter(s => now - new Date(s.created_at).getTime() < RECENT_MS)
-  const olderSessions = sessions.filter(s => now - new Date(s.created_at).getTime() >= RECENT_MS)
-
   if (libraryLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-ink-400 text-sm">Loading...</div>
-      </div>
-    )
+    return <div className="flex items-center justify-center py-20"><div className="text-ink-400 text-sm">Loading...</div></div>
   }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">Discover</h1>
-          <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
-            AI-powered picks built around your taste
-          </p>
+          <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">AI-powered picks built around your taste</p>
         </div>
         {!showFlow && (
           <button onClick={() => setShowFlow(true)} className="btn-primary gap-2 lg:hidden">
@@ -197,33 +344,24 @@ export function Discover() {
         )}
       </div>
 
-      {/* Desktop two-column layout */}
       <div className="lg:grid lg:grid-cols-[340px_1fr] lg:gap-8 lg:items-start space-y-6 lg:space-y-0">
-
-        {/* Left panel – desktop only */}
+        {/* Desktop left panel */}
         <div className="hidden lg:block lg:sticky lg:top-6 space-y-4">
           <div className="card p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-serif text-base font-semibold text-ink-900 dark:text-paper-50">
-                Find your next read
-              </h2>
+              <h2 className="font-serif text-base font-semibold text-ink-900 dark:text-paper-50">Find your next read</h2>
             </div>
             <AnimatePresence mode="wait">
               {showFlow ? (
                 <motion.div key="flow" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <QueryFlow library={books} onComplete={handleComplete} />
-                  <button
-                    onClick={() => setShowFlow(false)}
-                    className="hidden lg:block mt-3 text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
-                  >
+                  <button onClick={() => setShowFlow(false)} className="hidden lg:block mt-3 text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors">
                     ← cancel
                   </button>
                 </motion.div>
               ) : (
                 <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <p className="text-sm text-ink-500 dark:text-ink-400 mb-4">
-                    Tell me what you're looking for and I'll find your next read.
-                  </p>
+                  <p className="text-sm text-ink-500 dark:text-ink-400 mb-4">Tell me what you're looking for and I'll find your next read.</p>
                   <button onClick={() => setShowFlow(true)} className="w-full btn-primary gap-2 justify-center">
                     <Sparkles size={14} /> Get recommendations
                   </button>
@@ -238,9 +376,8 @@ export function Discover() {
           )}
         </div>
 
-        {/* Right column: sessions */}
+        {/* Session history */}
         <div className="space-y-4">
-          {/* Mobile query flow */}
           <AnimatePresence>
             {showFlow && (
               <motion.div
@@ -252,9 +389,7 @@ export function Discover() {
               >
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-serif text-base font-semibold text-ink-900 dark:text-paper-50">Find your next read</h2>
-                  <button onClick={() => setShowFlow(false)} className="text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors">
-                    cancel
-                  </button>
+                  <button onClick={() => setShowFlow(false)} className="text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300">cancel</button>
                 </div>
                 <QueryFlow library={books} onComplete={handleComplete} />
               </motion.div>
@@ -262,58 +397,26 @@ export function Discover() {
           </AnimatePresence>
 
           {sessionsLoading ? (
-            <div className="space-y-3">
-              {[...Array(2)].map((_, i) => <div key={i} className="h-24 skeleton rounded-xl" />)}
-            </div>
+            <div className="space-y-3">{[...Array(2)].map((_, i) => <div key={i} className="h-40 skeleton rounded-xl" />)}</div>
           ) : sessions.length === 0 ? (
-            <div className="card p-10 text-center space-y-3">
+            <div className="card p-10 text-center space-y-3 lg:flex lg:flex-col lg:items-center lg:justify-center lg:min-h-[320px]">
               <Compass size={36} className="mx-auto text-ink-300" />
               <div>
                 <p className="font-medium text-ink-700 dark:text-ink-300">No recommendations yet</p>
-                <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
-                  Use the panel to get your first AI-powered picks
-                </p>
+                <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">Use the panel to get your first AI-powered picks</p>
               </div>
             </div>
           ) : (
-            <>
-              {/* Recent sessions */}
-              {recentSessions.length > 0 && (
-                <div className="space-y-3">
-                  {recentSessions.map(session => (
-                    <SessionCard
-                      key={session.id}
-                      session={session}
-                      libraryTitles={libraryTitles}
-                      onBookClick={setPreviewBook}
-                      onDelete={(id) => deleteRec.mutate(id)}
-                      onDeleteBook={handleDeleteBook}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {/* Older sessions - collapsible */}
-              {olderSessions.length > 0 && (
-                <div className={recentSessions.length > 0 ? 'border-t border-paper-200 dark:border-ink-700 pt-3' : ''}>
-                  <OlderSection
-                    sessions={olderSessions}
-                    libraryTitles={libraryTitles}
-                    onBookClick={setPreviewBook}
-                    onDelete={(id) => deleteRec.mutate(id)}
-                    onDeleteBook={handleDeleteBook}
-                  />
-                </div>
-              )}
-
-              {/* Edge case: no recent, but older exists and that's it */}
-              {recentSessions.length === 0 && olderSessions.length === 0 && (
-                <div className="card p-10 text-center">
-                  <Compass size={36} className="mx-auto text-ink-300 mb-3" />
-                  <p className="font-medium text-ink-700 dark:text-ink-300">No recommendations yet</p>
-                </div>
-              )}
-            </>
+            sessions.map(session => (
+              <SessionCard
+                key={session.id}
+                session={session}
+                libraryTitles={libraryTitles}
+                onBookClick={setPreviewBook}
+                onDelete={(id) => deleteRec.mutate(id)}
+                onDeleteBook={handleDeleteBook}
+              />
+            ))
           )}
         </div>
       </div>

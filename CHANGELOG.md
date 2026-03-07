@@ -4,6 +4,21 @@ All changes since inception, in reverse chronological order.
 
 ---
 
+## v1.5.0 — March 2026
+*TBR shuffle, Discover card deck, Rank animation*
+
+### New Features
+- **Shuffle Pick (TBR)** — new button at the top of TBR randomly surfaces one book from your list in a popup; great for when you can't decide what to read next
+- **Discover swipeable card deck** — each recommendation session now displays as an interactive card stack instead of a scrollable list; swipe left/right (or use arrow buttons) to flip through picks; dot indicators show position in the deck
+- **Discover card actions** — X button (top-left of card) removes the recommendation with a confirm prompt; checkmark (top-right) adds to TBR with a confirm prompt; tapping the cover opens the full book detail modal
+- **Rank reveal animation** — rankings list now builds from the bottom up with a staggered slide-in animation each time results are shown
+
+### Changes
+- **TBR buttons removed** — "Reading" and "Done" action buttons removed from TBR rows; swipe gestures are now the primary interaction (swipe right = start reading, swipe left = remove)
+- **Discover "Why it's recommended"** — reason text now lives below the active card and animates in/out as you swipe between picks
+
+---
+
 ## v1.4.0 — March 2026 (Current)
 *Mobile polish, performance, and UX refinement sprint*
 
