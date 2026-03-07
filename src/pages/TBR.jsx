@@ -259,7 +259,10 @@ function ShufflePickModal({ book, onClose, onShuffleAgain }) {
           <Shuffle size={15} className="text-white" />
           <span className="text-sm font-semibold text-white">Shuffle Again</span>
         </button>
-        <button onClick={onShuffleAgain} className="mt-4 block w-full py-2 rounded-xl bg-paper-100 dark:bg-ink-700 text-sm font-medium text-ink-700 dark:text-ink-200 hover:bg-paper-200 dark:hover:bg-ink-600 transition-colors">🔀 Shuffle Again</button>
+        <button onClick={onShuffleAgain} className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 active:bg-teal-800 transition-colors">
+          <Shuffle size={15} className="text-white" />
+          <span className="text-sm font-semibold text-white">Shuffle Again</span>
+        </button>
         <button
           onClick={onClose}
           className="mt-2 block w-full text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 py-1"
