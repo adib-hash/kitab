@@ -12,7 +12,6 @@ const MODE_LABELS = {
   fresh: '🌍 Something totally new',
   favorites: '⭐ Based on my favorites',
 }
-
 const RECENT_MS = 48 * 60 * 60 * 1000
 
 function timeAgo(dateStr) {
@@ -37,8 +36,13 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook })
            .filter(v => v !== null)
     )
   )
+
+  // Touch tracking — we need both X and Y to disambiguate scroll vs swipe
   const touchStartX = useRef(null)
+  const touchStartY = useRef(null)
+  const swipeAxis = useRef(null) // 'h' | 'v' | null — locked once determined
   const SWIPE_THRESHOLD = 55
+  const AXIS_LOCK_DISTANCE = 8 // px before we decide axis
 
   const safeBooks = books || []
   const book = safeBooks[index]
@@ -46,13 +50,40 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook })
 
   function goTo(newIdx, dir) { setDirection(dir); setIndex(newIdx) }
 
-  function onTouchStart(e) { touchStartX.current = e.touches[0].clientX }
+  function onTouchStart(e) {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+    swipeAxis.current = null
+  }
+
+  function onTouchMove(e) {
+    if (touchStartX.current === null) return
+    const dx = Math.abs(e.touches[0].clientX - touchStartX.current)
+    const dy = Math.abs(e.touches[0].clientY - touchStartY.current)
+
+    // Lock axis once we've moved enough to determine intent
+    if (!swipeAxis.current && (dx > AXIS_LOCK_DISTANCE || dy > AXIS_LOCK_DISTANCE)) {
+      swipeAxis.current = dx > dy ? 'h' : 'v'
+    }
+
+    // Only prevent default (block page scroll) when we've locked to horizontal
+    if (swipeAxis.current === 'h') {
+      e.preventDefault()
+    }
+    // If vertical, do nothing — let the page scroll naturally
+  }
+
   function onTouchEnd(e) {
     if (touchStartX.current === null) return
-    const dx = e.changedTouches[0].clientX - touchStartX.current
-    if (dx < -SWIPE_THRESHOLD && index < safeBooks.length - 1) goTo(index + 1, -1)
-    else if (dx > SWIPE_THRESHOLD && index > 0) goTo(index - 1, 1)
+    // Only act on confirmed horizontal swipes
+    if (swipeAxis.current === 'h') {
+      const dx = e.changedTouches[0].clientX - touchStartX.current
+      if (dx < -SWIPE_THRESHOLD && index < safeBooks.length - 1) goTo(index + 1, -1)
+      else if (dx > SWIPE_THRESHOLD && index > 0) goTo(index - 1, 1)
+    }
     touchStartX.current = null
+    touchStartY.current = null
+    swipeAxis.current = null
   }
 
   async function handleConfirmAdd() {
@@ -81,7 +112,6 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook })
   }
 
   const isAdded = addedSet.has(index)
-
   const variants = {
     enter: dir => ({ x: dir < 0 ? 60 : -60, opacity: 0 }),
     center: { x: 0, opacity: 1 },
@@ -90,12 +120,14 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook })
 
   return (
     <div className="space-y-3">
-      {/* Card — centered with fixed width so it's always in the middle */}
+      {/* Card wrapper — touch-action pan-y lets browser own vertical scroll;
+          onTouchMove intercepts only after axis is locked to horizontal */}
       <div className="flex justify-center">
         <div
           className="relative select-none"
-          style={{ width: 200 }}
+          style={{ width: 200, touchAction: 'pan-y' }}
           onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
           <AnimatePresence mode="wait" custom={direction}>
@@ -110,7 +142,6 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook })
               className="relative rounded-2xl overflow-hidden shadow-book cursor-pointer"
               style={{ aspectRatio: '2/3' }}
             >
-              {/* Cover */}
               <div className="absolute inset-0" onClick={() => onBookClick(book)}>
                 {book.cover_url ? (
                   <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover" />
@@ -129,7 +160,7 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook })
                 </div>
               </div>
 
-              {/* Top-left X: remove */}
+              {/* X — remove */}
               <button
                 onClick={e => { e.stopPropagation(); setConfirm('remove') }}
                 className="absolute top-2 left-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-rose-500/80 transition-colors"
@@ -137,7 +168,7 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook })
                 <X size={13} />
               </button>
 
-              {/* Top-right bookmark: add to TBR */}
+              {/* Bookmark — add to TBR */}
               <button
                 onClick={e => { e.stopPropagation(); if (!isAdded) setConfirm('add') }}
                 className={`absolute top-2 right-2 w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center transition-colors ${
@@ -152,10 +183,8 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook })
           {/* Confirm overlays */}
           <AnimatePresence>
             {confirm === 'add' && (
-              <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="absolute inset-0 rounded-2xl bg-teal-900/85 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-10"
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="absolute inset-0 rounded-2xl bg-teal-900/85 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-10">
                 <p className="text-white text-xs font-medium text-center px-3">Add "{book.title}" to TBR?</p>
                 <div className="flex gap-2">
                   <button onClick={handleConfirmAdd} disabled={addBook.isPending}
@@ -170,10 +199,8 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook })
               </motion.div>
             )}
             {confirm === 'remove' && (
-              <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="absolute inset-0 rounded-2xl bg-rose-900/85 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-10"
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="absolute inset-0 rounded-2xl bg-rose-900/85 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-10">
                 <p className="text-white text-xs font-medium text-center px-3">Remove "{book.title}"?</p>
                 <div className="flex gap-2">
                   <button onClick={handleConfirmRemove}
@@ -191,7 +218,7 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook })
         </div>
       </div>
 
-      {/* Dot indicators + arrows — full width, centered */}
+      {/* Dot indicators + arrows */}
       <div className="flex items-center justify-center gap-3">
         <button onClick={() => index > 0 && goTo(index - 1, 1)} disabled={index === 0}
           className="p-1 text-ink-400 disabled:opacity-30 hover:text-ink-600 dark:hover:text-ink-300 transition-colors">
@@ -212,10 +239,9 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook })
         </button>
       </div>
 
-      {/* Why recommended — full width of parent, not constrained to card width */}
+      {/* Why you'll love it — full session width */}
       <AnimatePresence mode="wait">
-        <motion.div
-          key={index}
+        <motion.div key={index}
           initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.18 }}
           className="bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800 rounded-xl px-4 py-3"
@@ -233,10 +259,8 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook })
 // ── Session card ──────────────────────────────────────────────────────────────
 function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBook, defaultExpanded }) {
   const [expanded, setExpanded] = useState(defaultExpanded)
-
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card overflow-hidden">
-      {/* Header */}
       <div className="flex items-start justify-between p-4 pb-3">
         <button className="flex-1 min-w-0 text-left" onClick={() => setExpanded(e => !e)}>
           <div className="flex items-center gap-2 flex-wrap">
@@ -258,8 +282,6 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
           <Trash2 size={14} />
         </button>
       </div>
-
-      {/* Deck */}
       <AnimatePresence>
         {expanded && session.books?.length > 0 && (
           <motion.div
@@ -282,14 +304,14 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
   )
 }
 
-// ── Session list with recent/older split ──────────────────────────────────────
+// ── Recent / older split ──────────────────────────────────────────────────────
 function SessionList({ sessions, libraryTitles, onBookClick, onDelete, onDeleteBook }) {
   const [olderOpen, setOlderOpen] = useState(false)
   const now = Date.now()
   const recent = sessions.filter(s => now - new Date(s.created_at).getTime() < RECENT_MS)
   const older  = sessions.filter(s => now - new Date(s.created_at).getTime() >= RECENT_MS)
 
-  const renderCard = (session) => (
+  const renderCard = session => (
     <SessionCard
       key={session.id}
       session={session}
@@ -306,10 +328,8 @@ function SessionList({ sessions, libraryTitles, onBookClick, onDelete, onDeleteB
       {recent.map(renderCard)}
       {older.length > 0 && (
         <>
-          <button
-            onClick={() => setOlderOpen(o => !o)}
-            className="flex items-center gap-2 text-xs font-semibold text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors w-full py-1"
-          >
+          <button onClick={() => setOlderOpen(o => !o)}
+            className="flex items-center gap-2 text-xs font-semibold text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors w-full py-1">
             {olderOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             Older Recommendations ({older.length})
           </button>
@@ -330,7 +350,7 @@ function SessionList({ sessions, libraryTitles, onBookClick, onDelete, onDeleteB
   )
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 export function Discover() {
   const { data: books = [], isLoading: libraryLoading } = useLibrary()
   const { data: sessions = [], isLoading: sessionsLoading } = useRecommendations()
@@ -346,15 +366,9 @@ export function Discover() {
 
   const [showFlow, setShowFlow] = useState(false)
   const [previewBook, setPreviewBook] = useState(null)
-  const libraryTitles = useMemo(
-    () => new Set(books.map(b => b.title?.toLowerCase().trim())),
-    [books]
-  )
+  const libraryTitles = useMemo(() => new Set(books.map(b => b.title?.toLowerCase().trim())), [books])
 
-  async function handleComplete(result) {
-    setShowFlow(false)
-    await saveRec.mutateAsync(result)
-  }
+  async function handleComplete(result) { setShowFlow(false); await saveRec.mutateAsync(result) }
 
   if (libraryLoading) {
     return <div className="flex items-center justify-center py-20"><div className="text-ink-400 text-sm">Loading...</div></div>
@@ -362,8 +376,6 @@ export function Discover() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">Discover</h1>
@@ -376,9 +388,7 @@ export function Discover() {
         )}
       </div>
 
-      {/* Two-column on desktop */}
       <div className="lg:grid lg:grid-cols-[340px_1fr] lg:gap-8 lg:items-start space-y-6 lg:space-y-0">
-
         {/* Desktop left panel */}
         <div className="hidden lg:block lg:sticky lg:top-6 space-y-4">
           <div className="card p-5">
@@ -387,16 +397,12 @@ export function Discover() {
               {showFlow ? (
                 <motion.div key="flow" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <QueryFlow library={books} onComplete={handleComplete} />
-                  <button onClick={() => setShowFlow(false)} className="hidden lg:block mt-3 text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors">
-                    ← cancel
-                  </button>
+                  <button onClick={() => setShowFlow(false)} className="hidden lg:block mt-3 text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors">← cancel</button>
                 </motion.div>
               ) : (
                 <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <p className="text-sm text-ink-500 dark:text-ink-400 mb-4">Tell me what you're looking for and I'll find your next read.</p>
-                  <button onClick={() => setShowFlow(true)} className="w-full btn-primary gap-2 justify-center">
-                    <Sparkles size={14} /> Get recommendations
-                  </button>
+                  <button onClick={() => setShowFlow(true)} className="w-full btn-primary gap-2 justify-center"><Sparkles size={14} /> Get recommendations</button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -410,7 +416,6 @@ export function Discover() {
 
         {/* Session history */}
         <div className="space-y-4">
-          {/* Mobile query flow */}
           <AnimatePresence>
             {showFlow && (
               <motion.div key="mobile-flow" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="card p-5 lg:hidden">
@@ -432,23 +437,14 @@ export function Discover() {
               <p className="text-sm text-ink-500 dark:text-ink-400">Use the panel to get your first AI-powered picks</p>
             </div>
           ) : (
-            <SessionList
-              sessions={sessions}
-              libraryTitles={libraryTitles}
-              onBookClick={setPreviewBook}
-              onDelete={(id) => deleteRec.mutate(id)}
-              onDeleteBook={handleDeleteBook}
-            />
+            <SessionList sessions={sessions} libraryTitles={libraryTitles} onBookClick={setPreviewBook}
+              onDelete={(id) => deleteRec.mutate(id)} onDeleteBook={handleDeleteBook} />
           )}
         </div>
       </div>
 
-      <RecDetailModal
-        book={previewBook}
-        open={!!previewBook}
-        onClose={() => setPreviewBook(null)}
-        inLibrary={previewBook ? libraryTitles.has(previewBook.title?.toLowerCase().trim()) : false}
-      />
+      <RecDetailModal book={previewBook} open={!!previewBook} onClose={() => setPreviewBook(null)}
+        inLibrary={previewBook ? libraryTitles.has(previewBook.title?.toLowerCase().trim()) : false} />
     </motion.div>
   )
 }

@@ -4,6 +4,14 @@ All changes since inception, in reverse chronological order.
 
 ---
 
+## v1.5.4 — March 2026
+*Discover scroll conflict fix*
+
+- **Discover: swipe vs. scroll conflict resolved** — card deck now uses `touch-action: pan-y` so the browser owns vertical scrolling natively; horizontal swipe axis is locked only after 8px of movement confirms the gesture is lateral, preventing accidental card swipes while scrolling the page
+
+---
+
+
 ## v1.5.3 — March 2026
 *Discover layout fixes*
 
