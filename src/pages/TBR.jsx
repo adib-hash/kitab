@@ -260,7 +260,7 @@ export function TBR() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">To Be Read</h1>
