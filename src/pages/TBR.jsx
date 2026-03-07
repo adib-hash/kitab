@@ -9,7 +9,7 @@ import {
   verticalListSortingStrategy, arrayMove
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useLibrary, useReorderTBR, useUpdateBook } from '../hooks/useLibrary'
+import { useLibrary, useReorderTBR, useUpdateBook, useDeleteBook } from '../hooks/useLibrary'
 import { BookCover } from '../components/books/BookCover'
 import { BookSearchModal } from '../components/books/BookSearch'
 import { BookForm } from '../components/books/BookForm'
@@ -19,8 +19,8 @@ import { useLongPress } from '../hooks/useLongPress'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
-const SWIPE_ACTIVATE = 70   // px before visual feedback starts
-const SWIPE_CONFIRM  = 110  // px to reach confirm state on release
+const SWIPE_ACTIVATE = 70   // px — show background tint
+const SWIPE_CONFIRM  = 110  // px — trigger confirm banner on release
 
 // ── SortableBook ──────────────────────────────────────────────────────────────
 function SortableBook({ book }) {
@@ -28,51 +28,43 @@ function SortableBook({ book }) {
     attributes, listeners, setNodeRef: setSortableRef,
     transform, transition, isDragging
   } = useSortable({ id: book.id })
+
   const updateBook = useUpdateBook()
+  const deleteBook = useDeleteBook()
 
-  // Outer container ref (for sortable)
+  // Refs for gesture tracking (no re-renders per pixel)
   const outerRef = useRef(null)
-  // Inner white card ref (this slides, revealing background underneath)
   const innerRef = useRef(null)
-
-  // Touch tracking — all in refs to avoid re-renders during gesture
-  const startX = useRef(null)
-  const startY = useRef(null)
+  const startX   = useRef(null)
+  const startY   = useRef(null)
   const currentX = useRef(0)
-  const axis = useRef(null)       // 'h' | 'v' | null
+  const axis     = useRef(null)   // 'h' | 'v' | null
 
-  // React state only for overlay rendering (minimal)
-  const [swipeDir, setSwipeDir]   = useState(null)       // 'right' | 'left' | null — background tint
-  const [confirming, setConfirming] = useState(null)     // 'right' | 'left' | null — confirm step
+  // Minimal React state — only for visible overlays
+  const [swipeDir,   setSwipeDir]   = useState(null)   // 'right' | 'left' | null
+  const [confirming, setConfirming] = useState(null)   // 'right' | 'left' | null
   const [quickActionsOpen, setQuickActionsOpen] = useState(false)
 
   const longPress = useLongPress(() => setQuickActionsOpen(true))
 
-  // Combine sortable ref with outer ref
   function setRef(el) {
     setSortableRef(el)
     outerRef.current = el
   }
 
-  // ── Animate inner card ────────────────────────────────────────────────────
   function setInnerX(x, animated = false) {
     if (!innerRef.current) return
-    if (animated) {
-      innerRef.current.style.transition = 'transform 0.25s ease'
-      setTimeout(() => { if (innerRef.current) innerRef.current.style.transition = '' }, 260)
-    } else {
-      innerRef.current.style.transition = ''
-    }
-    innerRef.current.style.transform = `translateX(${x}px)`
+    innerRef.current.style.transition = animated ? 'transform 0.25s ease' : ''
+    innerRef.current.style.transform  = `translateX(${x}px)`
+    if (animated) setTimeout(() => { if (innerRef.current) innerRef.current.style.transition = '' }, 260)
   }
 
-  // ── Touch handlers ────────────────────────────────────────────────────────
   function onTouchStart(e) {
-    if (confirming) return  // Don't start new swipe while confirming
+    if (confirming) return
     if (e.target.closest('[data-drag-handle]')) return
-    startX.current = e.touches[0].clientX
-    startY.current = e.touches[0].clientY
-    axis.current = null
+    startX.current   = e.touches[0].clientX
+    startY.current   = e.touches[0].clientY
+    axis.current     = null
     currentX.current = 0
     longPress.onTouchStart(e)
   }
@@ -83,9 +75,8 @@ function SortableBook({ book }) {
     const dy = e.touches[0].clientY - startY.current
 
     if (!axis.current) {
-      if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+      if (Math.abs(dx) > 6 || Math.abs(dy) > 6)
         axis.current = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v'
-      }
       return
     }
 
@@ -95,7 +86,6 @@ function SortableBook({ book }) {
       const clamped = Math.max(-140, Math.min(140, dx))
       currentX.current = clamped
       setInnerX(clamped)
-      // Update background color state only at threshold crossing
       const dir = clamped > SWIPE_ACTIVATE ? 'right' : clamped < -SWIPE_ACTIVATE ? 'left' : null
       setSwipeDir(prev => prev !== dir ? dir : prev)
     } else {
@@ -106,46 +96,40 @@ function SortableBook({ book }) {
   function onTouchEnd() {
     longPress.onTouchEnd()
     if (axis.current !== 'h') return
-
     const x = currentX.current
-    startX.current = null
+    startX.current   = null
+    currentX.current = 0
+    axis.current     = null
 
     if (x > SWIPE_CONFIRM) {
-      // Snap to confirm position (right)
       setInnerX(SWIPE_CONFIRM, true)
       setConfirming('right')
     } else if (x < -SWIPE_CONFIRM) {
-      // Snap to confirm position (left)
       setInnerX(-SWIPE_CONFIRM, true)
       setConfirming('left')
     } else {
-      // Below threshold — snap back
       setInnerX(0, true)
       setSwipeDir(null)
     }
-
-    currentX.current = 0
-    axis.current = null
   }
 
-  // ── Confirm actions ───────────────────────────────────────────────────────
-  async function confirmAction() {
-    setInnerX(0, true)
-    setSwipeDir(null)
-    setConfirming(null)
-    if (confirming === 'right') {
-      await updateBook.mutateAsync({ id: book.id, updates: { status: 'reading' } })
-      toast.success(`Started reading "${book.title}"`)
-    } else {
-      await updateBook.mutateAsync({
-        id: book.id,
-        updates: { status: 'read', date_finished: new Date().toISOString().slice(0, 10) }
-      })
-      toast.success(`Marked "${book.title}" as read`)
-    }
+  // Right: Start Reading
+  async function confirmRight() {
+    resetSwipe()
+    await updateBook.mutateAsync({ id: book.id, updates: { status: 'reading' } })
+    toast.success(`Started reading "${book.title}"`)
   }
 
-  function cancelAction() {
+  // Left: Delete from library
+  async function confirmLeft() {
+    resetSwipe()
+    await deleteBook.mutateAsync(book.id)
+    // toast is fired by useDeleteBook itself ("Book removed from library")
+  }
+
+  function cancelAction() { resetSwipe() }
+
+  function resetSwipe() {
     setInnerX(0, true)
     setSwipeDir(null)
     setConfirming(null)
@@ -155,7 +139,7 @@ function SortableBook({ book }) {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.4 : 1,
-    zIndex: isDragging ? 50 : 'auto',
+    zIndex:  isDragging ? 50 : 'auto',
   }
 
   const isRight = swipeDir === 'right' || confirming === 'right'
@@ -165,29 +149,19 @@ function SortableBook({ book }) {
     <>
       <div ref={setRef} style={sortableStyle} className="relative rounded-xl overflow-hidden touch-pan-y select-none">
 
-        {/* ── Swipe background (stays fixed, inner card slides over it) ─────── */}
+        {/* ── Swipe background (fixed; card slides over it) ─────────────────── */}
         <div className={`absolute inset-0 flex items-center px-5 rounded-xl transition-colors duration-150 ${
-          isRight ? 'bg-teal-600' : isLeft ? 'bg-rose-500' : 'bg-paper-200 dark:bg-ink-700'
+          isRight ? 'bg-teal-600' : isLeft ? 'bg-rose-600' : 'bg-paper-200 dark:bg-ink-700'
         }`}>
           {isRight && (
-            <div className="flex flex-col gap-1">
-              <span className="text-white text-xs font-bold">📖 Start Reading</span>
-              {confirming === 'right' && (
-                <span className="text-teal-100 text-[10px]">Release → Confirm below</span>
-              )}
-            </div>
+            <span className="text-white text-xs font-bold">📖 Start Reading</span>
           )}
           {isLeft && (
-            <div className="flex flex-col gap-1 ml-auto text-right">
-              <span className="text-white text-xs font-bold">✓ Mark Done</span>
-              {confirming === 'left' && (
-                <span className="text-rose-100 text-[10px]">Release → Confirm below</span>
-              )}
-            </div>
+            <span className="text-white text-xs font-bold ml-auto">🗑 Remove</span>
           )}
         </div>
 
-        {/* ── Inner white card (slides) ──────────────────────────────────────── */}
+        {/* ── Inner card (slides to reveal background) ──────────────────────── */}
         <div
           ref={innerRef}
           className="relative flex items-center gap-3 p-3 bg-white dark:bg-ink-800 border border-paper-200 dark:border-ink-700 rounded-xl"
@@ -208,7 +182,7 @@ function SortableBook({ book }) {
             <GripVertical size={16} />
           </button>
 
-          {/* Cover + title */}
+          {/* Cover + title → book detail */}
           <Link to={`/library/${book.id}`} className="flex items-center gap-3 flex-1 min-w-0 group">
             <BookCover book={book} size="sm" className="flex-shrink-0" />
             <div className="flex-1 min-w-0">
@@ -219,29 +193,28 @@ function SortableBook({ book }) {
             </div>
           </Link>
         </div>
-
-        {/* ── Confirm step: appears below card when confirming ─────────────────
-            (card is offset, so this area is visible underneath) */}
       </div>
 
-      {/* ── Confirm banner (renders outside overflow:hidden container) ──────── */}
+      {/* ── Confirm banner (outside overflow:hidden so it renders below card) ── */}
       {confirming && (
         <div className={`flex items-center justify-between px-4 py-2.5 rounded-b-xl -mt-1 ${
-          confirming === 'right' ? 'bg-teal-600' : 'bg-rose-500'
+          confirming === 'right' ? 'bg-teal-600' : 'bg-rose-600'
         }`}>
           <span className="text-white text-xs font-semibold">
-            {confirming === 'right' ? '📖 Start reading this book?' : '✓ Mark this book as done?'}
+            {confirming === 'right'
+              ? '📖 Start reading this book?'
+              : '🗑 Remove from library entirely?'}
           </span>
           <div className="flex gap-2">
             <button
               onClick={cancelAction}
-              className="text-white/70 text-xs px-2.5 py-1 rounded-lg border border-white/30 hover:bg-white/10 active:bg-white/20"
+              className="text-white/70 text-xs px-2.5 py-1 rounded-lg border border-white/30 hover:bg-white/10"
             >
               Cancel
             </button>
             <button
-              onClick={confirmAction}
-              className="text-white text-xs px-2.5 py-1 rounded-lg bg-white/25 hover:bg-white/35 active:bg-white/40 font-semibold"
+              onClick={confirming === 'right' ? confirmRight : confirmLeft}
+              className="text-white text-xs px-2.5 py-1 rounded-lg bg-white/25 hover:bg-white/35 font-semibold"
             >
               Confirm
             </button>
@@ -281,7 +254,7 @@ function ShufflePickModal({ book, onClose }) {
         </Link>
         <button
           onClick={onClose}
-          className="mt-4 block w-full text-center text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 py-1"
+          className="mt-4 block w-full text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 py-1"
         >
           Dismiss
         </button>
@@ -294,10 +267,10 @@ function ShufflePickModal({ book, onClose }) {
 export function TBR() {
   const { data: books = [], isLoading } = useLibrary()
   const reorderTBR = useReorderTBR()
-  const [searchOpen, setSearchOpen]   = useState(false)
-  const [formOpen, setFormOpen]       = useState(false)
+  const [searchOpen, setSearchOpen]     = useState(false)
+  const [formOpen, setFormOpen]         = useState(false)
   const [selectedBook, setSelectedBook] = useState(null)
-  const [shufflePick, setShufflePick] = useState(null)
+  const [shufflePick, setShufflePick]   = useState(null)
 
   const tbrBooks = books
     .filter(b => b.status === 'tbr')
@@ -323,8 +296,7 @@ export function TBR() {
 
   function handleShuffle() {
     if (displayBooks.length < 2) return
-    const pick = displayBooks[Math.floor(Math.random() * displayBooks.length)]
-    setShufflePick(pick)
+    setShufflePick(displayBooks[Math.floor(Math.random() * displayBooks.length)])
   }
 
   function handleSearchSelect(book) {
@@ -358,10 +330,10 @@ export function TBR() {
         </div>
       </div>
 
-      {/* Hint */}
+      {/* Swipe hint */}
       {tbrBooks.length > 1 && (
         <p className="text-xs text-ink-400 dark:text-ink-500 text-center">
-          Swipe right to start · swipe left to finish · hold for options
+          Swipe right to start · swipe left to remove · hold for options
         </p>
       )}
 

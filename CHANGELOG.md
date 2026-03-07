@@ -1,3 +1,12 @@
+## v1.6.3 — 2026-03-07
+- Change: TBR left swipe now removes book from library entirely (was: mark as done)
+  — confirm banner says "Remove from library entirely?" before firing
+  — uses useDeleteBook (permanent delete, not status change)
+- Feature: Quick Actions now shows full status picker from any context
+  — "Status: Currently Reading" row expands to show all 4 statuses
+  — auto-sets date_finished when changing to Finished
+  — current status marked, can't be re-selected
+
 ## v1.6.2 — 2026-03-07
 - Fix: Auto-zoom on Discover textarea (iOS zooms inputs <16px font-size; set explicit 16px)
 - Fix: Quick Actions menu item text was invisible (now wrapped in explicit <span> with concrete color)
