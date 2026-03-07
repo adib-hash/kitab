@@ -27,24 +27,14 @@ export function Dashboard() {
     .sort((a,b) => b.date_finished.localeCompare(a.date_finished)).slice(0, 6)
   const stats = computeStats(books)
   const booksThisYear = stats.booksThisYear
-  // Year-scoped stats for "At a Glance"
   const yearBooks = books.filter(b =>
     b.status === 'read' && b.date_finished &&
     new Date(b.date_finished).getFullYear() === thisYear
   )
   const yearStats = computeStats(yearBooks)
   // Year-scoped stats for "At a Glance"
-  const yearBooks = books.filter(b =>
-    b.status === 'read' && b.date_finished &&
-    new Date(b.date_finished).getFullYear() === thisYear
-  )
-  const yearStats = computeStats(yearBooks)
   // Year-scoped stats for "At a Glance"
-  const yearBooks = books.filter(b =>
-    b.status === 'read' && b.date_finished &&
-    new Date(b.date_finished).getFullYear() === thisYear
-  )
-  const yearStats = computeStats(yearBooks)
+  // Year-scoped stats for "At a Glance"
 
   function handleSearchSelect(book) {
     setSelectedBook(book)
