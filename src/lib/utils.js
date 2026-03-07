@@ -44,9 +44,9 @@ export function clamp(value, min, max) {
 
 // Compute reading statistics from a list of books
 export function computeStats(books) {
-  const read = books.filter(b => b.status === 'read' && b.date_finished)
+  const read    = books.filter(b => b.status === 'read' && b.date_finished)
   const allRead = books.filter(b => b.status === 'read')
-  const rated = allRead.filter(b => b.rating != null)
+  const rated   = allRead.filter(b => b.rating != null)
 
   // Average rating
   const avgRating = rated.length
@@ -56,13 +56,7 @@ export function computeStats(books) {
   // Total pages
   const totalPages = allRead.reduce((sum, b) => sum + (b.page_count || 0), 0)
 
-  // Reading pace (average days per book)
-  const paced = books.filter(b => b.date_started && b.date_finished)
-  const avgDays = paced.length
-    ? Math.round(paced.reduce((sum, b) => sum + (daysBetween(b.date_started, b.date_finished) || 0), 0) / paced.length)
-    : null
-
-  // Books per month
+  // Books per month — uses date_finished (stored as YYYY-MM-01)
   const monthCounts = {}
   read.forEach(b => {
     try {
@@ -78,22 +72,23 @@ export function computeStats(books) {
     }))
     .slice(-12)
 
-  // Genre breakdown
-  const genreCounts = {}
+  // Tag breakdown — count books per tag (only tags that have at least 1 book)
+  const tagCounts = {}
   allRead.forEach(b => {
-    (b.genres || []).forEach(g => {
-      const key = g.split(' / ')[0].trim()
-      genreCounts[key] = (genreCounts[key] || 0) + 1
+    (b.tags || []).forEach(tag => {
+      if (tag?.name) {
+        tagCounts[tag.name] = (tagCounts[tag.name] || 0) + 1
+      }
     })
   })
-  const genreBreakdown = Object.entries(genreCounts)
-    .sort(([,a], [,b]) => b - a)
+  const tagBreakdown = Object.entries(tagCounts)
+    .sort(([, a], [, b]) => b - a)
     .slice(0, 8)
     .map(([name, count]) => ({ name, count }))
 
   // Longest and shortest
   const withPages = allRead.filter(b => b.page_count)
-  const longest = withPages.length ? withPages.reduce((a, b) => b.page_count > a.page_count ? b : a) : null
+  const longest  = withPages.length ? withPages.reduce((a, b) => b.page_count > a.page_count ? b : a) : null
   const shortest = withPages.length ? withPages.reduce((a, b) => b.page_count < a.page_count ? b : a) : null
 
   // This year
@@ -107,9 +102,8 @@ export function computeStats(books) {
     totalRead: allRead.length,
     totalPages,
     avgRating: avgRating ? parseFloat(avgRating) : null,
-    avgDays,
     booksPerMonth,
-    genreBreakdown,
+    tagBreakdown,
     longest,
     shortest,
     booksThisYear,

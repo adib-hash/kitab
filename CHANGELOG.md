@@ -1,3 +1,19 @@
+## v1.6.7 — 2026-03-07
+- Change: Dashboard "At a Glance" now shows current-year (2026) stats only
+  — Books Read, Pages Read, Avg Rating all scoped to 2026
+  — year badge next to "At a Glance" heading
+- Fix: Stats page spacing — consistent gap-4 between cards, pb-8 so last
+  section has breathing room above nav bar
+- Change: Genre stats replaced with Tag stats everywhere
+  — Stats page: pie chart + breakdown now show books per tag for 2026
+  — Only tags with ≥1 book in current year are shown
+  — computeStats now returns tagBreakdown instead of genreBreakdown
+- Change: Date collection simplified — removed "Date Started" entirely
+  — "Date Finished" replaced with Month + Year dropdown selects
+  — Stored as YYYY-MM-01 in existing date_finished column (no migration needed)
+  — All downstream stats (booksPerMonth chart, year filter) still work
+  — No more day-level precision; pace stats removed
+
 ## v1.6.6 — 2026-03-07
 - Feature: Loading screen redesigned — stacked book spines (CSS, no images), Playfair
   wordmark, "your reading life" tagline, animated teal ink-dot pulse

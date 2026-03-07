@@ -27,6 +27,24 @@ export function Dashboard() {
     .sort((a,b) => b.date_finished.localeCompare(a.date_finished)).slice(0, 6)
   const stats = computeStats(books)
   const booksThisYear = stats.booksThisYear
+  // Year-scoped stats for "At a Glance"
+  const yearBooks = books.filter(b =>
+    b.status === 'read' && b.date_finished &&
+    new Date(b.date_finished).getFullYear() === thisYear
+  )
+  const yearStats = computeStats(yearBooks)
+  // Year-scoped stats for "At a Glance"
+  const yearBooks = books.filter(b =>
+    b.status === 'read' && b.date_finished &&
+    new Date(b.date_finished).getFullYear() === thisYear
+  )
+  const yearStats = computeStats(yearBooks)
+  // Year-scoped stats for "At a Glance"
+  const yearBooks = books.filter(b =>
+    b.status === 'read' && b.date_finished &&
+    new Date(b.date_finished).getFullYear() === thisYear
+  )
+  const yearStats = computeStats(yearBooks)
 
   function handleSearchSelect(book) {
     setSelectedBook(book)
@@ -118,23 +136,36 @@ export function Dashboard() {
         )}
       </section>
 
-      {/* Quick stats */}
-      {!isLoading && books.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-serif text-lg md:text-xl font-semibold text-ink-900 dark:text-paper-50">At a Glance</h2>
-            <Link to="/stats" className="text-sm text-teal-700 dark:text-teal-400 hover:underline flex items-center gap-1">
-              Full stats <ArrowRight size={14} />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <StatCard label="Books Read" value={stats.totalRead} icon="📚" />
-            <StatCard label="This Year" value={booksThisYear} sub={String(thisYear)} icon="📅" />
-            <StatCard label="Pages Read" value={stats.totalPages.toLocaleString()} icon="📄" />
-            <StatCard label="Avg Rating" value={stats.avgRating ? `${stats.avgRating}★` : null} icon="⭐" />
-          </div>
-        </section>
-      )}
+      {/* Quick stats — current year only */}
+      {!isLoading && books.length > 0 && (() => {
+        const yearBooks = books.filter(b => {
+          if (b.status !== 'read' || !b.date_finished) return false
+          try {
+            const { parseISO } = require ? undefined : undefined
+            return new Date(b.date_finished).getFullYear() === thisYear
+          } catch { return false }
+        })
+        const yearStats = computeStats(yearBooks)
+        return (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <h2 className="font-serif text-lg md:text-xl font-semibold text-ink-900 dark:text-paper-50">At a Glance</h2>
+                <span className="text-xs font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-0.5 rounded-full">{thisYear}</span>
+              </div>
+              <Link to="/stats" className="text-sm text-teal-700 dark:text-teal-400 hover:underline flex items-center gap-1">
+                Full stats <ArrowRight size={14} />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <StatCard label="Books Read" value={yearStats.totalRead} icon="📚" sub={String(thisYear)} />
+              <StatCard label="Pages Read" value={yearStats.totalPages.toLocaleString()} icon="📄" sub={String(thisYear)} />
+              <StatCard label="Avg Rating" value={yearStats.avgRating ? `${yearStats.avgRating}★` : null} icon="⭐" sub={String(thisYear)} />
+              <StatCard label="On TBR" value={books.filter(b=>b.status==='tbr').length} icon="🔖" sub="total" />
+            </div>
+          </section>
+        )
+      })()}
 
       {/* Recently Read */}
       {recentlyRead.length > 0 && (

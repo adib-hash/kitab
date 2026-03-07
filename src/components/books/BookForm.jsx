@@ -57,7 +57,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
   const [form, setForm] = useState({
     title: '', author: '', cover_url: '', published_year: '',
     page_count: '', isbn: '', status: DEFAULT_STATUS, rating: null,
-    review: '', review_spoiler: false, date_started: '', date_finished: '',
+    review: '', review_spoiler: false,
     current_page: '', genres: [], description: '', google_books_id: '',
   })
   const [tagIds, setTagIds] = useState([])
@@ -76,8 +76,8 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
         rating: initialBook.rating || null,
         review: initialBook.review || '',
         review_spoiler: initialBook.review_spoiler || false,
-        date_started: initialBook.date_started || '',
-        date_finished: initialBook.date_finished || '',
+        month_finished: initialBook.date_finished ? String(parseInt(initialBook.date_finished.slice(5, 7))) : '',
+        year_finished: initialBook.date_finished ? initialBook.date_finished.slice(0, 4) : '',
         current_page: initialBook.current_page || '',
         genres: initialBook.genres || [],
         description: initialBook.description || '',
@@ -97,8 +97,9 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
       published_year: form.published_year ? parseInt(form.published_year) : null,
       page_count: form.page_count ? parseInt(form.page_count) : null,
       current_page: form.current_page ? parseInt(form.current_page) : null,
-      date_started: form.date_started || null,
-      date_finished: form.date_finished || null,
+      date_finished: (form.month_finished && form.year_finished)
+        ? `${form.year_finished}-${String(form.month_finished).padStart(2, '0')}-01`
+        : null,
       cover_url: form.cover_url || null,
       isbn: form.isbn || null,
     }
@@ -248,16 +249,18 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
             {tab === 'dates' && (
               <div className="space-y-2.5">
                 <div>
-                  <label className="section-label block mb-1">Date Started</label>
-                  <input type="date" value={form.date_started}
-                    onChange={e => set('date_started', e.target.value)}
-                    className={inp} style={inpStyle} />
+                  <label className="section-label block mb-1">Month Finished</label>
+                  <select value={form.month_finished} onChange={e => set('month_finished', e.target.value)} className="input" style={{ fontSize: '16px' }}>
+                    <option value="">— Month —</option>
+                    {["January","February","March","April","May","June","July","August","September","October","November","December"].map((m,i) => <option key={i+1} value={String(i+1)}>{m}</option>)}
+                  </select>
                 </div>
                 <div>
-                  <label className="section-label block mb-1">Date Finished</label>
-                  <input type="date" value={form.date_finished}
-                    onChange={e => set('date_finished', e.target.value)}
-                    className={inp} style={inpStyle} />
+                  <label className="section-label block mb-1">Year Finished</label>
+                  <select value={form.year_finished} onChange={e => set('year_finished', e.target.value)} className="input" style={{ fontSize: '16px' }}>
+                    <option value="">— Year —</option>
+                    {Array.from({length:6},(_,i)=>new Date().getFullYear()-i).map(y=><option key={y} value={String(y)}>{y}</option>)}
+                  </select>
                 </div>
                 {form.status === 'reading' && (
                   <div>
