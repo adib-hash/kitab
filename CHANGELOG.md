@@ -4,6 +4,18 @@ All changes since inception, in reverse chronological order.
 
 ---
 
+## v1.6.0 — March 2026
+*Quick Actions via long press*
+
+- **Long press any book** — hold a book card (Library grid or TBR list) 500ms to open a Quick Actions bottom sheet
+- **Quick Actions**: Add/Edit Tags, Write/Edit Review, Rate (inline star picker), Move to Currently Reading / TBR
+- **iOS "Open in New Tab" suppressed** — `onContextMenu` prevention + `WebkitTouchCallout: none` block the system context menu
+- **Swipe + long press coexist on TBR** — 8px movement threshold cancels long-press so swipe gestures are unaffected
+- **Bug fix**: reverted broken v1.6.0 attempt that had invalid duplicate import syntax
+
+---
+
+
 ## v1.5.4 — March 2026
 *Discover scroll conflict fix*
 

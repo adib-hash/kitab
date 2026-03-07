@@ -16,6 +16,9 @@ import { BookSearchModal } from '../components/books/BookSearch'
 import { BookForm } from '../components/books/BookForm'
 import { EmptyState } from '../components/ui/index.jsx'
 import { Link } from 'react-router-dom'
+import { useLongPress } from '../hooks/useLongPress'
+import { QuickActionsSheet } from '../components/ui/QuickActionsSheet'
+import { BookForm as BookFormQA } from '../components/books/BookForm'
 import toast from 'react-hot-toast'
 
 const SWIPE_THRESHOLD = 65
@@ -28,6 +31,10 @@ function SortableBook({ book }) {
 
   const [swipeX, setSwipeX] = useState(0)
   const [confirm, setConfirm] = useState(null)
+  const [qaOpen, setQaOpen] = useState(false)
+  const [qfOpen, setQfOpen] = useState(false)
+  const [qfTab, setQfTab]   = useState('details')
+  const longPress = useLongPress(() => setQaOpen(true))
   const touchStartX = useRef(null)
   const touchStartY = useRef(null)
   const isSwipingH = useRef(false)
@@ -119,6 +126,7 @@ function SortableBook({ book }) {
     swipeX < -12 ? `rgba(239,68,68,${Math.min(0.15, (-swipeX - 12) / 120)})` : undefined
 
   return (
+    <>
     <div ref={setNodeRef} style={dndStyle}>
       <div
         className="flex items-center gap-3 p-3 bg-white dark:bg-ink-800 rounded-xl border border-paper-200 dark:border-ink-700"
@@ -127,9 +135,10 @@ function SortableBook({ book }) {
           transition: swipeX ? 'none' : 'transform 0.2s ease',
           backgroundColor: tintColor,
         }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        onTouchStart={e => { longPress.onTouchStart(e); handleTouchStart(e) }}
+        onTouchMove={e => { longPress.onTouchMove(e); handleTouchMove(e) }}
+        onTouchEnd={e => { longPress.onTouchEnd(e); handleTouchEnd(e) }}
+        onContextMenu={longPress.onContextMenu}
       >
         <button
           {...attributes} {...listeners}
@@ -150,6 +159,22 @@ function SortableBook({ book }) {
         </Link>
       </div>
     </div>
+  )
+      <QuickActionsSheet
+        book={book}
+        open={qaOpen}
+        onClose={() => setQaOpen(false)}
+        onOpenForm={(tab) => { setQfTab(tab); setQfOpen(true) }}
+      />
+      <BookFormQA
+        open={qfOpen}
+        onClose={() => setQfOpen(false)}
+        initialBook={book}
+        editingId={book.id}
+        editingTags={book.tags}
+        defaultTab={qfTab}
+      />
+    </>
   )
 }
 
