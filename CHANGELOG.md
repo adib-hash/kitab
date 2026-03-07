@@ -4,6 +4,16 @@ All changes since inception, in reverse chronological order.
 
 ---
 
+## v1.5.3 — March 2026
+*Discover layout fixes*
+
+- **Card perfectly centered** — book cover card is now explicitly centered at fixed width, fully decoupled from the session card padding
+- **"Why you'll love it" full width** — reason box now spans the full session card width for a more comfortable reading layout
+- **Bottom spacing** — added consistent padding below the session list so the last recommendation clears the nav bar
+
+---
+
+
 ## v1.5.2 — March 2026
 *Discover and Rank UI fixes*
 
