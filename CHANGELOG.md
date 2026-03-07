@@ -1,3 +1,11 @@
+## v1.6.4 — 2026-03-07
+- Feature: Shuffle modal now has "Shuffle Again" button (picks a different book each time)
+- Fix: New TBR books are added to the end of the list, not the top
+- Fix: Discover carousel swipe no longer fights with page scroll (touch-action: pan-y)
+- Perf: Nav bar tap is now instant on iOS (touch-action: manipulation removes 300ms delay)
+- Perf: Book grid animations 2x faster (stagger 0.03→0.01, duration 0.3→0.15)
+- Perf: React Query staleTime 10min, gcTime 30min — pages load from cache instantly
+
 ## v1.6.3 — 2026-03-07
 - Change: TBR left swipe now removes book from library entirely (was: mark as done)
   — confirm banner says "Remove from library entirely?" before firing

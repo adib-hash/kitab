@@ -163,3 +163,9 @@
 .dark .btn-secondary:hover {
   background-color: rgb(68 64 60);
 }
+
+/* Discover carousel: allow vertical page scroll during horizontal card swipe */
+.discover-carousel,
+[data-carousel] {
+  touch-action: pan-y;
+}

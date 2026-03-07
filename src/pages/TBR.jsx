@@ -232,7 +232,7 @@ function SortableBook({ book }) {
 }
 
 // ── Shuffle modal ─────────────────────────────────────────────────────────────
-function ShufflePickModal({ book, onClose }) {
+function ShufflePickModal({ book, onClose, onShuffleAgain }) {
   return (
     <div className="fixed inset-0 z-[400] flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -253,8 +253,14 @@ function ShufflePickModal({ book, onClose }) {
           View in library →
         </Link>
         <button
+          onClick={onShuffleAgain}
+          className="mt-4 block w-full py-2 rounded-xl bg-paper-100 dark:bg-ink-700 text-sm font-medium text-ink-700 dark:text-ink-200 hover:bg-paper-200 dark:hover:bg-ink-600 transition-colors"
+        >
+          🔀 Shuffle Again
+        </button>
+        <button
           onClick={onClose}
-          className="mt-4 block w-full text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 py-1"
+          className="mt-2 block w-full text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 py-1"
         >
           Dismiss
         </button>
@@ -294,9 +300,11 @@ export function TBR() {
     reorderTBR.mutate(newOrder)
   }
 
-  function handleShuffle() {
+  function handleShuffle(exclude = null) {
     if (displayBooks.length < 2) return
-    setShufflePick(displayBooks[Math.floor(Math.random() * displayBooks.length)])
+    const pool = exclude ? displayBooks.filter(b => b.id !== exclude.id) : displayBooks
+    const candidates = pool.length > 0 ? pool : displayBooks
+    setShufflePick(candidates[Math.floor(Math.random() * candidates.length)])
   }
 
   function handleSearchSelect(book) {
@@ -374,7 +382,7 @@ export function TBR() {
         onClose={() => { setFormOpen(false); setSelectedBook(null) }}
         initialBook={selectedBook}
       />
-      {shufflePick && <ShufflePickModal book={shufflePick} onClose={() => setShufflePick(null)} />}
+      {shufflePick && <ShufflePickModal book={shufflePick} onClose={() => setShufflePick(null)} onShuffleAgain={() => handleShuffle(shufflePick)} />}
     </div>
   )
 }

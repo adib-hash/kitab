@@ -59,9 +59,23 @@ export function useAddBook() {
     mutationFn: async ({ book, tagIds = [] }) => {
       const { data: { user } } = await supabase.auth.getUser()
 
+      // When adding a TBR book, default tbr_order to end of list
+      let bookToInsert = { ...book, user_id: user.id }
+      if (book.status === 'tbr' && book.tbr_order === undefined) {
+        const { data: existingTBR } = await supabase
+          .from('books')
+          .select('tbr_order')
+          .eq('user_id', user.id)
+          .eq('status', 'tbr')
+          .order('tbr_order', { ascending: false })
+          .limit(1)
+        const maxOrder = existingTBR?.[0]?.tbr_order || 0
+        bookToInsert.tbr_order = maxOrder + 1000
+      }
+
       const { data, error } = await supabase
         .from('books')
-        .insert({ ...book, user_id: user.id })
+        .insert(bookToInsert)
         .select()
         .single()
 

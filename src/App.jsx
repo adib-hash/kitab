@@ -18,7 +18,9 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      staleTime: 1000 * 60 * 5,
+      staleTime: 1000 * 60 * 10,   // 10 min — data stays fresh longer
+      gcTime:    1000 * 60 * 30,   // 30 min — keep cached data in memory
+      refetchOnWindowFocus: false, // don't re-fetch just because you tabbed away
     }
   }
 })
