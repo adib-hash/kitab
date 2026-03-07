@@ -13,11 +13,9 @@ import { CSS } from '@dnd-kit/utilities'
 import { useLibrary, useReorderTBR, useUpdateBook, useDeleteBook } from '../hooks/useLibrary'
 import { BookCover } from '../components/books/BookCover'
 import { BookSearchModal } from '../components/books/BookSearch'
-import { BookForm, BookForm as BookFormInline } from '../components/books/BookForm'
+import { BookForm } from '../components/books/BookForm'
 import { EmptyState } from '../components/ui/index.jsx'
 import { Link } from 'react-router-dom'
-import { useLongPress } from '../hooks/useLongPress'
-import { QuickActionsSheet } from '../components/ui/QuickActionsSheet'
 import toast from 'react-hot-toast'
 
 const SWIPE_THRESHOLD = 65
@@ -129,10 +127,9 @@ function SortableBook({ book }) {
           transition: swipeX ? 'none' : 'transform 0.2s ease',
           backgroundColor: tintColor,
         }}
-        onTouchStart={e => { longPress.onTouchStart(e); handleTouchStart(e) }}
-        onTouchMove={e => { longPress.onTouchMove(e); handleTouchMove(e) }}
-        onTouchEnd={e => { longPress.onTouchEnd(e); handleTouchEnd(e) }}
-        onContextMenu={longPress.onContextMenu}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <button
           {...attributes} {...listeners}

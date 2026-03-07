@@ -50,7 +50,7 @@ function makeCoverSvg(title, author, bg, textColor) {
 
 const DEFAULT_STATUS = 'tbr'
 
-export function BookForm({ open, onClose, initialBook, editingId, editingTags, defaultTab }) {
+export function BookForm({ open, onClose, initialBook, editingId, editingTags }) {
   const addBook = useAddBook()
   const updateBook = useUpdateBook()
 
@@ -61,7 +61,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
     current_page: '', genres: [], description: '', google_books_id: '',
   })
   const [tagIds, setTagIds] = useState([])
-  const [tab, setTab] = useState(defaultTab || 'details')
+  const [tab, setTab] = useState('details')
 
   useEffect(() => {
     if (initialBook) {
@@ -85,8 +85,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
       })
     }
     if (editingTags) setTagIds(editingTags.map(t => t.id))
-    if (defaultTab) setTab(defaultTab)
-  }, [initialBook, editingTags, defaultTab])
+  }, [initialBook, editingTags])
 
   function set(key, value) { setForm(f => ({ ...f, [key]: value })) }
 
