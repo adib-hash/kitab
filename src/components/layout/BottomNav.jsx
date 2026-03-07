@@ -13,6 +13,14 @@ const NAV_ITEMS = [
 export function BottomNav() {
   const location = useLocation()
 
+  function handleNavTap(e, itemPath, isActive) {
+    if (isActive) {
+      // Already on this page — scroll to top instead of navigating
+      e.preventDefault()
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-[200] bg-white dark:bg-ink-900 border-t border-paper-200 dark:border-ink-700 flex items-stretch md:hidden"
@@ -26,6 +34,7 @@ export function BottomNav() {
           <Link
             key={item.path}
             to={item.path}
+            onClick={e => handleNavTap(e, item.path, active)}
             className={clsx(
               'flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors',
               active
