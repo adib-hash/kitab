@@ -34,7 +34,7 @@ export function useLongPress(onLongPress, { disabled = false } = {}) {
 
   const onTouchEnd = useCallback(() => { cancel() }, [cancel])
 
-  // Suppresses iOS "Open in New Tab" context menu on long press
+  // Suppresses iOS "Open in New Tab" system context menu
   const onContextMenu = useCallback((e) => { e.preventDefault() }, [])
 
   return { onTouchStart, onTouchMove, onTouchEnd, onContextMenu }

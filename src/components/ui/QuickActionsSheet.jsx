@@ -92,7 +92,7 @@ export function QuickActionsSheet({ book, open, onClose, onOpenForm }) {
                 <div key={action.key}>
                   <button
                     onClick={action.onClick}
-                    className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-left hover:bg-paper-50 dark:hover:bg-ink-700 transition-colors active:scale-[0.98]"
+                    className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-left hover:bg-paper-50 dark:hover:bg-ink-700 transition-colors"
                   >
                     <span className="text-teal-600 dark:text-teal-400 flex-shrink-0">{action.icon}</span>
                     <span className="text-sm font-medium text-ink-800 dark:text-paper-100">{action.label}</span>
