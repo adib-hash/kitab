@@ -46,7 +46,7 @@ export function BookSearchModal({ open, onClose, onSelect, onManual }) {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search by title, author, or ISBN..."
-            className="input pl-9"
+            className="input pl-9" style={{ fontSize: "16px" }}
           />
           {loading && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 animate-spin" />}
         </div>

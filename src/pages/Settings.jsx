@@ -256,7 +256,7 @@ export function Settings() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-2xl pb-10">
       <h1 className="page-title">Settings</h1>
 
       {/* Libby */}

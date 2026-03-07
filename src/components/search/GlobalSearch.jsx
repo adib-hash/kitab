@@ -14,16 +14,16 @@ export function GlobalSearch({ open, onClose }) {
 
   useEffect(() => {
     if (open) {
-      setTimeout(() => inputRef.current?.focus(), 50)
+      // Delay focus slightly so the animation completes first —
+      // avoids iOS triggering zoom before the overlay is settled
+      setTimeout(() => inputRef.current?.focus(), 80)
     } else {
       setQuery('')
     }
   }, [open])
 
   useEffect(() => {
-    function handler(e) {
-      if (e.key === 'Escape') onClose()
-    }
+    function handler(e) { if (e.key === 'Escape') onClose() }
     if (open) document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [open, onClose])
@@ -67,7 +67,12 @@ export function GlobalSearch({ open, onClose }) {
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder="Search books, authors, tags..."
-                  className="flex-1 bg-transparent text-ink-900 dark:text-paper-50 placeholder:text-ink-400 text-sm outline-none"
+                  className="flex-1 bg-transparent text-ink-900 dark:text-paper-50 placeholder:text-ink-400 outline-none"
+                  style={{ fontSize: '16px' }}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
                 />
                 {query && (
                   <button onClick={() => setQuery('')} className="text-ink-400 hover:text-ink-600 dark:hover:text-ink-300">
