@@ -126,7 +126,7 @@ function RecommendationDeck({ books, libraryTitles, onBookClick, onDeleteBook })
         <div
           className="relative select-none"
           style={{ width: 200, touchAction: 'pan-y' }}
-          onTouchStart={onTouchStart} style={{ touchAction: "pan-y" }}
+          onTouchStart={onTouchStart} style={{ touchAction: "pan-y" }} style={{ touchAction: "pan-y" }}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >

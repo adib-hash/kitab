@@ -34,6 +34,7 @@ export function BottomNav() {
           <Link
             key={item.path}
             style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+            style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
             to={item.path}
             onClick={e => handleNavTap(e, item.path, active)}
             className={clsx(
