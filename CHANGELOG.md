@@ -1,3 +1,15 @@
+## v1.6.5 — 2026-03-07
+- Fix: Discover book covers restored — SessionCard rewritten with proper carousel
+  (v1.6.4 regex introduced JSX syntax error that broke cover rendering)
+  - New carousel: swipe or tap arrows/dots to navigate between picks
+  - Robust image fallback: shows title initials if cover URL fails
+  - touch-action: pan-y so page scrolling never conflicts with card swipe
+  - "Older Recommendations" collapsible for sessions beyond the top 2
+- Fix: Shuffle Again button now uses teal background + white text (legible in dark mode)
+  — replaced emoji-only button with icon (Shuffle) + "Shuffle Again" label
+- Fix: Global double-tap zoom removed via maximum-scale=1 in viewport meta
+- Fix: Global 300ms tap delay removed via touch-action: manipulation on all interactive elements
+
 ## v1.6.4 — 2026-03-07
 - Feature: Shuffle modal now has "Shuffle Again" button (picks a different book each time)
 - Fix: New TBR books are added to the end of the list, not the top

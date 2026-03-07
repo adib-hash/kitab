@@ -169,3 +169,10 @@
 [data-carousel] {
   touch-action: pan-y;
 }
+
+/* ── Touch: remove 300ms tap delay and double-tap zoom on all interactive elements ── */
+a, button, [role="button"], input, select, textarea, label,
+[tabindex], .btn-primary, .btn-secondary, nav a {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
