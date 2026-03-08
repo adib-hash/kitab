@@ -92,13 +92,15 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
 
   async function handleSubmit(e) {
     e.preventDefault()
+    // Destructure out UI-only fields so they don't get sent to Supabase
+    const { month_finished, year_finished, ...formFields } = form
     const payload = {
-      ...form,
+      ...formFields,
       published_year: form.published_year ? parseInt(form.published_year) : null,
       page_count: form.page_count ? parseInt(form.page_count) : null,
       current_page: form.current_page ? parseInt(form.current_page) : null,
-      date_finished: (form.month_finished && form.year_finished)
-        ? `${form.year_finished}-${String(form.month_finished).padStart(2, '0')}-01`
+      date_finished: (month_finished && year_finished)
+        ? `${year_finished}-${String(month_finished).padStart(2, '0')}-01`
         : null,
       cover_url: form.cover_url || null,
       isbn: form.isbn || null,

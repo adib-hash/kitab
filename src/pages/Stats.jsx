@@ -166,22 +166,24 @@ export function Stats() {
             <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 mb-5">
               Tags · {thisYear}
             </h2>
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie
                   data={stats.tagBreakdown}
                   dataKey="count"
                   nameKey="name"
                   cx="50%" cy="50%"
-                  outerRadius={80}
-                  label={({ name }) => name}
+                  outerRadius={75}
+                  label={({ name }) => name.length > 12 ? name.slice(0, 11) + '…' : name}
+                  labelLine={false}
                 >
                   {stats.tagBreakdown.map((_, i) => (
                     <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ background: '#1C1917', border: '1px solid #44403C', borderRadius: 8, fontSize: 12, color: '#FAF7F2' }}
+                  contentStyle={{ background: '#FAF7F2', border: '1px solid #D6D3D1', borderRadius: 8, fontSize: 12, color: '#1C1917' }}
+                  formatter={(v, name) => [`${v} book${v !== 1 ? 's' : ''}`, name]}
                 />
               </PieChart>
             </ResponsiveContainer>
