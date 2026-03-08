@@ -1,3 +1,10 @@
+## v1.6.11 — 2026-03-07
+- Fix: TBR drag-to-reorder now works on iOS
+  — Replaced PointerSensor with MouseSensor (PointerSensor fires on iOS touch,
+    racing with TouchSensor and preventing drag activation)
+  — Removed touchAction:pan-y from inner card (parent touch-action was overriding
+    touch-none on the drag handle child, blocking dnd-kit from receiving events)
+
 ## v1.6.10 — 2026-03-07
 - Fix: Scroll lock now works on iOS Safari
   — overflow:hidden replaced with position:fixed + scroll position save/restore

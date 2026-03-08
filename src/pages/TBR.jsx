@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { Plus, GripVertical, Shuffle } from 'lucide-react'
 import {
-  DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor,
+  DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor,
   useSensor, useSensors
 } from '@dnd-kit/core'
 import {
@@ -165,7 +165,7 @@ function SortableBook({ book }) {
         <div
           ref={innerRef}
           className="relative flex items-center gap-3 p-3 bg-white dark:bg-ink-800 border border-paper-200 dark:border-ink-700 rounded-xl"
-          style={{ WebkitTouchCallout: 'none', touchAction: 'pan-y' }}
+          style={{ WebkitTouchCallout: 'none' }}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
@@ -289,7 +289,7 @@ export function TBR() {
     : tbrBooks
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
