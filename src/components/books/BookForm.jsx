@@ -105,14 +105,16 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
       cover_url: form.cover_url || null,
       isbn: form.isbn || null,
     }
-    if (editingId) {
-      await updateBook.mutateAsync({ id: editingId, updates: payload, tagIds })
+    if (resolvedEditingId) {
+      await updateBook.mutateAsync({ id: resolvedEditingId, updates: payload, tagIds })
     } else {
       await addBook.mutateAsync({ book: payload, tagIds })
     }
     onClose()
   }
 
+  // Treat any book with an existing id as an edit, even if editingId wasn't passed
+  const resolvedEditingId = editingId || initialBook?.id
   const isSubmitting = addBook.isPending || updateBook.isPending
 
   // Shared input style - 16px font prevents iOS auto-zoom
@@ -281,7 +283,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
         <div className="flex justify-end gap-3 px-4 pb-4 border-t border-paper-200 dark:border-ink-700 pt-3">
           <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : (editingId ? 'Save Changes' : 'Add to Library')}
+            {isSubmitting ? 'Saving...' : (resolvedEditingId ? 'Save Changes' : 'Add to Library')}
           </Button>
         </div>
       </form>

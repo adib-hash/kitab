@@ -50,7 +50,7 @@ export function BookCard({ book, index = 0 }) {
         book={book}
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
-        onOpenForm={(tab) => { setFormTab(tab); setFormOpen(true) }}
+        onOpenForm={(tab) => { setSheetOpen(false); setFormTab(tab); setFormOpen(true) }}
       />
       <BookForm
         open={formOpen}
