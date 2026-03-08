@@ -27,11 +27,23 @@ export function Button({ variant = 'primary', size = 'md', className, children, 
 export function Modal({ open, onClose, title, children, size = 'md' }) {
   useEffect(() => {
     if (open) {
+      // iOS Safari fix: overflow:hidden alone doesn't prevent scroll.
+      // position:fixed locks the page; we save/restore scrollY so it
+      // doesn't jump to the top when the modal closes.
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
       document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
+      return () => {
+        const y = Math.abs(parseInt(document.body.style.top || '0'))
+        document.body.style.position = ''
+        document.body.style.top = ''
+        document.body.style.width = ''
+        document.body.style.overflow = ''
+        window.scrollTo(0, y)
+      }
     }
-    return () => { document.body.style.overflow = '' }
   }, [open])
 
   return (

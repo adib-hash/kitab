@@ -147,7 +147,7 @@ function SortableBook({ book }) {
 
   return (
     <>
-      <div ref={setRef} style={sortableStyle} className="relative rounded-xl overflow-hidden touch-pan-y select-none">
+      <div ref={setRef} style={sortableStyle} className="relative rounded-xl overflow-hidden select-none">
 
         {/* ── Swipe background (fixed; card slides over it) ─────────────────── */}
         <div className={`absolute inset-0 flex items-center px-5 rounded-xl transition-colors duration-150 ${
@@ -165,7 +165,7 @@ function SortableBook({ book }) {
         <div
           ref={innerRef}
           className="relative flex items-center gap-3 p-3 bg-white dark:bg-ink-800 border border-paper-200 dark:border-ink-700 rounded-xl"
-          style={{ WebkitTouchCallout: 'none' }}
+          style={{ WebkitTouchCallout: 'none', touchAction: 'pan-y' }}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}

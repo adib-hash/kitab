@@ -1,3 +1,12 @@
+## v1.6.10 — 2026-03-07
+- Fix: Scroll lock now works on iOS Safari
+  — overflow:hidden replaced with position:fixed + scroll position save/restore
+  — Applies to all modals (BookForm, BookSearch, etc.) via Modal component
+- Fix: TBR drag-to-reorder restored on iOS
+  — Removed touch-pan-y from outer sortable container (was blocking dnd-kit TouchSensor)
+  — touch-action:pan-y moved to inner card only, so page scroll still works
+  — Drag handle retains touch-none so dnd-kit owns those touch events
+
 ## v1.6.8 — 2026-03-07
 - Fix: Stats page year filter now timezone-safe (Jan books no longer dropped)
   — isThisYear() replaced new Date().getFullYear() with parseInt(dateStr.slice(0,4))
