@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, BookOpen, BookMarked, Star, Tag, FileText, CheckCircle, Clock, XCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUpdateBook } from '../../hooks/useLibrary'
@@ -19,6 +19,16 @@ export function QuickActionsSheet({ book, open, onClose }) {
   const [statusOpen, setStatusOpen]   = useState(false)
   const [formOpen, setFormOpen]       = useState(false)
   const [formTab, setFormTab]         = useState('details')
+
+  // Lock body scroll when sheet is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [open])
 
   if (!book) return null
 
@@ -43,6 +53,7 @@ export function QuickActionsSheet({ book, open, onClose }) {
   function openForm(tab) {
     setFormTab(tab)
     setFormOpen(true)
+    onClose()
   }
 
   const currentStatus = STATUS_OPTIONS.find(s => s.value === book.status)
