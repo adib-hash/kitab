@@ -1,3 +1,14 @@
+## v1.6.8 — 2026-03-07
+- Fix: Stats page year filter now timezone-safe (Jan books no longer dropped)
+  — isThisYear() replaced new Date().getFullYear() with parseInt(dateStr.slice(0,4))
+  — Books Read + Pages Read on Statistics page now match Home Dashboard
+- Fix: Modal scroll lock added centrally to Modal component in index.jsx
+  — Background page no longer scrollable while any modal is open
+- Fix: Duplicate "Shuffle Again" button removed from TBR shuffle modal
+- Fix: TBR drag-to-reorder restored on iOS
+  — PointerSensor now requires 8px movement before activating (prevents swipe conflict)
+  — TouchSensor added with 200ms delay + 8px tolerance for reliable touch drag
+
 ## v1.6.7 — 2026-03-07
 - Change: Dashboard "At a Glance" now shows current-year (2026) stats only
   — Books Read, Pages Read, Avg Rating all scoped to 2026

@@ -6,13 +6,12 @@ import { useReadingGoal, useSetReadingGoal } from '../hooks/useTags'
 import { StatCard, ProgressBar, EmptyState } from '../components/ui/index.jsx'
 import { computeStats } from '../lib/utils'
 import { Link } from 'react-router-dom'
-import { parseISO } from 'date-fns'
 
 const CHART_COLORS = ['#0F766E','#0D9488','#14B8A6','#2DD4BF','#99F6E4','#047857','#065F46','#6EE7B7']
 
 function isThisYear(dateStr, year) {
   if (!dateStr) return false
-  try { return new Date(dateStr).getFullYear() === year } catch { return false }
+  return parseInt(dateStr.slice(0, 4)) === year
 }
 
 export function Stats() {
