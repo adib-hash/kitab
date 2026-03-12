@@ -1,3 +1,14 @@
+## v1.6.8 — 2026-03-07
+- Feature: Readwise Highlights Sync
+  — New /api/readwise-sync.js Vercel route proxies Readwise v2 API
+  — New src/hooks/useHighlights.js with full sync orchestration + fuzzy matching
+  — Settings: Readwise card with token input, Sync button, last-sync timestamp,
+    and unmatched-book review queue with manual link-to-book selector
+  — BookDetail: new Highlights tab showing all Kindle highlights as styled
+    quote cards with inline notes and location numbers
+  — Sync is idempotent (readwise_id unique key) — safe to run repeatedly
+  — Token stored in localStorage only; never written to Supabase
+
 ## v1.6.11 — 2026-03-07
 - Fix: TBR drag-to-reorder now works on iOS
   — Replaced PointerSensor with MouseSensor (PointerSensor fires on iOS touch,

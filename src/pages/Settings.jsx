@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2, BookOpen } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2, BookOpen, Zap, RefreshCw, AlertCircle } from 'lucide-react'
 import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
 import { useTags, useUpdateTag, useDeleteTag } from '../hooks/useTags'
 import { Button, Divider } from '../components/ui/index.jsx'
@@ -9,6 +9,7 @@ import { searchBooks } from '../lib/googleBooks'
 import { BookCover } from '../components/books/BookCover'
 import Papa from 'papaparse'
 import { useAddBook } from '../hooks/useLibrary'
+import { useReadwiseSync, useAllUnmatched, useAssignHighlights } from '../hooks/useHighlights'
 import toast from 'react-hot-toast'
 
 function TagRow({ tag, onEdit, onDelete }) {
@@ -26,7 +27,7 @@ function TagRow({ tag, onEdit, onDelete }) {
       </div>
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.6.11
+        Kitab · v1.6.8
       </p>
     </div>
   )
@@ -176,8 +177,125 @@ function EnrichLibrary({ books }) {
       )}
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.6.11
+        Kitab · v1.6.8
       </p>
+    </div>
+  )
+}
+
+// ── Readwise sync card ────────────────────────────────────────────────────
+function ReadwiseSection() {
+  const [token, setToken] = useState(() => localStorage.getItem('rw_token') || '')
+  const [savedToken, setSavedToken] = useState(() => localStorage.getItem('rw_token') || '')
+  const [lastSync, setLastSync] = useState(() => localStorage.getItem('rw_last_sync') || null)
+  const sync = useReadwiseSync()
+  const { data: unmatched = [] } = useAllUnmatched()
+  const assign = useAssignHighlights()
+  const { data: books = [] } = useLibrary()
+  const readBooks = books.filter(b => b.status === 'read')
+
+  // Group unmatched by book_title
+  const unmatchedGroups = Object.values(
+    unmatched.reduce((acc, h) => {
+      const key = h.book_title || 'Unknown'
+      if (!acc[key]) acc[key] = { title: key, author: h.book_author, highlights: [] }
+      acc[key].highlights.push(h)
+      return acc
+    }, {})
+  )
+
+  function saveToken() {
+    localStorage.setItem('rw_token', token)
+    setSavedToken(token)
+  }
+
+  async function handleSync() {
+    await sync.mutateAsync({ token: savedToken })
+    const now = new Date().toLocaleString()
+    localStorage.setItem('rw_last_sync', now)
+    setLastSync(now)
+  }
+
+  return (
+    <div className="card p-6 space-y-4">
+      <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 flex items-center gap-2">
+        <Zap size={18} className="text-teal-600" /> Readwise · Kindle Highlights
+      </h2>
+      <p className="text-sm text-ink-600 dark:text-ink-400">
+        Connect your Readwise account to sync all your Kindle highlights into Kitab.
+        Get your access token at{' '}
+        <a href="https://readwise.io/access_token" target="_blank" rel="noopener noreferrer"
+          className="text-teal-600 hover:underline">readwise.io/access_token</a>.
+      </p>
+
+      {/* Token input */}
+      <div className="flex gap-2">
+        <input
+          type="password"
+          value={token}
+          onChange={e => setToken(e.target.value)}
+          placeholder="Paste your Readwise access token"
+          className="input flex-1 font-mono text-sm"
+          style={{ fontSize: '16px' }}
+        />
+        <Button
+          variant="secondary"
+          onClick={saveToken}
+          disabled={!token || token === savedToken}
+        >
+          Save
+        </Button>
+      </div>
+
+      {/* Sync button */}
+      {savedToken && (
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleSync}
+            disabled={sync.isPending}
+          >
+            <RefreshCw size={14} className={sync.isPending ? 'animate-spin' : ''} />
+            {sync.isPending ? 'Syncing…' : 'Sync Highlights'}
+          </Button>
+          {lastSync && (
+            <span className="text-xs text-ink-400">Last synced: {lastSync}</span>
+          )}
+        </div>
+      )}
+
+      {/* Unmatched review queue */}
+      {unmatchedGroups.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
+            <AlertCircle size={14} />
+            <span>{unmatchedGroups.length} book{unmatchedGroups.length > 1 ? 's' : ''} couldn't be matched automatically — link them below.</span>
+          </div>
+          <div className="space-y-2">
+            {unmatchedGroups.map(group => (
+              <div key={group.title} className="flex items-center gap-3 p-3 bg-paper-50 dark:bg-ink-800 rounded-lg text-sm">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-ink-900 dark:text-paper-100 truncate">{group.title}</p>
+                  <p className="text-ink-400 text-xs">{group.highlights.length} highlight{group.highlights.length > 1 ? 's' : ''}</p>
+                </div>
+                <select
+                  className="input text-xs py-1"
+                  style={{ fontSize: '16px' }}
+                  defaultValue=""
+                  onChange={async e => {
+                    if (!e.target.value) return
+                    await assign.mutateAsync({ bookTitle: group.title, bookId: e.target.value })
+                  }}
+                >
+                  <option value="">Link to book…</option>
+                  {readBooks.map(b => (
+                    <option key={b.id} value={b.id}>{b.title}</option>
+                  ))}
+                </select>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -367,6 +485,9 @@ export function Settings() {
         )}
       </div>
 
+      {/* Readwise */}
+      <ReadwiseSection />
+
       {/* Library stats */}
       <div className="card p-6">
         <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 mb-4">Library Overview</h2>
@@ -385,7 +506,7 @@ export function Settings() {
       </div>
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.6.11
+        Kitab · v1.6.8
       </p>
     </div>
   )

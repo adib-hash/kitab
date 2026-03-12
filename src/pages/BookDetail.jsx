@@ -17,6 +17,7 @@ export function BookDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { data: book, isLoading } = useBook(id)
+  const { data: hlCount = 0 } = useHighlightCount(id)
   const { data: allBooks = [] } = useLibrary()
   const deleteBook = useDeleteBook()
   const { librarySlug } = useUIStore()
