@@ -1,3 +1,10 @@
+## v1.6.9 — 2026-03-08
+- Fix: BookDetail Highlights section was missing (v1.6.8 component injection
+  had a silent failure) — now correctly appended
+- Fix: Highlight quote cards had invisible text in dark mode
+  (dark:bg-ink-800 + dark:text-ink-100 mismatch) — changed card background
+  to dark:bg-teal-900/20 and text to dark:text-paper-100 for legibility
+
 ## v1.6.8 — 2026-03-08
 - Hotfix: Dashboard.jsx had invalid `require` call from v1.6.7 that broke
   the Vite/ESM build — caused all book detail modals to stop opening

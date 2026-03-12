@@ -27,7 +27,7 @@ function TagRow({ tag, onEdit, onDelete }) {
       </div>
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.6.8
+        Kitab · v1.6.9
       </p>
     </div>
   )
@@ -177,7 +177,7 @@ function EnrichLibrary({ books }) {
       )}
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.6.8
+        Kitab · v1.6.9
       </p>
     </div>
   )
@@ -506,7 +506,7 @@ export function Settings() {
       </div>
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.6.8
+        Kitab · v1.6.9
       </p>
     </div>
   )
