@@ -1,5 +1,9 @@
 ## v1.6.11 — 2026-03-12
 ### Fixed
+- Kindle Highlights: replaced `dark:bg-ink-800 / dark:text-ink-100` Tailwind variants with inline styles driven by reactive `isDark` state — fixes invisible highlight text in dark mode
+
+## v1.6.11 — 2026-03-12
+### Fixed
 - Kindle Highlights: replaced one-shot `isDark` with reactive `useState` + `useEffect` / `MutationObserver` so dark-mode state is accurate and updates on theme change
 - Kindle Highlights: switched highlight card colors to inline styles so Tailwind purging cannot strip dark-mode values
 

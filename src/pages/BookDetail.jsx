@@ -305,17 +305,38 @@ function HighlightsSection({ bookId, count }) {
             [...Array(3)].map((_, i) => <div key={i} className="h-16 skeleton rounded-xl" />)
           ) : (
             highlights.map(h => (
-              <div key={h.id} className="rounded-xl border-l-4 border-teal-500 bg-paper-50 dark:bg-ink-800 p-4">
-                <p className="text-sm text-ink-800 dark:text-ink-100 leading-relaxed italic">
+              <div key={h.id} style={{
+                borderRadius: '0.75rem',
+                borderLeft: '4px solid #14b8a6',
+                background: isDark ? '#1e293b' : '#fafaf9',
+                padding: '1rem',
+              }}>
+                <p style={{
+                  fontSize: '0.875rem',
+                  color: isDark ? '#f1f5f9' : '#1c1917',
+                  lineHeight: '1.625',
+                  fontStyle: 'italic',
+                }}>
                   "{h.text}"
                 </p>
                 {h.note && (
-                  <p className="text-xs text-ink-500 dark:text-ink-400 mt-2 pt-2 border-t border-paper-200 dark:border-ink-700 not-italic">
+                  <p style={{
+                    fontSize: '0.75rem',
+                    color: isDark ? '#94a3b8' : '#78716c',
+                    marginTop: '0.5rem',
+                    paddingTop: '0.5rem',
+                    borderTop: `1px solid ${isDark ? '#334155' : '#e7e5e4'}`,
+                    fontStyle: 'normal',
+                  }}>
                     💬 {h.note}
                   </p>
                 )}
                 {h.location && (
-                  <p className="text-xs text-ink-400 mt-1">Loc. {h.location}</p>
+                  <p style={{
+                    fontSize: '0.75rem',
+                    color: isDark ? '#94a3b8' : '#a8a29e',
+                    marginTop: '0.25rem',
+                  }}>Loc. {h.location}</p>
                 )}
               </div>
             ))
