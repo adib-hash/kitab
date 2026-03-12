@@ -1,3 +1,15 @@
+## v1.6.8 — 2026-03-08
+- Hotfix: Dashboard.jsx had invalid `require` call from v1.6.7 that broke
+  the Vite/ESM build — caused all book detail modals to stop opening
+- Feature: Readwise Highlights Sync
+  — /api/readwise-sync.js: Vercel serverless proxy for Readwise v2 API
+  — src/hooks/useHighlights.js: Supabase queries + sync orchestration + fuzzy matching
+  — Settings: Readwise card with token input, Sync button, last-sync time,
+    and unmatched-book review queue with manual link-to-book selector
+  — BookDetail: collapsible Kindle Highlights section (hidden if 0 highlights)
+  — Sync is idempotent (readwise_id unique key) — safe to re-run anytime
+  — Token stored in localStorage only; never written to Supabase
+
 ## v1.6.8 — 2026-03-07
 - Feature: Readwise Highlights Sync
   — New /api/readwise-sync.js Vercel route proxies Readwise v2 API

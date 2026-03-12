@@ -1,11 +1,8 @@
 // src/hooks/useHighlights.js
-// Supabase queries + full Readwise sync orchestration.
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
-// ── Highlights for one book (shown in BookDetail) ─────────────────────────
 export function useHighlights(bookId) {
   return useQuery({
     queryKey: ['highlights', bookId],
@@ -23,7 +20,6 @@ export function useHighlights(bookId) {
   })
 }
 
-// ── Count only — for the tab badge ────────────────────────────────────────
 export function useHighlightCount(bookId) {
   return useQuery({
     queryKey: ['highlight_count', bookId],
@@ -40,7 +36,6 @@ export function useHighlightCount(bookId) {
   })
 }
 
-// ── Highlights with no matched book (review queue in Settings) ────────────
 export function useAllUnmatched() {
   return useQuery({
     queryKey: ['highlights_unmatched'],
@@ -57,7 +52,6 @@ export function useAllUnmatched() {
   })
 }
 
-// ── Manually link an unmatched group to a Kitab book ─────────────────────
 export function useAssignHighlights() {
   const qc = useQueryClient()
   return useMutation({
@@ -81,10 +75,8 @@ export function useAssignHighlights() {
   })
 }
 
-// ── Normalize titles for fuzzy matching ───────────────────────────────────
 function normalize(str = '') {
-  return str
-    .toLowerCase()
+  return str.toLowerCase()
     .replace(/^(the|a|an)\s+/i, '')
     .replace(/[^\w\s]/g, '')
     .replace(/\s+/g, ' ')
@@ -95,32 +87,28 @@ function matchBook(rwBook, kitabBooks) {
   const rwTitle = normalize(rwBook.title)
   const rwAuthor = normalize(rwBook.author || '')
 
-  // Pass 1: exact normalized title
   let m = kitabBooks.find(k => normalize(k.title) === rwTitle)
   if (m) return m.id
 
-  // Pass 2: Kitab title is prefix of Readwise title (e.g. "Dune" vs "Dune: A Novel")
   m = kitabBooks.find(k => {
     const kt = normalize(k.title)
     return kt.length >= 4 && rwTitle.startsWith(kt)
   })
   if (m) return m.id
 
-  // Pass 3: Readwise title is prefix of Kitab title
   m = kitabBooks.find(k => {
     const kt = normalize(k.title)
     return rwTitle.length >= 4 && kt.startsWith(rwTitle)
   })
   if (m) return m.id
 
-  // Pass 4: title prefix overlap + author first-word match
-  const rwFirstAuthorWord = rwAuthor.split(' ')[0]
-  if (rwFirstAuthorWord.length >= 3) {
+  const rwFirstWord = rwAuthor.split(' ')[0]
+  if (rwFirstWord.length >= 3) {
     m = kitabBooks.find(k => {
       const kt = normalize(k.title)
       const ka = normalize(k.author || '')
       const titleOverlap = rwTitle.includes(kt.slice(0, 6)) || kt.includes(rwTitle.slice(0, 6))
-      return titleOverlap && ka.startsWith(rwFirstAuthorWord)
+      return titleOverlap && ka.startsWith(rwFirstWord)
     })
     if (m) return m.id
   }
@@ -128,16 +116,13 @@ function matchBook(rwBook, kitabBooks) {
   return null
 }
 
-// ── Main sync: token → Readwise → Supabase ────────────────────────────────
 export function useReadwiseSync() {
   const qc = useQueryClient()
-
   return useMutation({
     mutationFn: async ({ token }) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not logged in')
 
-      // 1. Verify token
       const verifyRes = await fetch('/api/readwise-sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -146,13 +131,9 @@ export function useReadwiseSync() {
       const { valid } = await verifyRes.json()
       if (!valid) throw new Error('Invalid Readwise token — check readwise.io/access_token')
 
-      // 2. Load Kitab books for matching
       const { data: kitabBooks } = await supabase
-        .from('books')
-        .select('id, title, author')
-        .eq('user_id', user.id)
+        .from('books').select('id, title, author').eq('user_id', user.id)
 
-      // 3. Fetch Readwise books
       const booksRes = await fetch('/api/readwise-sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -164,7 +145,6 @@ export function useReadwiseSync() {
       }
       const { books: rwBooks } = await booksRes.json()
 
-      // 4 + 5. Per book: fetch highlights, match, upsert
       let totalHighlights = 0
       let unmatched = 0
 
@@ -176,7 +156,7 @@ export function useReadwiseSync() {
         })
         if (!hlRes.ok) continue
         const { highlights } = await hlRes.json()
-        if (!highlights || !highlights.length) continue
+        if (!highlights?.length) continue
 
         const matchedBookId = matchBook(rwBook, kitabBooks || [])
         if (!matchedBookId) unmatched++
@@ -196,13 +176,11 @@ export function useReadwiseSync() {
         const { error } = await supabase
           .from('highlights')
           .upsert(rows, { onConflict: 'readwise_id' })
-
         if (!error) totalHighlights += rows.length
       }
 
       return { totalHighlights, unmatched, books: rwBooks.length }
     },
-
     onSuccess: ({ totalHighlights, unmatched, books }) => {
       qc.invalidateQueries({ queryKey: ['highlights'] })
       qc.invalidateQueries({ queryKey: ['highlight_count'] })
@@ -211,7 +189,6 @@ export function useReadwiseSync() {
         + (unmatched > 0 ? ` · ${unmatched} unmatched (check Settings)` : '')
       toast.success(msg, { duration: 6000 })
     },
-
     onError: (err) => toast.error(err.message),
   })
 }

@@ -11,7 +11,7 @@ const CHART_COLORS = ['#0F766E','#0D9488','#14B8A6','#2DD4BF','#99F6E4','#047857
 
 function isThisYear(dateStr, year) {
   if (!dateStr) return false
-  return parseInt(dateStr.slice(0, 4)) === year
+  try { return new Date(dateStr).getFullYear() === year } catch { return false }
 }
 
 export function Stats() {
@@ -22,7 +22,6 @@ export function Stats() {
   const [goalInput, setGoalInput] = useState('')
   const [editingGoal, setEditingGoal] = useState(false)
 
-  // Scope everything to current year
   const yearBooks = books.filter(b =>
     b.status === 'read' && isThisYear(b.date_finished, thisYear)
   )
@@ -60,7 +59,6 @@ export function Stats() {
   return (
     <div className="space-y-6 pb-8">
 
-      {/* Header */}
       <div className="flex items-baseline gap-3">
         <h1 className="page-title">Statistics</h1>
         <span className="text-sm font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-0.5 rounded-full">
@@ -68,13 +66,13 @@ export function Stats() {
         </span>
       </div>
 
-      {/* Key metrics */}
       <div className="grid grid-cols-2 gap-4">
         <StatCard label="Books Read" value={stats.totalRead} icon="📚" sub={String(thisYear)} />
         <StatCard label="Pages Read" value={stats.totalPages.toLocaleString()} icon="📄" sub={String(thisYear)} />
         <StatCard label="Avg Rating" value={stats.avgRating ? `${stats.avgRating} ★` : null} icon="⭐" sub={String(thisYear)} />
         <StatCard label="On TBR" value={tbrCount} icon="🔖" sub="total" />
       </div>
+
       <div className="grid grid-cols-2 gap-4">
         <StatCard
           label="Longest Book"
@@ -103,7 +101,6 @@ export function Stats() {
             {goal ? 'Edit goal' : 'Set goal'}
           </button>
         </div>
-
         {editingGoal && (
           <div className="flex items-center gap-2 mb-4">
             <input
@@ -117,13 +114,10 @@ export function Stats() {
             <button onClick={() => setEditingGoal(false)} className="btn-ghost">Cancel</button>
           </div>
         )}
-
         {goal ? (
           <div>
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-ink-700 dark:text-ink-300">
-                {stats.totalRead} of {goal.target} books
-              </p>
+              <p className="text-sm text-ink-700 dark:text-ink-300">{stats.totalRead} of {goal.target} books</p>
               <p className="text-sm font-semibold text-ink-900 dark:text-paper-50">
                 {Math.round((stats.totalRead / goal.target) * 100)}%
               </p>
@@ -158,40 +152,26 @@ export function Stats() {
         </div>
       )}
 
-      {/* Tags breakdown */}
-      {stats.tagBreakdown.length > 0 && (
+      {/* Tag breakdown */}
+      {stats.tagBreakdown && stats.tagBreakdown.length > 0 && (
         <div className="grid sm:grid-cols-2 gap-6">
           <div className="card p-6">
             <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 mb-5">
               Tags · {thisYear}
             </h2>
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie
-                  data={stats.tagBreakdown}
-                  dataKey="count"
-                  nameKey="name"
-                  cx="50%" cy="50%"
-                  outerRadius={75}
-                  label={({ name }) => name.length > 12 ? name.slice(0, 11) + '…' : name}
-                  labelLine={false}
-                >
+                <Pie data={stats.tagBreakdown} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name }) => name}>
                   {stats.tagBreakdown.map((_, i) => (
                     <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip
-                  contentStyle={{ background: '#FAF7F2', border: '1px solid #D6D3D1', borderRadius: 8, fontSize: 12, color: '#1C1917' }}
-                  formatter={(v, name) => [`${v} book${v !== 1 ? 's' : ''}`, name]}
-                />
+                <Tooltip contentStyle={{ background: '#1C1917', border: '1px solid #44403C', borderRadius: 8, fontSize: 12, color: '#FAF7F2' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
-
           <div className="card p-6">
-            <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 mb-4">
-              Tag Breakdown
-            </h2>
+            <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 mb-4">Tag Breakdown</h2>
             <div className="space-y-3">
               {stats.tagBreakdown.map((tag, i) => (
                 <div key={tag.name}>
@@ -201,12 +181,7 @@ export function Stats() {
                       {tag.count} book{tag.count !== 1 ? 's' : ''}
                     </span>
                   </div>
-                  <ProgressBar
-                    value={tag.count}
-                    max={stats.tagBreakdown[0].count}
-                    className="h-1.5"
-                    color={i === 0 ? 'teal' : undefined}
-                  />
+                  <ProgressBar value={tag.count} max={stats.tagBreakdown[0].count} className="h-1.5" />
                 </div>
               ))}
             </div>

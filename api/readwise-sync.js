@@ -1,11 +1,9 @@
 // api/readwise-sync.js
-// Vercel serverless function that proxies calls to the Readwise v2 API.
-// The user's token is passed per-request — never stored server-side.
+// Vercel serverless function — proxies Readwise v2 API server-side.
+// The user's token is passed per-request and never stored.
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const { token, action, bookId } = req.body
   if (!token) return res.status(400).json({ error: 'Missing Readwise token' })
@@ -14,13 +12,11 @@ export default async function handler(req, res) {
   const hdrs = { 'Authorization': `Token ${token}`, 'Content-Type': 'application/json' }
 
   try {
-    // ── verify ──────────────────────────────────────────────────────────────
     if (action === 'verify') {
       const r = await fetch(`${RW}/auth/`, { headers: hdrs })
       return res.status(200).json({ valid: r.status === 204 })
     }
 
-    // ── books: fetch all Readwise books in the "books" category ─────────────
     if (action === 'books') {
       const books = []
       let next = `${RW}/books/?category=books&page_size=100`
@@ -37,7 +33,6 @@ export default async function handler(req, res) {
       return res.status(200).json({ books })
     }
 
-    // ── highlights: fetch highlights for one Readwise book id ───────────────
     if (action === 'highlights') {
       if (!bookId) return res.status(400).json({ error: 'Missing bookId' })
       const highlights = []
@@ -65,7 +60,6 @@ export default async function handler(req, res) {
 
     return res.status(400).json({ error: `Unknown action: ${action}` })
   } catch (err) {
-    console.error('readwise-sync error:', err)
     return res.status(500).json({ error: err.message })
   }
 }

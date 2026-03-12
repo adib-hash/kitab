@@ -4,6 +4,7 @@ import { ArrowLeft, Edit2, Trash2, ExternalLink, AlertTriangle, ChevronDown, Che
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import { useBook, useDeleteBook, useLibrary } from '../hooks/useLibrary'
+import { useHighlights, useHighlightCount } from '../hooks/useHighlights'
 import { useUIStore } from '../store/uiStore'
 import { BookCover } from '../components/books/BookCover'
 import { StarRating } from '../components/books/StarRating'
@@ -236,6 +237,10 @@ export function BookDetail() {
         </div>
       )}
 
+
+      {/* Kindle Highlights */}
+      <HighlightsSection bookId={id} count={hlCount} />
+
       {/* Similar books */}
       {similar.length > 0 && (
         <div>
@@ -257,4 +262,56 @@ export function BookDetail() {
       />
     </motion.div>
   )
+
+// ── Highlights section for BookDetail ─────────────────────────────────────
+function HighlightsSection({ bookId, count }) {
+  const [open, setOpen] = useState(false)
+  const { data: highlights = [], isLoading } = useHighlights(open ? bookId : null)
+
+  if (count === 0) return null
+
+  return (
+    <div className="card p-6">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between group"
+      >
+        <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 flex items-center gap-2">
+          ✏️ Kindle Highlights
+          <span className="text-sm font-normal text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-0.5 rounded-full">
+            {count}
+          </span>
+        </h2>
+        <span className="text-ink-400 group-hover:text-ink-600 dark:group-hover:text-ink-300 transition-colors text-sm">
+          {open ? '▲ Hide' : '▼ Show'}
+        </span>
+      </button>
+
+      {open && (
+        <div className="mt-4 space-y-3">
+          {isLoading ? (
+            [...Array(3)].map((_, i) => <div key={i} className="h-16 skeleton rounded-xl" />)
+          ) : (
+            highlights.map(h => (
+              <div key={h.id} className="rounded-xl border-l-4 border-teal-500 bg-paper-50 dark:bg-ink-800 p-4">
+                <p className="text-sm text-ink-800 dark:text-ink-100 leading-relaxed italic">
+                  "{h.text}"
+                </p>
+                {h.note && (
+                  <p className="text-xs text-ink-500 dark:text-ink-400 mt-2 pt-2 border-t border-paper-200 dark:border-ink-700 not-italic">
+                    💬 {h.note}
+                  </p>
+                )}
+                {h.location && (
+                  <p className="text-xs text-ink-400 mt-1">Loc. {h.location}</p>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 }
