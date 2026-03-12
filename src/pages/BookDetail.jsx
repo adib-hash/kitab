@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Edit2, Trash2, ExternalLink, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -22,6 +22,18 @@ export function BookDetail() {
   const { data: allBooks = [] } = useLibrary()
   const deleteBook = useDeleteBook()
   const { librarySlug } = useUIStore()
+  // Reactive dark-mode detection
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains('dark')
+  )
+  useEffect(() => {
+    const obs = new MutationObserver(() =>
+      setIsDark(document.documentElement.classList.contains('dark'))
+    )
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => obs.disconnect()
+  }, [])
+
   const [editOpen, setEditOpen] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [descOpen, setDescOpen] = useState(false)

@@ -1,3 +1,8 @@
+## v1.6.11 — 2026-03-12
+### Fixed
+- Kindle Highlights: replaced one-shot `isDark` with reactive `useState` + `useEffect` / `MutationObserver` so dark-mode state is accurate and updates on theme change
+- Kindle Highlights: switched highlight card colors to inline styles so Tailwind purging cannot strip dark-mode values
+
 ## v1.6.9 — 2026-03-08
 - Fix: BookDetail Highlights section was missing (v1.6.8 component injection
   had a silent failure) — now correctly appended
