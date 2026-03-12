@@ -1,3 +1,15 @@
+## v1.6.12 — 2026-03-12
+### Fixed
+- Settings: version string was rendering inside `TagRow` (once per tag) and `EnrichLibrary` — moved to single canonical location at bottom of Settings
+- Stats: `isThisYear()` used `new Date().getFullYear()` which misclassifies January books in US timezones — now uses `parseInt(dateStr.slice(0, 4))`
+- utils: same timezone-unsafe date pattern in `computeStats.booksThisYear` — fixed
+- Dashboard: removed redundant `computeStats(books)` call on full unfiltered library
+- BookDetail: `HighlightsSection` was declared inside `BookDetail`'s function body via hoisting — caused component remount on every parent re-render, resetting the highlights open/close state. Extracted to module level, `isDark` passed as prop
+- BookDetail: duplicate `dark:text-ink-300` in metadata grid classNames
+- Discover: removed duplicate local `timeAgo()` function, now imports from utils
+- Rank: raw Supabase reset didn't invalidate React Query cache — rankings showed stale data after reset. Added `qc.invalidateQueries`
+- Settings: `exportCSV` / `exportJSON` created object URLs without revoking — minor memory leak. Added `URL.revokeObjectURL` after download
+
 ## v1.6.11 — 2026-03-12
 ### Fixed
 - Kindle Highlights: replaced `dark:bg-ink-800 / dark:text-ink-100` Tailwind variants with inline styles driven by reactive `isDark` state — fixes invisible highlight text in dark mode

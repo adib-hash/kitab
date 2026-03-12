@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Trophy, Swords, StopCircle, RotateCcw, BookOpen, Loader2, ChevronLeft } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
 import { supabase } from '../lib/supabase'
 import { BookCover } from '../components/books/BookCover'
@@ -153,6 +154,7 @@ function ResultsView({ rankedBooks, matchCount, onContinue, onReset, resetting, 
 export function Rank() {
   const { data: books = [], isLoading } = useLibrary()
   const updateBook = useUpdateBook()
+  const qc = useQueryClient()
   const [view, setView] = useState('home')
   const [seen, setSeen] = useState(new Set())
   const [pair, setPair] = useState(null)
@@ -228,6 +230,7 @@ export function Rank() {
         .eq('user_id', user.id)
         .eq('status', 'read')
       if (error) throw error
+      qc.invalidateQueries({ queryKey: ['books'] })
       setSeen(new Set())
       setView('home')
       toast.success('Rankings reset')

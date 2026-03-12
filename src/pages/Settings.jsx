@@ -25,10 +25,6 @@ function TagRow({ tag, onEdit, onDelete }) {
           <Trash2 size={13} />
         </button>
       </div>
-      {/* App version */}
-      <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.6.9
-      </p>
     </div>
   )
 }
@@ -175,10 +171,6 @@ function EnrichLibrary({ books }) {
           </div>
         </div>
       )}
-      {/* App version */}
-      <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.6.9
-      </p>
     </div>
   )
 }
@@ -319,6 +311,7 @@ export function Settings() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url; a.download = 'kitab-export.csv'; a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 100)
     toast.success('Library exported!')
   }
 
@@ -328,6 +321,7 @@ export function Settings() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url; a.download = 'kitab-library.json'; a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 100)
     toast.success('Library exported as JSON!')
   }
 
@@ -506,7 +500,7 @@ export function Settings() {
       </div>
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.6.9
+        Kitab · v1.6.12
       </p>
     </div>
   )

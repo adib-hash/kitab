@@ -112,31 +112,31 @@ export function BookDetail() {
             {book.published_year && (
               <div>
                 <p className="section-label">Published</p>
-                <p className="text-sm text-ink-800 dark:text-ink-300 dark:text-ink-300 mt-0.5">{book.published_year}</p>
+                <p className="text-sm text-ink-800 dark:text-ink-300 mt-0.5">{book.published_year}</p>
               </div>
             )}
             {book.page_count && (
               <div>
                 <p className="section-label">Pages</p>
-                <p className="text-sm text-ink-800 dark:text-ink-300 dark:text-ink-300 mt-0.5">{book.page_count}</p>
+                <p className="text-sm text-ink-800 dark:text-ink-300 mt-0.5">{book.page_count}</p>
               </div>
             )}
             {book.date_finished && (
               <div>
                 <p className="section-label">Finished</p>
-                <p className="text-sm text-ink-800 dark:text-ink-300 dark:text-ink-300 mt-0.5">{formatDate(book.date_finished)}</p>
+                <p className="text-sm text-ink-800 dark:text-ink-300 mt-0.5">{formatDate(book.date_finished)}</p>
               </div>
             )}
             {book.date_started && (
               <div>
                 <p className="section-label">Started</p>
-                <p className="text-sm text-ink-800 dark:text-ink-300 dark:text-ink-300 mt-0.5">{formatDate(book.date_started)}</p>
+                <p className="text-sm text-ink-800 dark:text-ink-300 mt-0.5">{formatDate(book.date_started)}</p>
               </div>
             )}
             {readingDays != null && (
               <div>
                 <p className="section-label">Read in</p>
-                <p className="text-sm text-ink-800 dark:text-ink-300 dark:text-ink-300 mt-0.5">{readingDays} days</p>
+                <p className="text-sm text-ink-800 dark:text-ink-300 mt-0.5">{readingDays} days</p>
               </div>
             )}
           </div>
@@ -251,7 +251,7 @@ export function BookDetail() {
 
 
       {/* Kindle Highlights */}
-      <HighlightsSection bookId={id} count={hlCount} />
+      <HighlightsSection bookId={id} count={hlCount} isDark={isDark} />
 
       {/* Similar books */}
       {similar.length > 0 && (
@@ -274,9 +274,10 @@ export function BookDetail() {
       />
     </motion.div>
   )
+}
 
 // ── Highlights section for BookDetail ─────────────────────────────────────
-function HighlightsSection({ bookId, count }) {
+function HighlightsSection({ bookId, count, isDark }) {
   const [open, setOpen] = useState(false)
   const { data: highlights = [], isLoading } = useHighlights(open ? bookId : null)
 
@@ -345,6 +346,4 @@ function HighlightsSection({ bookId, count }) {
       )}
     </div>
   )
-}
-
 }

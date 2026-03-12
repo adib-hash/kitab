@@ -6,22 +6,13 @@ import { useLibrary, useAddBook } from '../hooks/useLibrary'
 import { useRecommendations, useSaveRecommendation, useDeleteRecommendation, useUpdateRecommendation } from '../hooks/useRecommendations'
 import { QueryFlow } from '../components/discover/QueryFlow'
 import { RecDetailModal } from '../components/discover/RecDetailModal'
+import { timeAgo } from '../lib/utils'
 
 const MODE_LABELS = {
   vibe:      '✨ A specific vibe',
   author:    '✍️ More from authors I like',
   fresh:     '🌍 Something totally new',
   favorites: '⭐ Based on my favorites',
-}
-
-function timeAgo(dateStr) {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const days = Math.floor(diff / 86400000)
-  if (days === 0) return 'Today'
-  if (days === 1) return 'Yesterday'
-  if (days < 7)  return `${days} days ago`
-  if (days < 30) return `${Math.floor(days / 7)}w ago`
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 // ── CoverCard — book cover with fallback, X + TBR bookmark buttons ────────────

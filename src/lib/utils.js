@@ -93,10 +93,9 @@ export function computeStats(books) {
 
   // This year
   const thisYear = new Date().getFullYear()
-  const booksThisYear = allRead.filter(b => {
-    if (!b.date_finished) return false
-    try { return parseISO(b.date_finished).getFullYear() === thisYear } catch { return false }
-  }).length
+  const booksThisYear = allRead.filter(b =>
+    b.date_finished && parseInt(b.date_finished.slice(0, 4)) === thisYear
+  ).length
 
   return {
     totalRead: allRead.length,

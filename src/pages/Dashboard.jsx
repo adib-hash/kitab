@@ -25,14 +25,13 @@ export function Dashboard() {
   const currentlyReading = books.filter(b => b.status === 'reading')
   const recentlyRead = books.filter(b => b.status === 'read' && b.date_finished)
     .sort((a,b) => b.date_finished.localeCompare(a.date_finished)).slice(0, 6)
-  const stats = computeStats(books)
-  const booksThisYear = stats.booksThisYear
   // Use string slicing (timezone-safe) — new Date('YYYY-MM-01') can shift to Dec 31
   const yearBooks = books.filter(b =>
     b.status === 'read' && b.date_finished &&
     parseInt(b.date_finished.slice(0, 4)) === thisYear
   )
   const yearStats = computeStats(yearBooks)
+  const booksThisYear = yearStats.totalRead
 
   function handleSearchSelect(book) {
     setSelectedBook(book)
@@ -49,7 +48,7 @@ export function Dashboard() {
           </h1>
           <p className="text-ink-500 dark:text-ink-400 text-xs md:text-sm mt-0.5">
             {books.length > 0
-              ? `${pluralize(stats.totalRead, 'book')} read · ${pluralize(books.filter(b=>b.status==='tbr').length, 'book')} on shelf`
+              ? `${pluralize(books.filter(b=>b.status==='read').length, 'book')} read · ${pluralize(books.filter(b=>b.status==='tbr').length, 'book')} on shelf`
               : 'Start building your reading life'}
           </p>
         </div>
