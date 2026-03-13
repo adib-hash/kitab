@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { X, BookOpen, BookMarked, Star, Tag, FileText, CheckCircle, Clock, XCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUpdateBook } from '../../hooks/useLibrary'
+import { useUIStore } from '../../store/uiStore'
 import { StarRating } from '../books/StarRating'
 import { BookForm } from '../books/BookForm'
+import { ReviewModal } from '../books/ReviewModal'
 import toast from 'react-hot-toast'
 
 const STATUS_OPTIONS = [
@@ -15,10 +17,11 @@ const STATUS_OPTIONS = [
 
 export function QuickActionsSheet({ book, open, onClose }) {
   const updateBook = useUpdateBook()
+  const { setReviewPromptBook } = useUIStore()
   const [ratingOpen, setRatingOpen]   = useState(false)
   const [statusOpen, setStatusOpen]   = useState(false)
   const [formOpen, setFormOpen]       = useState(false)
-  const [formTab, setFormTab]         = useState('details')
+  const [reviewOpen, setReviewOpen]   = useState(false)
 
   // Lock body scroll when sheet is open
   useEffect(() => {
@@ -48,11 +51,19 @@ export function QuickActionsSheet({ book, open, onClose }) {
     const label = STATUS_OPTIONS.find(s => s.value === newStatus)?.label ?? newStatus
     toast.success(`"${book.title}" → ${label}`)
     onClose()
+    // Prompt to write a review only if finishing a book with no review yet
+    if (newStatus === 'read' && !book.review) {
+      setReviewPromptBook({ id: book.id, title: book.title })
+    }
   }
 
-  function openForm(tab) {
-    setFormTab(tab)
+  function openForm() {
     setFormOpen(true)
+    onClose()
+  }
+
+  function openReview() {
+    setReviewOpen(true)
     onClose()
   }
 
@@ -156,7 +167,7 @@ export function QuickActionsSheet({ book, open, onClose }) {
 
                 {/* ── Tags ──────────────────────────────────────────────────── */}
                 <button
-                  onClick={() => openForm('details')}
+                  onClick={openForm}
                   className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-paper-50 dark:hover:bg-ink-800 transition-colors active:bg-paper-100 dark:active:bg-ink-700"
                 >
                   <Tag size={18} className="flex-shrink-0 text-ink-500 dark:text-ink-400" />
@@ -167,7 +178,7 @@ export function QuickActionsSheet({ book, open, onClose }) {
 
                 {/* ── Review ────────────────────────────────────────────────── */}
                 <button
-                  onClick={() => openForm('review')}
+                  onClick={openReview}
                   className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-paper-50 dark:hover:bg-ink-800 transition-colors active:bg-paper-100 dark:active:bg-ink-700"
                 >
                   <FileText size={18} className="flex-shrink-0 text-ink-500 dark:text-ink-400" />
@@ -212,9 +223,17 @@ export function QuickActionsSheet({ book, open, onClose }) {
       {formOpen && (
         <BookForm
           open={formOpen}
-          onClose={() => { setFormOpen(false); onClose() }}
+          onClose={() => setFormOpen(false)}
           initialBook={book}
-          defaultTab={formTab}
+          onOpenReview={() => { setFormOpen(false); setReviewOpen(true) }}
+        />
+      )}
+
+      {reviewOpen && (
+        <ReviewModal
+          open={reviewOpen}
+          onClose={() => setReviewOpen(false)}
+          book={book}
         />
       )}
     </>

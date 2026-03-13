@@ -1,3 +1,15 @@
+## v1.6.14 — 2026-03-12
+### Added
+- `ReviewModal`: dedicated full-screen review editor with tall textarea, word count, spoiler toggle
+- Auto-save to localStorage: debounced 500ms, draft survives app reload with a "restore draft?" banner
+- Post-read prompt: after marking a book as Finished (via QuickActionsSheet), a modal prompts to write a review (only if no review exists yet)
+- BookDetail: "Write Review" / "Edit Review" button in actions row; "Write a Review" empty state when no review exists; inline "Edit" link in review card header
+- BookForm: "Write/Edit Review →" callout in the details tab (replaces the removed review tab)
+
+### Changed
+- BookForm: removed the "review" tab — review editing now lives in the dedicated ReviewModal
+- QuickActionsSheet: "Write/Edit Review" action opens ReviewModal directly instead of BookForm review tab
+
 ## v1.6.13 — 2026-03-12
 ### Changed
 - Replaced Readwise sync with direct `My Clippings.txt` import — free, no token required, fully client-side

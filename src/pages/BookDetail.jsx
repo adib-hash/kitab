@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Edit2, Trash2, ExternalLink, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowLeft, Edit2, Trash2, ExternalLink, AlertTriangle, ChevronDown, ChevronUp, PenLine } from 'lucide-react'
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import { useBook, useDeleteBook, useLibrary } from '../hooks/useLibrary'
@@ -11,6 +11,7 @@ import { StarRating } from '../components/books/StarRating'
 import { StatusBadge } from '../components/books/StatusBadge'
 import { BookCard } from '../components/books/BookCard'
 import { BookForm } from '../components/books/BookForm'
+import { ReviewModal } from '../components/books/ReviewModal'
 import { ProgressBar, Button } from '../components/ui/index.jsx'
 import { formatDate, daysBetween } from '../lib/utils'
 
@@ -35,7 +36,8 @@ export function BookDetail() {
   }, [])
 
   const [editOpen, setEditOpen] = useState(false)
-  const [reviewOpen, setReviewOpen] = useState(false)
+  const [reviewModalOpen, setReviewModalOpen] = useState(false)
+  const [spoilerRevealed, setSpoilerRevealed] = useState(false)
   const [descOpen, setDescOpen] = useState(false)
 
   if (isLoading) {
@@ -187,6 +189,9 @@ export function BookDetail() {
             <Button variant="secondary" onClick={() => setEditOpen(true)}>
               <Edit2 size={14} /> Edit
             </Button>
+            <Button variant="secondary" onClick={() => setReviewModalOpen(true)}>
+              <PenLine size={14} /> {book.review ? 'Edit Review' : 'Write Review'}
+            </Button>
             <Button variant="danger" onClick={handleDelete}>
               <Trash2 size={14} /> Remove
             </Button>
@@ -195,22 +200,30 @@ export function BookDetail() {
       </div>
 
       {/* Review */}
-      {book.review && (
+      {book.review ? (
         <div className="card p-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50">Your Review</h2>
-            {book.review_spoiler && (
+            <div className="flex items-center gap-2">
+              {book.review_spoiler && (
+                <button
+                  onClick={() => setSpoilerRevealed(r => !r)}
+                  className="flex items-center gap-1 text-amber-600 text-xs font-medium"
+                >
+                  <AlertTriangle size={13} />
+                  Spoilers
+                  {spoilerRevealed ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                </button>
+              )}
               <button
-                onClick={() => setReviewOpen(!reviewOpen)}
-                className="flex items-center gap-1 text-amber-600 text-xs font-medium"
+                onClick={() => setReviewModalOpen(true)}
+                className="text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium"
               >
-                <AlertTriangle size={13} />
-                Spoilers
-                {reviewOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                Edit
               </button>
-            )}
+            </div>
           </div>
-          {(!book.review_spoiler || reviewOpen) ? (
+          {(!book.review_spoiler || spoilerRevealed) ? (
             <div className="prose prose-sm prose-stone dark:prose-invert max-w-none">
               <ReactMarkdown>{book.review}</ReactMarkdown>
             </div>
@@ -220,6 +233,14 @@ export function BookDetail() {
           {book.updated_at && (
             <p className="text-xs text-ink-400 mt-3">Updated {formatDate(book.updated_at)}</p>
           )}
+        </div>
+      ) : (
+        <div className="card p-6 flex flex-col items-center gap-3 text-center">
+          <PenLine size={24} className="text-ink-300 dark:text-ink-600" />
+          <p className="text-sm text-ink-500 dark:text-ink-400">No review yet.</p>
+          <Button variant="secondary" size="sm" onClick={() => setReviewModalOpen(true)}>
+            Write a Review
+          </Button>
         </div>
       )}
 
@@ -249,7 +270,6 @@ export function BookDetail() {
         </div>
       )}
 
-
       {/* Kindle Highlights */}
       <HighlightsSection bookId={id} count={hlCount} isDark={isDark} />
 
@@ -271,6 +291,13 @@ export function BookDetail() {
         initialBook={book}
         editingId={book.id}
         editingTags={book.tags}
+        onOpenReview={() => { setEditOpen(false); setReviewModalOpen(true) }}
+      />
+
+      <ReviewModal
+        open={reviewModalOpen}
+        onClose={() => setReviewModalOpen(false)}
+        book={book}
       />
     </motion.div>
   )

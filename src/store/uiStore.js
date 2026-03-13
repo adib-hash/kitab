@@ -45,6 +45,11 @@ export const useUIStore = create(
       },
       setReadingGoal: (goal) => set({ readingGoal: goal }),
       setLibrarySlug: (slug) => set({ librarySlug: slug }),
+
+      // Review prompt — ephemeral, not persisted
+      reviewPromptBook: null,
+      setReviewPromptBook: (book) => set({ reviewPromptBook: book }),
+      clearReviewPromptBook: () => set({ reviewPromptBook: null }),
     }),
     {
       name: 'kitab-ui',

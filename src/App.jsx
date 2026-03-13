@@ -13,6 +13,8 @@ import { Stats } from './pages/Stats'
 import { Rank } from './pages/Rank'
 import { Settings } from './pages/Settings'
 import { Discover } from './pages/Discover'
+import { Modal, Button } from './components/ui/index.jsx'
+import { ReviewModal } from './components/books/ReviewModal'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +30,38 @@ const queryClient = new QueryClient({
 function ProtectedRoute({ session, children }) {
   if (!session) return <Navigate to="/login" replace />
   return <Layout>{children}</Layout>
+}
+
+function ReviewPrompt() {
+  const { reviewPromptBook, clearReviewPromptBook } = useUIStore()
+  const [reviewOpen, setReviewOpen] = useState(false)
+  if (!reviewPromptBook) return null
+  return (
+    <>
+      <Modal open onClose={clearReviewPromptBook} size="md">
+        <div className="p-6 space-y-4 text-center">
+          <p className="font-serif text-lg text-ink-900 dark:text-paper-50">Want to write a review?</p>
+          <p className="text-sm text-ink-500 dark:text-ink-400">
+            You just finished{' '}
+            <span className="font-medium text-ink-900 dark:text-paper-50">{reviewPromptBook.title}</span>.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <Button onClick={() => { clearReviewPromptBook(); setReviewOpen(true) }}>
+              Write Review
+            </Button>
+            <Button variant="ghost" onClick={clearReviewPromptBook}>Maybe Later</Button>
+          </div>
+        </div>
+      </Modal>
+      {reviewOpen && (
+        <ReviewModal
+          open
+          onClose={() => setReviewOpen(false)}
+          book={reviewPromptBook}
+        />
+      )}
+    </>
+  )
 }
 
 export default function App() {
@@ -144,6 +178,7 @@ export default function App() {
           <Route path="/discover" element={<ProtectedRoute session={session}><Discover /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <ReviewPrompt />
       </BrowserRouter>
     </QueryClientProvider>
   )

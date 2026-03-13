@@ -7,7 +7,7 @@ import { TagInput } from './TagInput'
 import { STATUS_LABELS } from '../../lib/utils'
 import { useAddBook } from '../../hooks/useLibrary'
 import { useUpdateBook } from '../../hooks/useLibrary'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, PenLine } from 'lucide-react'
 
 const COVER_PRESETS = [
   { id: 'teal',    label: 'Teal',    bg: '#0F766E', text: '#CCFBF1' },
@@ -50,7 +50,7 @@ function makeCoverSvg(title, author, bg, textColor) {
 
 const DEFAULT_STATUS = 'tbr'
 
-export function BookForm({ open, onClose, initialBook, editingId, editingTags, defaultTab }) {
+export function BookForm({ open, onClose, initialBook, editingId, editingTags, defaultTab, onOpenReview }) {
   const addBook = useAddBook()
   const updateBook = useUpdateBook()
 
@@ -160,7 +160,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
           <div className="flex-1 min-w-0 space-y-3">
             {/* Tabs */}
             <div className="flex gap-0 border-b border-paper-200 dark:border-ink-700">
-              {['details', 'review', 'dates'].map(t => (
+              {['details', 'dates'].map(t => (
                 <button
                   key={t} type="button"
                   onClick={() => setTab(t)}
@@ -220,33 +220,16 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
                   <label className="section-label block mb-1">Tags</label>
                   <TagInput selectedTagIds={tagIds} onChange={setTagIds} />
                 </div>
-              </div>
-            )}
-
-            {tab === 'review' && (
-              <div className="space-y-3">
-                <div>
-                  <label className="section-label block mb-1">Review / Notes</label>
-                  {/* Simple textarea – mobile friendly, prevents iOS zoom with fontSize 16px */}
-                  <textarea
-                    value={form.review}
-                    onChange={e => set('review', e.target.value)}
-                    placeholder="Write your thoughts, highlights, or notes about this book..."
-                    rows={9}
-                    className="w-full px-3 py-2.5 bg-white dark:bg-ink-700 border border-paper-200 dark:border-ink-600 rounded-lg text-ink-900 dark:text-paper-50 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none leading-relaxed"
-                    style={{ fontSize: '16px' }}
-                  />
-                </div>
-                <label className="flex items-center gap-2 text-sm text-ink-700 dark:text-ink-300 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.review_spoiler}
-                    onChange={e => set('review_spoiler', e.target.checked)}
-                    className="rounded text-teal-600"
-                  />
-                  <AlertTriangle size={14} className="text-amber-500" />
-                  Mark as spoiler
-                </label>
+                {resolvedEditingId && onOpenReview && (
+                  <button
+                    type="button"
+                    onClick={onOpenReview}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-teal-400 dark:border-teal-700 text-teal-700 dark:text-teal-400 text-sm font-medium hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
+                  >
+                    <PenLine size={14} />
+                    {form.review ? 'Edit Review →' : 'Write a Review →'}
+                  </button>
+                )}
               </div>
             )}
 

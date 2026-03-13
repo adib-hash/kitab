@@ -466,7 +466,7 @@ export function Settings() {
       </div>
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.6.13
+        Kitab · v1.6.14
       </p>
     </div>
   )
