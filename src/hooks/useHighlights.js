@@ -116,76 +116,95 @@ function matchBook(rwBook, kitabBooks) {
   return null
 }
 
-export function useReadwiseSync() {
+function parseClippings(text) {
+  const entries = text.split('==========').map(s => s.trim()).filter(Boolean)
+  const results = []
+  for (const entry of entries) {
+    const lines = entry.split('\n').map(l => l.trim()).filter(Boolean)
+    if (lines.length < 3) continue
+    const metaLine = lines[1]
+    if (metaLine.includes('Bookmark')) continue
+
+    const titleLine = lines[0]
+    const authorMatch = titleLine.match(/^(.*?)\s*\(([^)]+)\)\s*$/)
+    const bookTitle = authorMatch ? authorMatch[1].trim() : titleLine
+    const bookAuthor = authorMatch ? authorMatch[2].trim() : null
+
+    const locMatch = metaLine.match(/Location\s+(\d+)/)
+    const location = locMatch ? parseInt(locMatch[1]) : null
+
+    const dateMatch = metaLine.match(/Added on (.+)$/)
+    let highlighted_at = null
+    if (dateMatch) {
+      try { highlighted_at = new Date(dateMatch[1].trim()).toISOString() } catch {}
+    }
+
+    const text = lines.slice(2).join(' ').trim()
+    if (!text) continue
+    results.push({ bookTitle, bookAuthor, location, highlighted_at, text })
+  }
+  return results
+}
+
+function clippingHash(bookTitle, location, text) {
+  const key = `${bookTitle}|${location ?? ''}|${text.slice(0, 100)}`
+  let h = 5381
+  for (let i = 0; i < key.length; i++) {
+    h = (((h << 5) + h) ^ key.charCodeAt(i)) >>> 0
+  }
+  return h.toString()
+}
+
+export function useClippingsImport() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ token }) => {
+    mutationFn: async ({ file }) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not logged in')
 
-      const verifyRes = await fetch('/api/readwise-sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, action: 'verify' }),
-      })
-      const { valid } = await verifyRes.json()
-      if (!valid) throw new Error('Invalid Readwise token — check readwise.io/access_token')
-
+      const text = await file.text()
+      const clippings = parseClippings(text)
       const { data: kitabBooks } = await supabase
         .from('books').select('id, title, author').eq('user_id', user.id)
 
-      const booksRes = await fetch('/api/readwise-sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, action: 'books' }),
-      })
-      if (!booksRes.ok) {
-        const { error } = await booksRes.json()
-        throw new Error(error || 'Failed to fetch Readwise books')
+      const byBook = {}
+      for (const c of clippings) {
+        if (!byBook[c.bookTitle]) byBook[c.bookTitle] = { ...c, highlights: [] }
+        byBook[c.bookTitle].highlights.push(c)
       }
-      const { books: rwBooks } = await booksRes.json()
 
-      let totalHighlights = 0
-      let unmatched = 0
-
-      for (const rwBook of rwBooks) {
-        const hlRes = await fetch('/api/readwise-sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token, action: 'highlights', bookId: rwBook.id }),
-        })
-        if (!hlRes.ok) continue
-        const { highlights } = await hlRes.json()
-        if (!highlights?.length) continue
-
-        const matchedBookId = matchBook(rwBook, kitabBooks || [])
+      let totalHighlights = 0, unmatched = 0
+      for (const [bookTitle, group] of Object.entries(byBook)) {
+        const matchedBookId = matchBook(
+          { title: bookTitle, author: group.bookAuthor },
+          kitabBooks || []
+        )
         if (!matchedBookId) unmatched++
 
-        const rows = highlights.map(h => ({
+        const rows = group.highlights.map(h => ({
           user_id: user.id,
           book_id: matchedBookId,
-          readwise_id: h.readwise_id,
+          clipping_hash: clippingHash(h.bookTitle, h.location, h.text),
           text: h.text,
-          note: h.note,
+          note: null,
           location: h.location,
-          book_title: rwBook.title,
-          book_author: rwBook.author,
+          book_title: h.bookTitle,
+          book_author: h.bookAuthor,
           highlighted_at: h.highlighted_at,
         }))
 
         const { error } = await supabase
           .from('highlights')
-          .upsert(rows, { onConflict: 'readwise_id' })
+          .upsert(rows, { onConflict: 'clipping_hash', ignoreDuplicates: true })
         if (!error) totalHighlights += rows.length
       }
-
-      return { totalHighlights, unmatched, books: rwBooks.length }
+      return { totalHighlights, unmatched }
     },
-    onSuccess: ({ totalHighlights, unmatched, books }) => {
+    onSuccess: ({ totalHighlights, unmatched }) => {
       qc.invalidateQueries({ queryKey: ['highlights'] })
       qc.invalidateQueries({ queryKey: ['highlight_count'] })
       qc.invalidateQueries({ queryKey: ['highlights_unmatched'] })
-      const msg = `Synced ${totalHighlights} highlight${totalHighlights !== 1 ? 's' : ''} from ${books} book${books !== 1 ? 's' : ''}`
+      const msg = `Imported ${totalHighlights} highlight${totalHighlights !== 1 ? 's' : ''}`
         + (unmatched > 0 ? ` · ${unmatched} unmatched (check Settings)` : '')
       toast.success(msg, { duration: 6000 })
     },

@@ -1,3 +1,11 @@
+## v1.6.13 — 2026-03-12
+### Changed
+- Replaced Readwise sync with direct `My Clippings.txt` import — free, no token required, fully client-side
+- Removed `api/readwise-sync.js` serverless function (no longer needed)
+- Added `parseClippings` parser and `clippingHash` dedup for Kindle clippings format
+- Settings: `ReadwiseSection` replaced with `ClippingsSection` (file upload UI)
+- Supabase: `readwise_id` made nullable, `clipping_hash` column added with unique partial index
+
 ## v1.6.12 — 2026-03-12
 ### Fixed
 - Settings: version string was rendering inside `TagRow` (once per tag) and `EnrichLibrary` — moved to single canonical location at bottom of Settings

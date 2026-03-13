@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2, BookOpen, Zap, RefreshCw, AlertCircle } from 'lucide-react'
+import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2, BookOpen, Zap, AlertCircle } from 'lucide-react'
 import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
 import { useTags, useUpdateTag, useDeleteTag } from '../hooks/useTags'
 import { Button, Divider } from '../components/ui/index.jsx'
@@ -9,7 +9,7 @@ import { searchBooks } from '../lib/googleBooks'
 import { BookCover } from '../components/books/BookCover'
 import Papa from 'papaparse'
 import { useAddBook } from '../hooks/useLibrary'
-import { useReadwiseSync, useAllUnmatched, useAssignHighlights } from '../hooks/useHighlights'
+import { useClippingsImport, useAllUnmatched, useAssignHighlights } from '../hooks/useHighlights'
 import toast from 'react-hot-toast'
 
 function TagRow({ tag, onEdit, onDelete }) {
@@ -175,12 +175,9 @@ function EnrichLibrary({ books }) {
   )
 }
 
-// ── Readwise sync card ────────────────────────────────────────────────────
-function ReadwiseSection() {
-  const [token, setToken] = useState(() => localStorage.getItem('rw_token') || '')
-  const [savedToken, setSavedToken] = useState(() => localStorage.getItem('rw_token') || '')
-  const [lastSync, setLastSync] = useState(() => localStorage.getItem('rw_last_sync') || null)
-  const sync = useReadwiseSync()
+// ── Kindle clippings import card ──────────────────────────────────────────
+function ClippingsSection() {
+  const importClippings = useClippingsImport()
   const { data: unmatched = [] } = useAllUnmatched()
   const assign = useAssignHighlights()
   const { data: books = [] } = useLibrary()
@@ -196,64 +193,33 @@ function ReadwiseSection() {
     }, {})
   )
 
-  function saveToken() {
-    localStorage.setItem('rw_token', token)
-    setSavedToken(token)
-  }
-
-  async function handleSync() {
-    await sync.mutateAsync({ token: savedToken })
-    const now = new Date().toLocaleString()
-    localStorage.setItem('rw_last_sync', now)
-    setLastSync(now)
+  function handleFile(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    importClippings.mutate({ file })
+    e.target.value = ''
   }
 
   return (
     <div className="card p-6 space-y-4">
       <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 flex items-center gap-2">
-        <Zap size={18} className="text-teal-600" /> Readwise · Kindle Highlights
+        <Zap size={18} className="text-teal-600" /> Kindle Highlights
       </h2>
       <p className="text-sm text-ink-600 dark:text-ink-400">
-        Connect your Readwise account to sync all your Kindle highlights into Kitab.
-        Get your access token at{' '}
-        <a href="https://readwise.io/access_token" target="_blank" rel="noopener noreferrer"
-          className="text-teal-600 hover:underline">readwise.io/access_token</a>.
+        Connect your Kindle via USB, then find <span className="font-mono text-xs bg-paper-100 dark:bg-ink-700 px-1.5 py-0.5 rounded">documents/My Clippings.txt</span> on the device and upload it here. All your highlights and notes will be imported automatically.
       </p>
 
-      {/* Token input */}
-      <div className="flex gap-2">
+      <label className={`btn-secondary cursor-pointer ${importClippings.isPending ? 'opacity-50' : ''}`}>
+        <Upload size={14} />
+        {importClippings.isPending ? 'Importing…' : 'Choose My Clippings.txt'}
         <input
-          type="password"
-          value={token}
-          onChange={e => setToken(e.target.value)}
-          placeholder="Paste your Readwise access token"
-          className="input flex-1 font-mono text-sm"
-          style={{ fontSize: '16px' }}
+          type="file"
+          accept=".txt"
+          onChange={handleFile}
+          className="hidden"
+          disabled={importClippings.isPending}
         />
-        <Button
-          variant="secondary"
-          onClick={saveToken}
-          disabled={!token || token === savedToken}
-        >
-          Save
-        </Button>
-      </div>
-
-      {/* Sync button */}
-      {savedToken && (
-        <div className="flex items-center gap-3">
-          <Button
-            onClick={handleSync}
-            disabled={sync.isPending}
-          >
-            <RefreshCw size={14} className={sync.isPending ? 'animate-spin' : ''} />
-            {sync.isPending ? 'Syncing…' : 'Sync Highlights'}
-          </Button>
-          {lastSync && (
-            <span className="text-xs text-ink-400">Last synced: {lastSync}</span>
-          )}
-        </div>
-      )}
+      </label>
 
       {/* Unmatched review queue */}
       {unmatchedGroups.length > 0 && (
@@ -479,8 +445,8 @@ export function Settings() {
         )}
       </div>
 
-      {/* Readwise */}
-      <ReadwiseSection />
+      {/* Kindle Highlights */}
+      <ClippingsSection />
 
       {/* Library stats */}
       <div className="card p-6">
@@ -500,7 +466,7 @@ export function Settings() {
       </div>
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.6.12
+        Kitab · v1.6.13
       </p>
     </div>
   )
