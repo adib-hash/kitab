@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
-import { Sparkles, Check, X, RefreshCw, Loader2, BookMarked, ChevronRight, ChevronLeft, CheckCircle } from 'lucide-react'
+import { Sparkles, Check, X, RefreshCw, Loader2, BookMarked, ChevronRight, ChevronLeft, CheckCircle, Info } from 'lucide-react'
 import { useLibrary, useAddBook } from '../hooks/useLibrary'
 import { supabase } from '../lib/supabase'
 import { searchBooks } from '../lib/googleBooks'
@@ -83,6 +83,7 @@ export function Recommendations() {
   const [loading, setLoading] = useState(false)
   const [bias, setBias] = useState('similar')
   const [done, setDone] = useState(false)
+  const [contextUsed, setContextUsed] = useState(null)
 
   const readBooks = books.filter(b => b.status === 'read')
   const canRecommend = readBooks.length >= 2
@@ -91,6 +92,7 @@ export function Recommendations() {
     setLoading(true)
     setDone(false)
     setCurrentIndex(0)
+    setContextUsed(null)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       const { data: skipped } = await supabase
@@ -130,6 +132,10 @@ export function Recommendations() {
         .slice(0, 12)
         .map(h => `- From "${h.book_title}": "${h.text.slice(0, 120)}"`)
         .join('\n')
+
+      const reviewCount = readBooks.filter(b => b.review && b.rating >= 4).slice(0, 5).length
+      const highlightCount = (highlights || []).slice(0, 12).length
+      setContextUsed({ reviewCount, highlightCount })
 
       const prompt = `You are a personal book recommendation engine. Based on this person's reading history, recommend 10 books they would love.
 
@@ -285,6 +291,17 @@ Return ONLY valid JSON, no markdown, no prose.`
       {/* Swipe deck */}
       {!loading && recs.length > 0 && !done && (
         <div>
+          {contextUsed && (contextUsed.reviewCount > 0 || contextUsed.highlightCount > 0) && (
+            <div className="flex items-center justify-center gap-1.5 text-xs text-ink-400 dark:text-ink-500 mb-2">
+              <Info size={12} />
+              <span>
+                {[
+                  contextUsed.reviewCount > 0 && `${contextUsed.reviewCount} review${contextUsed.reviewCount !== 1 ? 's' : ''}`,
+                  contextUsed.highlightCount > 0 && `${contextUsed.highlightCount} highlight${contextUsed.highlightCount !== 1 ? 's' : ''}`,
+                ].filter(Boolean).join(' · ')} used for context
+              </span>
+            </div>
+          )}
           <div className="relative" style={{ height: 520 }}>
             {/* Background cards */}
             {recs.slice(currentIndex + 1, currentIndex + 3).reverse().map((rec, i) => (

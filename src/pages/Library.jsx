@@ -103,6 +103,16 @@ export function Library() {
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
           {[...Array(12)].map((_, i) => <BookCardSkeleton key={i} />)}
         </div>
+      ) : filtered.length === 0 && librarySearch.trim() ? (
+        <div className="flex flex-col items-center py-14 text-center gap-3">
+          <p className="text-sm font-medium text-ink-700 dark:text-paper-200">"{librarySearch}" isn't in your library.</p>
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="btn-primary"
+          >
+            <Plus size={16} /> Add it to your Library
+          </button>
+        </div>
       ) : filtered.length === 0 ? (
         <EmptyState icon="🔍" title="No books found" description="Try adjusting your filters or add books to your library." />
       ) : libraryView === 'grid' ? (

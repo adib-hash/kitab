@@ -75,8 +75,12 @@ function SortableBook({ book }) {
     const dy = e.touches[0].clientY - startY.current
 
     if (!axis.current) {
-      if (Math.abs(dx) > 6 || Math.abs(dy) > 6)
+      if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
         axis.current = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v'
+        if (axis.current === 'h' && innerRef.current) {
+          innerRef.current.style.touchAction = 'none'
+        }
+      }
       return
     }
 
@@ -95,6 +99,7 @@ function SortableBook({ book }) {
 
   function onTouchEnd() {
     longPress.onTouchEnd()
+    if (innerRef.current) innerRef.current.style.touchAction = 'pan-y'
     if (axis.current !== 'h') return
     const x = currentX.current
     startX.current   = null
@@ -169,7 +174,7 @@ function SortableBook({ book }) {
         <div
           ref={innerRef}
           className="relative flex items-center gap-3 p-3 bg-white dark:bg-ink-800 border border-paper-200 dark:border-ink-700 rounded-xl"
-          style={{ WebkitTouchCallout: 'none' }}
+          style={{ WebkitTouchCallout: 'none', touchAction: 'pan-y' }}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}

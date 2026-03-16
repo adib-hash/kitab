@@ -59,8 +59,17 @@ export function BookSearchModal({ open, onClose, onSelect, onManual }) {
         )}
 
         {results.length === 0 && !loading && query && (
-          <div className="flex flex-col items-center py-10 text-ink-400">
+          <div className="flex flex-col items-center py-10 text-ink-400 gap-3">
             <p className="text-sm">No results for "{query}"</p>
+            {onManual && (
+              <button
+                type="button"
+                onClick={() => { onClose(); setQuery(''); setResults([]); onManual() }}
+                className="text-sm font-medium text-teal-600 dark:text-teal-400 hover:underline"
+              >
+                Book not in Google Books? Add it manually
+              </button>
+            )}
           </div>
         )}
 

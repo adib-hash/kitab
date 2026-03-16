@@ -31,14 +31,27 @@ export function QuickActionsSheet({ book, open, onClose }) {
   // Lock body scroll when sheet is open; reset date picker state on close
   useEffect(() => {
     if (open) {
-      document.body.style.overflow = 'hidden'
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
     } else {
-      document.body.style.overflow = ''
+      const scrollY = Math.abs(parseInt(document.body.style.top || '0'))
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      window.scrollTo(0, scrollY)
       setDatePicking(false)
       setFinishMonth(String(new Date().getMonth() + 1))
       setFinishYear(String(new Date().getFullYear()))
     }
-    return () => { document.body.style.overflow = '' }
+    return () => {
+      const scrollY = Math.abs(parseInt(document.body.style.top || '0'))
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      if (scrollY) window.scrollTo(0, scrollY)
+    }
   }, [open])
 
   if (!book) return null
@@ -114,6 +127,7 @@ export function QuickActionsSheet({ book, open, onClose }) {
             {/* Sheet */}
             <motion.div
               className="fixed bottom-0 left-0 right-0 z-[310] bg-white dark:bg-ink-900 rounded-t-2xl shadow-2xl"
+              style={{ maxHeight: '90vh', overflowY: 'auto' }}
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             >

@@ -1,3 +1,18 @@
+## v1.8.3 — 2026-03-16
+### Fixed
+- **Library search empty state**: When a search query returns no results, the library now shows `"[query]" isn't in your library.` with an "Add it to your Library" button that opens the Add Book modal — replaces the previous dead-end generic message
+
+## v1.8.2 — 2026-03-16
+### Fixed
+- **QuickActionsSheet — date picker cut off**: Sheet container now has `maxHeight: 90vh` and `overflowY: auto`, so the Confirm button is always visible on small screens
+- **QuickActionsSheet — iOS scroll lock**: Replaced `overflow: hidden` body lock with the `position: fixed` + scroll-position-save/restore approach that works reliably on iOS Safari
+- **TBR swipe/scroll conflict**: Inner card defaults to `touch-action: pan-y`; switches to `touch-action: none` the moment a horizontal axis is confirmed, preventing the list from scrolling while a swipe is in progress; restored on touch end
+- **BookSearch empty state**: Zero-results state now shows "Book not in Google Books? Add it manually" button, surfacing the manual-add flow instead of a dead-end message
+
+## v1.8.1 — 2026-03-16
+### Added
+- **AI Recommendations context badge**: A small info line ("X reviews · Y highlights used for context") now appears above the card stack after recommendations load, confirming which personal data was included in the prompt. Hidden if neither reviews nor highlights were available.
+
 ## v1.8.0 — 2026-03-16
 ### Added
 - **AI Recommendations**: Prompt now includes user's review excerpts (4-star+ books) and up to 12 Kindle highlights, giving Claude richer context for personalised picks
