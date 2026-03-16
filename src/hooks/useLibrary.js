@@ -91,7 +91,7 @@ export function useAddBook() {
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['books'] })
-      toast.success(`"${data.title}" added to your library`)
+      toast.success(`"${data.title}" added to your library`, { id: 'book-added' })
     },
     onError: (err) => toast.error(`Failed to add book: ${err.message}`),
   })

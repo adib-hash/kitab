@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2, BookOpen, Zap, AlertCircle } from 'lucide-react'
+import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2, BookOpen, Zap, AlertCircle, LogOut, ChevronLeft } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
 import { useTags, useUpdateTag, useDeleteTag } from '../hooks/useTags'
 import { Button, Divider } from '../components/ui/index.jsx'
@@ -10,6 +11,7 @@ import { BookCover } from '../components/books/BookCover'
 import Papa from 'papaparse'
 import { useAddBook } from '../hooks/useLibrary'
 import { useClippingsImport, useAllUnmatched, useAssignHighlights } from '../hooks/useHighlights'
+import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
 function TagRow({ tag, onEdit, onDelete }) {
@@ -264,11 +266,16 @@ export function Settings() {
   const addBook = useAddBook()
   const updateTag = useUpdateTag()
   const deleteTag = useDeleteTag()
+  const navigate = useNavigate()
   const [editingTag, setEditingTag] = useState(null)
   const [editName, setEditName] = useState('')
   const [importing, setImporting] = useState(false)
   const { librarySlug, setLibrarySlug } = useUIStore()
   const [slugInput, setSlugInput] = useState(librarySlug || '')
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+  }
 
   function exportCSV() {
     const rows = buildGoodreadsCSV(books, tags)
@@ -349,7 +356,15 @@ export function Settings() {
 
   return (
     <div className="space-y-6 max-w-2xl pb-10">
-      <h1 className="page-title">Settings</h1>
+      <div className="flex items-center gap-3 mb-0">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-2 rounded-xl hover:bg-paper-100 dark:hover:bg-ink-800 text-ink-500 transition-colors"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <h1 className="page-title">Settings</h1>
+      </div>
 
       {/* Libby */}
       <div className="card p-6 space-y-4">
@@ -470,9 +485,19 @@ export function Settings() {
           ))}
         </div>
       </div>
+      {/* Account / Logout */}
+      <div className="card p-6">
+        <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 mb-3 flex items-center gap-2">
+          <LogOut size={18} className="text-ink-500" /> Account
+        </h2>
+        <button onClick={handleLogout} className="btn-secondary flex items-center gap-2">
+          <LogOut size={14} /> Log out
+        </button>
+      </div>
+
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.7.0
+        Kitab · v1.8.0
       </p>
     </div>
   )

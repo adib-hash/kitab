@@ -122,7 +122,7 @@ export function Stats() {
                 {Math.round((stats.totalRead / goal.target) * 100)}%
               </p>
             </div>
-            <ProgressBar value={stats.totalRead} max={goal.target} className="h-3" color="amber" />
+            <ProgressBar value={stats.totalRead} max={goal.target} className="h-3" gradient />
             {stats.totalRead >= goal.target && (
               <p className="text-sm text-teal-700 dark:text-teal-400 mt-2 font-medium flex items-center gap-1">
                 <CheckCircle size={14} /> Goal achieved!
@@ -161,14 +161,19 @@ export function Stats() {
             <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 mb-5">
               Tags · {thisYear}
             </h2>
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={220}>
               <PieChart>
-                <Pie data={stats.tagBreakdown} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name }) => name}>
+                <Pie data={stats.tagBreakdown} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={80}>
                   {stats.tagBreakdown.map((_, i) => (
                     <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ background: '#1C1917', border: '1px solid #44403C', borderRadius: 8, fontSize: 12, color: '#FAF7F2' }} />
+                <Tooltip
+                  contentStyle={{ background: '#1C1917', border: '1px solid #44403C', borderRadius: 8, fontSize: 12, color: '#FAF7F2' }}
+                  itemStyle={{ color: '#FAF7F2' }}
+                  labelStyle={{ color: '#FAF7F2' }}
+                  formatter={(value, name) => [`${value} book${value !== 1 ? 's' : ''}`, name]}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>

@@ -1,3 +1,16 @@
+## v1.8.0 — 2026-03-16
+### Added
+- **AI Recommendations**: Prompt now includes user's review excerpts (4-star+ books) and up to 12 Kindle highlights, giving Claude richer context for personalised picks
+- **Reading goal gradient bar**: Progress bar on Dashboard and Stats now uses a warm amber gradient (light → deep) to convey heating-up momentum
+- **Finish date prompt**: Marking a book as Finished now shows a month/year picker in the Quick Actions sheet before saving; user can skip to omit the date
+- **Logout button**: Settings → Account section with a "Log out" button that ends the session and redirects to login
+- **Back button in Settings**: Chevron-left button in the Settings header to navigate back to the previous screen
+
+### Changed
+- **Enhanced toasts**: Status-change toasts are now context-specific ("Now reading…", "Finished…!", "Added to TBR", "Did not finish") rather than generic
+- **Recommendations toast**: Accepting a rec now toasts ""Title" added to your TBR" (deduped against the library add toast via shared id)
+- **Pie chart**: Removed clipped inline slice labels; tooltip now shows white text on dark background with book count formatting
+
 ## v1.7.0 — 2026-03-16
 ### Fixed
 - `QuickActionsSheet`: date_finished was stored as YYYY-MM-DD instead of YYYY-MM-01 when marking a book as Read via Quick Actions — now uses correct month+year-only format per schema spec

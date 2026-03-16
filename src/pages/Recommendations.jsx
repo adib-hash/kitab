@@ -111,6 +111,26 @@ export function Recommendations() {
         new_author: 'books by authors the user hasn\'t read yet',
       }[bias]
 
+      // Fetch highlights for context
+      const { data: highlights } = await supabase
+        .from('highlights')
+        .select('text, book_title')
+        .eq('user_id', user.id)
+        .not('book_id', 'is', null)
+        .order('highlighted_at', { ascending: false })
+        .limit(20)
+
+      const reviewContext = readBooks
+        .filter(b => b.review && b.rating >= 4)
+        .slice(0, 5)
+        .map(b => `- "${b.title}" (${b.rating}★): ${b.review.slice(0, 200)}`)
+        .join('\n')
+
+      const highlightContext = (highlights || [])
+        .slice(0, 12)
+        .map(h => `- From "${h.book_title}": "${h.text.slice(0, 120)}"`)
+        .join('\n')
+
       const prompt = `You are a personal book recommendation engine. Based on this person's reading history, recommend 10 books they would love.
 
 Reading history:
@@ -119,12 +139,13 @@ ${libraryContext}
 TBR list includes: ${books.filter(b=>b.status==='tbr').slice(0,10).map(b=>b.title).join(', ')}
 
 Bias: ${biasText}
-
+${reviewContext ? `\nUser's reviews (excerpts):\n${reviewContext}` : ''}
+${highlightContext ? `\nHighlighted passages (what resonated with this reader):\n${highlightContext}` : ''}
 Do NOT recommend books with these titles (already in library): ${existingTitles.slice(0,20).join(', ')}
 
 Return ONLY a JSON array of 10 objects with these exact fields:
 - title (string)
-- author (string)  
+- author (string)
 - reason (string, 1-2 sentences explaining why this matches their taste)
 
 Return ONLY valid JSON, no markdown, no prose.`
@@ -185,6 +206,7 @@ Return ONLY valid JSON, no markdown, no prose.`
       },
       tagIds: []
     })
+    toast.success(`"${rec.title}" added to your TBR`, { id: 'book-added' })
     advance()
   }
 

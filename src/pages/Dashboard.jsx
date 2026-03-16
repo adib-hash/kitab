@@ -78,7 +78,7 @@ export function Dashboard() {
               {booksThisYear} / {goal.target}
             </p>
           </div>
-          <ProgressBar value={booksThisYear} max={goal.target} className="h-2" color="amber" />
+          <ProgressBar value={booksThisYear} max={goal.target} className="h-2" gradient />
           <p className="text-xs text-ink-500 dark:text-ink-400 mt-2">
             {booksThisYear >= goal.target
               ? <span className="flex items-center gap-1"><CheckCircle size={13} className="text-teal-600" /> Goal achieved!</span>

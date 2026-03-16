@@ -118,7 +118,7 @@ export function EmptyState({ icon, title, description, action }) {
 }
 
 // ── ProgressBar ──────────────────────────────────────────────────────────
-export function ProgressBar({ value, max, className, color = 'teal' }) {
+export function ProgressBar({ value, max, className, color = 'teal', gradient = false }) {
   const pct = Math.min(100, Math.round((value / max) * 100))
   return (
     <div className={clsx('w-full bg-paper-200 dark:bg-ink-700 rounded-full overflow-hidden', className)}>
@@ -126,11 +126,12 @@ export function ProgressBar({ value, max, className, color = 'teal' }) {
         initial={{ width: 0 }}
         animate={{ width: `${pct}%` }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
-        className={clsx('h-full rounded-full', {
+        className={clsx('h-full rounded-full', !gradient && {
           'bg-teal-600': color === 'teal',
           'bg-amber-500': color === 'amber',
           'bg-emerald-600': color === 'emerald',
         })}
+        style={gradient ? { background: 'linear-gradient(90deg, #FDE68A 0%, #F59E0B 50%, #B45309 100%)' } : undefined}
       />
     </div>
   )
