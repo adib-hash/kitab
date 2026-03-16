@@ -1,3 +1,21 @@
+## v1.7.0 — 2026-03-16
+### Fixed
+- `QuickActionsSheet`: date_finished was stored as YYYY-MM-DD instead of YYYY-MM-01 when marking a book as Read via Quick Actions — now uses correct month+year-only format per schema spec
+- `ReviewModal`: dead ternary `setText(hasDraft ? dbReview : dbReview)` simplified to `setText(dbReview)`
+
+### Changed
+- `StatCard` icons (Dashboard, Stats): replaced all emoji strings (📚 📄 ⭐ 🔖 📏 📌 🔍 📭) with Lucide SVG icons
+- `EmptyState` default icon: replaced `'📚'` fallback with `<BookOpen size={48} />` SVG
+- Dashboard: "🎉 Goal achieved!" → CheckCircle SVG + text; "Start a book →" arrow → SVG ArrowRight
+- Stats: "🎉 Goal achieved!" → CheckCircle SVG + text; EmptyState icon (📊) → BarChart2 SVG
+- Rank: winner overlay `✓` → CheckCircle SVG; `⚔️` home screen → Swords SVG; medal emojis 🥇🥈🥉 → CSS-styled numbered badges
+- TBR: "View in library →" arrow → SVG ArrowRight; swipe action emoji icons (📖 🗑) → BookOpen/Trash2 SVGs; empty state (📋) → Bookmark SVG
+- BookForm: "Edit/Write Review →" arrow → SVG ArrowRight
+- BookSearch: "Can't find it? Add manually →" arrow → SVG ArrowRight
+- Recommendations: `← Skip  Add to TBR →` → ChevronLeft/ChevronRight SVGs; "✨" EmptyState → Sparkles SVG; "🎉" done state → CheckCircle SVG
+- `StatusBadge`: Unicode dot characters (● ○ ◑ ✕) → CSS-styled colored circles using inline styles
+- Settings tag deletion: confirm dialog now includes affected book count (e.g. `Delete "Fiction"? This will remove it from 7 books.`)
+
 ## v1.6.14 — 2026-03-12
 ### Added
 - `ReviewModal`: dedicated full-screen review editor with tall textarea, word count, spoiler toggle

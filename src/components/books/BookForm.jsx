@@ -7,7 +7,7 @@ import { TagInput } from './TagInput'
 import { STATUS_LABELS } from '../../lib/utils'
 import { useAddBook } from '../../hooks/useLibrary'
 import { useUpdateBook } from '../../hooks/useLibrary'
-import { AlertTriangle, PenLine } from 'lucide-react'
+import { AlertTriangle, PenLine, ArrowRight } from 'lucide-react'
 
 const COVER_PRESETS = [
   { id: 'teal',    label: 'Teal',    bg: '#0F766E', text: '#CCFBF1' },
@@ -227,7 +227,8 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-teal-400 dark:border-teal-700 text-teal-700 dark:text-teal-400 text-sm font-medium hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
                   >
                     <PenLine size={14} />
-                    {form.review ? 'Edit Review →' : 'Write a Review →'}
+                    {form.review ? 'Edit Review' : 'Write a Review'}
+                    <ArrowRight size={14} />
                   </button>
                 )}
               </div>

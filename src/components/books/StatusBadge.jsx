@@ -7,17 +7,20 @@ const statusClasses = {
   dnf: 'status-dnf',
 }
 
-const statusDots = {
-  read: '●',
-  tbr: '○',
-  reading: '◑',
-  dnf: '✕',
+const statusColor = {
+  read: '#059669',     // emerald-600
+  tbr: '#3B82F6',      // blue-500
+  reading: '#0D9488',  // teal-600
+  dnf: '#F43F5E',      // rose-500
 }
 
 export function StatusBadge({ status }) {
   return (
     <span className={statusClasses[status] || 'tag-pill'}>
-      <span className="mr-1 text-[10px]">{statusDots[status]}</span>
+      <span
+        className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 mb-[1px]"
+        style={{ backgroundColor: statusColor[status] }}
+      />
       {STATUS_LABELS[status] || status}
     </span>
   )

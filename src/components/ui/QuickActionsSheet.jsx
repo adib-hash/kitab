@@ -43,9 +43,10 @@ export function QuickActionsSheet({ book, open, onClose }) {
 
   async function handleStatusChange(newStatus) {
     const updates = { status: newStatus }
-    // Auto-set date_finished when marking as read
+    // Auto-set date_finished when marking as read (YYYY-MM-01 — month+year only, no day)
     if (newStatus === 'read' && !book.date_finished) {
-      updates.date_finished = new Date().toISOString().slice(0, 10)
+      const n = new Date()
+      updates.date_finished = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-01`
     }
     await updateBook.mutateAsync({ id: book.id, updates })
     const label = STATUS_OPTIONS.find(s => s.value === newStatus)?.label ?? newStatus

@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect } from 'react'
-import { X } from 'lucide-react'
+import { X, BookOpen } from 'lucide-react'
 import { clsx } from 'clsx'
 
 // ── Button ──────────────────────────────────────────────────────────────
@@ -109,7 +109,7 @@ export function BookCardSkeleton() {
 export function EmptyState({ icon, title, description, action }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-      <div className="text-5xl mb-4 opacity-40">{icon || '📚'}</div>
+      <div className="mb-4 opacity-40 text-ink-400">{icon || <BookOpen size={48} />}</div>
       <h3 className="font-serif text-xl font-semibold text-ink-700 dark:text-ink-300 mb-2">{title}</h3>
       {description && <p className="text-sm text-ink-500 dark:text-ink-400 max-w-sm mb-6">{description}</p>}
       {action}

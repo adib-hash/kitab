@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Plus, GripVertical, Shuffle } from 'lucide-react'
+import { Plus, GripVertical, Shuffle, BookOpen, Trash2, Bookmark, ArrowRight } from 'lucide-react'
 import {
   DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor,
   useSensor, useSensors
@@ -154,10 +154,14 @@ function SortableBook({ book }) {
           isRight ? 'bg-teal-600' : isLeft ? 'bg-rose-600' : 'bg-paper-200 dark:bg-ink-700'
         }`}>
           {isRight && (
-            <span className="text-white text-xs font-bold">📖 Start Reading</span>
+            <span className="text-white text-xs font-bold flex items-center gap-1.5">
+              <BookOpen size={14} /> Start Reading
+            </span>
           )}
           {isLeft && (
-            <span className="text-white text-xs font-bold ml-auto">🗑 Remove</span>
+            <span className="text-white text-xs font-bold ml-auto flex items-center gap-1.5">
+              <Trash2 size={14} /> Remove
+            </span>
           )}
         </div>
 
@@ -200,10 +204,10 @@ function SortableBook({ book }) {
         <div className={`flex items-center justify-between px-4 py-2.5 rounded-b-xl -mt-1 ${
           confirming === 'right' ? 'bg-teal-600' : 'bg-rose-600'
         }`}>
-          <span className="text-white text-xs font-semibold">
+          <span className="text-white text-xs font-semibold flex items-center gap-1.5">
             {confirming === 'right'
-              ? '📖 Start reading this book?'
-              : '🗑 Remove from library entirely?'}
+              ? <><BookOpen size={13} /> Start reading this book?</>
+              : <><Trash2 size={13} /> Remove from library entirely?</>}
           </span>
           <div className="flex gap-2">
             <button
@@ -247,10 +251,10 @@ function ShufflePickModal({ book, onClose, onShuffleAgain }) {
         <p className="text-sm text-ink-500 dark:text-ink-400 mt-1 mb-5">{book.author}</p>
         <Link
           to={`/library/${book.id}`}
-          className="text-sm text-teal-600 dark:text-teal-400 hover:underline font-medium"
+          className="text-sm text-teal-600 dark:text-teal-400 hover:underline font-medium flex items-center justify-center gap-1"
           onClick={onClose}
         >
-          View in library →
+          View in library <ArrowRight size={14} />
         </Link>
         <button
           onClick={onShuffleAgain}
@@ -354,7 +358,7 @@ export function TBR() {
         </div>
       ) : tbrBooks.length === 0 ? (
         <EmptyState
-          icon="📋"
+          icon={<Bookmark size={48} />}
           title="Your reading list is empty"
           description="Add books you want to read — then drag to prioritize."
           action={

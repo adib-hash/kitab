@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Target } from 'lucide-react'
+import { Target, BookOpen, FileText, Star, Bookmark, Maximize2, Minimize2, BookMarked, XCircle, BarChart2, CheckCircle } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { useLibrary } from '../hooks/useLibrary'
 import { useReadingGoal, useSetReadingGoal } from '../hooks/useTags'
@@ -41,7 +41,7 @@ export function Stats() {
         <span className="text-sm font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-0.5 rounded-full">{thisYear}</span>
       </div>
       <EmptyState
-        icon="📊"
+        icon={<BarChart2 size={48} />}
         title={`No books finished in ${thisYear} yet`}
         description="Mark books as read with a finish date this year to see your stats."
       />
@@ -67,27 +67,27 @@ export function Stats() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <StatCard label="Books Read" value={stats.totalRead} icon="📚" sub={String(thisYear)} />
-        <StatCard label="Pages Read" value={stats.totalPages.toLocaleString()} icon="📄" sub={String(thisYear)} />
-        <StatCard label="Avg Rating" value={stats.avgRating ? `${stats.avgRating} ★` : null} icon="⭐" sub={String(thisYear)} />
-        <StatCard label="On TBR" value={tbrCount} icon="🔖" sub="total" />
+        <StatCard label="Books Read" value={stats.totalRead} icon={<BookOpen size={18} />} sub={String(thisYear)} />
+        <StatCard label="Pages Read" value={stats.totalPages.toLocaleString()} icon={<FileText size={18} />} sub={String(thisYear)} />
+        <StatCard label="Avg Rating" value={stats.avgRating ? `${stats.avgRating} ★` : null} icon={<Star size={18} />} sub={String(thisYear)} />
+        <StatCard label="On TBR" value={tbrCount} icon={<Bookmark size={18} />} sub="total" />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <StatCard
           label="Longest Book"
           value={stats.longest?.title ? stats.longest.title.slice(0,20) + (stats.longest.title.length > 20 ? '…' : '') : null}
-          icon="📏"
+          icon={<Maximize2 size={18} />}
           sub={stats.longest?.page_count ? `${stats.longest.page_count} pages` : null}
         />
         <StatCard
           label="Shortest Book"
           value={stats.shortest?.title ? stats.shortest.title.slice(0,20) + (stats.shortest.title.length > 20 ? '…' : '') : null}
-          icon="📌"
+          icon={<Minimize2 size={18} />}
           sub={stats.shortest?.page_count ? `${stats.shortest.page_count} pages` : null}
         />
-        <StatCard label="Currently Reading" value={books.filter(b => b.status === 'reading').length} icon="🔍" />
-        <StatCard label="Did Not Finish" value={books.filter(b => b.status === 'dnf').length} icon="📭" />
+        <StatCard label="Currently Reading" value={books.filter(b => b.status === 'reading').length} icon={<BookMarked size={18} />} />
+        <StatCard label="Did Not Finish" value={books.filter(b => b.status === 'dnf').length} icon={<XCircle size={18} />} />
       </div>
 
       {/* Reading goal */}
@@ -124,7 +124,9 @@ export function Stats() {
             </div>
             <ProgressBar value={stats.totalRead} max={goal.target} className="h-3" color="amber" />
             {stats.totalRead >= goal.target && (
-              <p className="text-sm text-teal-700 dark:text-teal-400 mt-2 font-medium">🎉 Goal achieved!</p>
+              <p className="text-sm text-teal-700 dark:text-teal-400 mt-2 font-medium flex items-center gap-1">
+                <CheckCircle size={14} /> Goal achieved!
+              </p>
             )}
           </div>
         ) : (

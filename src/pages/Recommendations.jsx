@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
-import { Sparkles, Check, X, RefreshCw, Loader2, BookMarked, ChevronRight } from 'lucide-react'
+import { Sparkles, Check, X, RefreshCw, Loader2, BookMarked, ChevronRight, ChevronLeft, CheckCircle } from 'lucide-react'
 import { useLibrary, useAddBook } from '../hooks/useLibrary'
 import { supabase } from '../lib/supabase'
 import { searchBooks } from '../lib/googleBooks'
@@ -213,7 +213,7 @@ Return ONLY valid JSON, no markdown, no prose.`
     <div className="space-y-6">
       <h1 className="page-title">Discover</h1>
       <EmptyState
-        icon="✨"
+        icon={<Sparkles size={48} />}
         title="Read more to unlock recommendations"
         description="Mark at least 2 books as read and we'll suggest books you'll love."
       />
@@ -304,14 +304,16 @@ Return ONLY valid JSON, no markdown, no prose.`
             </button>
           </div>
 
-          <p className="text-center text-xs text-ink-400 mt-3">← Skip &nbsp;&nbsp; Add to TBR →</p>
+          <p className="text-center text-xs text-ink-400 mt-3 flex items-center justify-center gap-1">
+            <ChevronLeft size={12} /> Skip <span className="mx-2">·</span> Add to TBR <ChevronRight size={12} />
+          </p>
         </div>
       )}
 
       {/* Done state */}
       {done && (
         <div className="card p-8 text-center space-y-4">
-          <div className="text-4xl">🎉</div>
+          <CheckCircle size={48} className="text-teal-600 mx-auto" />
           <h3 className="font-serif text-xl font-semibold text-ink-900 dark:text-paper-50">All done!</h3>
           <p className="text-sm text-ink-500">Check your TBR for the books you added.</p>
           <div className="flex gap-3 justify-center">

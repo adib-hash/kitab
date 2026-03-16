@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { Search, Loader2, BookOpen } from 'lucide-react'
+import { Search, Loader2, BookOpen, ArrowRight } from 'lucide-react'
 import { Modal } from '../ui/index.jsx'
 import { searchBooks } from '../../lib/googleBooks'
 import { BookCover } from './BookCover'
@@ -92,9 +92,9 @@ export function BookSearchModal({ open, onClose, onSelect, onManual }) {
             <button
               type="button"
               onClick={() => { onClose(); setQuery(''); setResults([]); onManual(); }}
-              className="text-xs text-ink-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors underline underline-offset-2"
+              className="text-xs text-ink-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors underline underline-offset-2 inline-flex items-center gap-1"
             >
-              Can't find it? Add manually →
+              Can't find it? Add manually <ArrowRight size={12} />
             </button>
           </div>
         )}

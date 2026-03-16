@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, BookOpen, ArrowRight, Target, Settings } from 'lucide-react'
+import { Plus, BookOpen, ArrowRight, Target, Settings, Star, FileText, Bookmark, CheckCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useLibrary } from '../hooks/useLibrary'
 import { useReadingGoal } from '../hooks/useTags'
@@ -80,7 +80,9 @@ export function Dashboard() {
           </div>
           <ProgressBar value={booksThisYear} max={goal.target} className="h-2" color="amber" />
           <p className="text-xs text-ink-500 dark:text-ink-400 mt-2">
-            {booksThisYear >= goal.target ? '🎉 Goal achieved!' : `${goal.target - booksThisYear} more to go`}
+            {booksThisYear >= goal.target
+              ? <span className="flex items-center gap-1"><CheckCircle size={13} className="text-teal-600" /> Goal achieved!</span>
+              : `${goal.target - booksThisYear} more to go`}
           </p>
         </motion.div>
       )}
@@ -102,8 +104,8 @@ export function Dashboard() {
           <div className="card p-6 text-center">
             <BookOpen size={28} className="mx-auto mb-2 text-ink-300" />
             <p className="text-sm text-ink-500 dark:text-ink-400">You're not reading anything right now.</p>
-            <button onClick={() => setSearchOpen(true)} className="btn-ghost mt-2 text-teal-700 dark:text-teal-400 text-sm">
-              Start a book →
+            <button onClick={() => setSearchOpen(true)} className="btn-ghost mt-2 text-teal-700 dark:text-teal-400 text-sm flex items-center gap-1 mx-auto">
+              Start a book <ArrowRight size={14} />
             </button>
           </div>
         ) : (
@@ -136,10 +138,10 @@ export function Dashboard() {
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <StatCard label="Books Read" value={yearStats.totalRead} icon="📚" sub={String(thisYear)} />
-            <StatCard label="Pages Read" value={yearStats.totalPages.toLocaleString()} icon="📄" sub={String(thisYear)} />
-            <StatCard label="Avg Rating" value={yearStats.avgRating ? `${yearStats.avgRating}★` : null} icon="⭐" sub={String(thisYear)} />
-            <StatCard label="On TBR" value={books.filter(b=>b.status==='tbr').length} icon="🔖" sub="total" />
+            <StatCard label="Books Read" value={yearStats.totalRead} icon={<BookOpen size={18} />} sub={String(thisYear)} />
+            <StatCard label="Pages Read" value={yearStats.totalPages.toLocaleString()} icon={<FileText size={18} />} sub={String(thisYear)} />
+            <StatCard label="Avg Rating" value={yearStats.avgRating ? `${yearStats.avgRating}★` : null} icon={<Star size={18} />} sub={String(thisYear)} />
+            <StatCard label="On TBR" value={books.filter(b=>b.status==='tbr').length} icon={<Bookmark size={18} />} sub="total" />
           </div>
         </section>
       )}
@@ -162,7 +164,7 @@ export function Dashboard() {
       {/* Empty state */}
       {!isLoading && books.length === 0 && (
         <EmptyState
-          icon="📖"
+          icon={<BookOpen size={48} />}
           title="Your library is empty"
           description="Add your first book to get started."
           action={

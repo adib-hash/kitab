@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trophy, Swords, StopCircle, RotateCcw, BookOpen, Loader2, ChevronLeft } from 'lucide-react'
+import { Trophy, Swords, StopCircle, RotateCcw, BookOpen, Loader2, ChevronLeft, CheckCircle } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
 import { supabase } from '../lib/supabase'
@@ -70,7 +70,7 @@ function BattleCard({ book, onClick, disabled, isWinner, isLoser }) {
         <div className="absolute inset-0 bg-teal-500/0 group-hover:bg-teal-500/10 transition-all duration-150" />
         {isWinner && (
           <div className="absolute inset-0 flex items-center justify-center bg-teal-900/30">
-            <span className="text-4xl">✓</span>
+            <CheckCircle size={48} className="text-white drop-shadow-lg" />
           </div>
         )}
       </div>
@@ -281,7 +281,7 @@ export function Rank() {
         {view === 'home' && (
           <motion.div key="home" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-5">
             <div className="card p-6 text-center space-y-4">
-              <div className="text-5xl">⚔️</div>
+              <Swords size={48} className="text-teal-600 mx-auto" />
               <div>
                 <h2 className="font-serif text-xl font-semibold text-ink-900 dark:text-paper-50">Head-to-Head Rankings</h2>
                 <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">Pick the better book in each matchup. Build your definitive ranked list.</p>
@@ -318,7 +318,11 @@ export function Rank() {
                 <p className="text-xs font-semibold uppercase tracking-widest text-ink-400">Current Top 3</p>
                 {rankedBooks.slice(0, 3).map((book, i) => (
                   <div key={book.id} className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-ink-800 border border-paper-200 dark:border-ink-700">
-                    <span className="text-lg">{['🥇','🥈','🥉'][i]}</span>
+                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold flex-shrink-0 ${
+                      i === 0 ? 'bg-amber-400 text-amber-900' :
+                      i === 1 ? 'bg-slate-300 text-slate-700' :
+                      'bg-amber-700 text-amber-100'
+                    }`}>{i + 1}</span>
                     <BookCover book={book} size="sm" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-ink-900 dark:text-paper-50 truncate">{book.title}</p>

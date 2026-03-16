@@ -337,7 +337,13 @@ export function Settings() {
     toast.success('Tag updated')
   }
   async function handleDeleteTag(id) {
-    if (!confirm('Delete this tag? It will be removed from all books.')) return
+    const tag = tags.find(t => t.id === id)
+    const bookCount = books.filter(b => b.tags?.some(t => t.id === id)).length
+    const bookText = bookCount === 1 ? '1 book' : `${bookCount} books`
+    const msg = tag
+      ? `Delete "${tag.name}"? This will remove it from ${bookText}.`
+      : `Delete this tag? This will remove it from ${bookText}.`
+    if (!confirm(msg)) return
     await deleteTag.mutateAsync(id)
   }
 
@@ -466,7 +472,7 @@ export function Settings() {
       </div>
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.6.14
+        Kitab · v1.7.0
       </p>
     </div>
   )

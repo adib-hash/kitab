@@ -21,7 +21,7 @@ export function ReviewModal({ open, onClose, book }) {
     const draft = localStorage.getItem(DRAFT_KEY)
     const hasDraft = draft !== null && draft !== dbReview
 
-    setText(hasDraft ? dbReview : dbReview)  // start with DB value always
+    setText(dbReview)  // start with DB value always; draft available via "Restore" button
     setSpoiler(dbSpoiler)
     setDirty(false)
     setShowDraftBanner(hasDraft)
