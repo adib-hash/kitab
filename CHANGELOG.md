@@ -1,3 +1,8 @@
+## v1.8.6 — 2026-03-16
+### Changed
+- **Global search now offers "Add to library" on empty results**: The search icon (top bar, all pages) already searched your existing library — it now also shows an "Add it to your library" button when nothing is found, pre-filling the Google Books search with your query. Works identically on Home, Library, TBR, Discover, and Rank.
+- **Reverted v1.8.5 Dashboard-specific search**: The per-page search sheet was redundant — the Layout's top-bar search icon already covers all pages globally.
+
 ## v1.8.5 — 2026-03-16
 ### Added
 - **Library search from Dashboard**: The search icon in the Dashboard header now searches your existing library (by title, author, or tag) in real-time. If the book isn't found, an "Add it to your library" button opens the Google Books search pre-filled with your query. The Plus icon in the header still opens the Add Book flow directly.
