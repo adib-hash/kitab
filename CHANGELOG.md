@@ -1,3 +1,8 @@
+## v1.8.8 — 2026-03-16
+### Added
+- **Open Library cover fallback in Enrich Library**: When Google Books returns no cover (or no result at all), the enrichment loop now tries Open Library's search API as a second source — first by ISBN, then by title + author. Open Library has a far larger cover database and requires no API key.
+- **Per-book selection in Enrich Library**: Results now show a checkbox per book (checked by default for any book with updates). The "Apply All Updates" button is replaced by "Apply X Selected" showing the live count of selected books. A "Select all / Deselect all" toggle sits next to the results count. Books with no data found have a disabled checkbox and a "No data found" label.
+
 ## v1.8.7 — 2026-03-16
 ### Fixed
 - **QuickActionsSheet date picker spacing**: Bottom padding increased to 80px when the "When did you finish?" picker is active, lifting the Confirm button well clear of the bottom nav bar

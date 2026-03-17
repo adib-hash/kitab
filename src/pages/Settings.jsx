@@ -7,6 +7,7 @@ import { Button, Divider } from '../components/ui/index.jsx'
 import { useUIStore } from '../store/uiStore'
 import { buildGoodreadsCSV } from '../lib/utils'
 import { searchBooks } from '../lib/googleBooks'
+import { findCoverUrl } from '../lib/openLibrary'
 import { BookCover } from '../components/books/BookCover'
 import Papa from 'papaparse'
 import { useAddBook } from '../hooks/useLibrary'
@@ -56,22 +57,30 @@ function EnrichLibrary({ books }) {
         const googleResults = await searchBooks(query, 3)
         const best = googleResults[0]
 
+        const updates = {}
+        let enriched = null
+
         if (best) {
+          enriched = best
           // Only fill in fields that are missing
-          const updates = {}
           if (!book.cover_url && best.cover_url) updates.cover_url = best.cover_url
           if (!book.page_count && best.page_count) updates.page_count = best.page_count
           if (!book.description && best.description) updates.description = best.description
           if (!book.published_year && best.published_year) updates.published_year = best.published_year
           if (!book.google_books_id && best.google_books_id) updates.google_books_id = best.google_books_id
           if (!book.isbn && best.isbn) updates.isbn = best.isbn
-
-          found.push({ book, updates, enriched: best, hasUpdates: Object.keys(updates).length > 0 })
-        } else {
-          found.push({ book, updates: {}, enriched: null, hasUpdates: false })
         }
+
+        // If cover still missing after Google Books, try Open Library
+        if (!book.cover_url && !updates.cover_url) {
+          const olCover = await findCoverUrl(book.title, book.author, book.isbn)
+          if (olCover) updates.cover_url = olCover
+        }
+
+        const hasUpdates = Object.keys(updates).length > 0
+        found.push({ book, updates, enriched, hasUpdates, selected: hasUpdates })
       } catch {
-        found.push({ book, updates: {}, enriched: null, hasUpdates: false })
+        found.push({ book, updates: {}, enriched: null, hasUpdates: false, selected: false })
       }
 
       // Small delay to avoid rate limiting
@@ -84,8 +93,17 @@ function EnrichLibrary({ books }) {
     setStatus('done')
   }
 
-  async function applyAll() {
-    const toApply = results.filter(r => r.hasUpdates)
+  function toggleSelected(bookId) {
+    setResults(prev => prev.map(r => r.book.id === bookId ? { ...r, selected: !r.selected } : r))
+  }
+
+  function toggleAll() {
+    const allSelected = results.filter(r => r.hasUpdates).every(r => r.selected)
+    setResults(prev => prev.map(r => r.hasUpdates ? { ...r, selected: !allSelected } : r))
+  }
+
+  async function applySelected() {
+    const toApply = results.filter(r => r.selected && r.hasUpdates)
     let count = 0
     for (const { book, updates } of toApply) {
       try {
@@ -93,7 +111,7 @@ function EnrichLibrary({ books }) {
         count++
       } catch {}
     }
-    toast.success(`Enriched ${count} books!`)
+    toast.success(`Enriched ${count} book${count !== 1 ? 's' : ''}!`)
     setStatus('idle')
     setResults([])
   }
@@ -134,42 +152,74 @@ function EnrichLibrary({ books }) {
 
       {status === 'done' && results.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-ink-800 dark:text-ink-300">
-              Found data for {results.filter(r => r.hasUpdates).length} of {results.length} books
-            </p>
-            <div className="flex gap-2">
-              <Button variant="secondary" onClick={() => { setStatus('idle'); setResults([]) }}>Cancel</Button>
-              <Button onClick={applyAll} disabled={results.filter(r => r.hasUpdates).length === 0}>
-                Apply All Updates
-              </Button>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <p className="text-sm font-medium text-ink-800 dark:text-ink-300">
+                  Found data for {results.filter(r => r.hasUpdates).length} of {results.length} books
+                </p>
+                {results.filter(r => r.hasUpdates).length > 0 && (
+                  <button
+                    onClick={toggleAll}
+                    className="text-xs text-teal-600 dark:text-teal-400 hover:underline"
+                  >
+                    {results.filter(r => r.hasUpdates).every(r => r.selected) ? 'Deselect all' : 'Select all'}
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => { setStatus('idle'); setResults([]) }}>Cancel</Button>
+                <Button onClick={applySelected} disabled={results.filter(r => r.selected && r.hasUpdates).length === 0}>
+                  Apply {results.filter(r => r.selected && r.hasUpdates).length} Selected
+                </Button>
+              </div>
             </div>
           </div>
 
           <div className="space-y-2 max-h-80 overflow-y-auto">
-            {results.map(({ book, enriched, updates, hasUpdates }) => (
-              <div key={book.id} className="flex items-center gap-3 p-3 rounded-xl border border-paper-200 dark:border-ink-700 bg-white dark:bg-ink-800">
-                {enriched?.cover_url ? (
-                  <img src={enriched.cover_url} alt="" className="w-8 h-12 object-cover rounded flex-shrink-0" />
-                ) : (
-                  <div className="w-8 h-12 bg-paper-200 dark:bg-ink-700 rounded flex-shrink-0" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-ink-900 dark:text-paper-50 truncate">{book.title}</p>
-                  <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
-                  {hasUpdates && (
-                    <p className="text-xs text-teal-600 dark:text-teal-400 mt-0.5">
-                      Adding: {Object.keys(updates).join(', ').replace(/_/g, ' ')}
-                    </p>
+            {results.map(({ book, updates, hasUpdates, selected }) => {
+              const coverToShow = updates.cover_url || null
+              return (
+                <div
+                  key={book.id}
+                  className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${
+                    hasUpdates && !selected
+                      ? 'border-paper-200 dark:border-ink-700 bg-white dark:bg-ink-800 opacity-50'
+                      : 'border-paper-200 dark:border-ink-700 bg-white dark:bg-ink-800'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected}
+                    disabled={!hasUpdates}
+                    onChange={() => toggleSelected(book.id)}
+                    className="flex-shrink-0 w-4 h-4 accent-teal-600 disabled:opacity-30 cursor-pointer disabled:cursor-default"
+                  />
+                  {coverToShow ? (
+                    <img src={coverToShow} alt="" className="w-8 h-12 object-cover rounded flex-shrink-0" />
+                  ) : (
+                    <div className="w-8 h-12 bg-paper-200 dark:bg-ink-700 rounded flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-ink-900 dark:text-paper-50 truncate">{book.title}</p>
+                    <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
+                    {hasUpdates && (
+                      <p className="text-xs text-teal-600 dark:text-teal-400 mt-0.5">
+                        Adding: {Object.keys(updates).join(', ').replace(/_/g, ' ')}
+                      </p>
+                    )}
+                    {!hasUpdates && (
+                      <p className="text-xs text-ink-400 dark:text-ink-500 mt-0.5">No data found</p>
+                    )}
+                  </div>
+                  {hasUpdates ? (
+                    <CheckCircle size={16} className="text-teal-600 flex-shrink-0" />
+                  ) : (
+                    <XCircle size={16} className="text-ink-300 dark:text-ink-600 flex-shrink-0" />
                   )}
                 </div>
-                {hasUpdates ? (
-                  <CheckCircle size={16} className="text-teal-600 flex-shrink-0" />
-                ) : (
-                  <XCircle size={16} className="text-ink-300 dark:text-ink-600 flex-shrink-0" />
-                )}
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
@@ -497,7 +547,7 @@ export function Settings() {
 
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.8.7
+        Kitab · v1.8.8
       </p>
     </div>
   )
