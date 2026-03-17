@@ -1,3 +1,7 @@
+## v1.8.5 — 2026-03-16
+### Added
+- **Library search from Dashboard**: The search icon in the Dashboard header now searches your existing library (by title, author, or tag) in real-time. If the book isn't found, an "Add it to your library" button opens the Google Books search pre-filled with your query. The Plus icon in the header still opens the Add Book flow directly.
+
 ## v1.8.4 — 2026-03-16
 ### Added
 - **Barcode scanning to add books**: Tap the barcode icon in the search input to open a fullscreen camera overlay. Scan the ISBN on a book's back cover — if Google Books returns a single match, BookForm opens pre-filled. Multiple editions are shown in the search list; zero results surface the "Add manually" CTA. Uses `@zxing/browser` for reliable EAN-13/EAN-8 decoding on iOS Safari. Consecutive-read confidence gate (2 identical reads) prevents false triggers.

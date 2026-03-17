@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, BookOpen, ArrowRight, Target, Settings, Star, FileText, Bookmark, CheckCircle } from 'lucide-react'
+import { Plus, BookOpen, ArrowRight, Target, Settings, Star, FileText, Bookmark, CheckCircle, Search, Moon, Sun } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useLibrary } from '../hooks/useLibrary'
 import { useReadingGoal } from '../hooks/useTags'
@@ -8,9 +8,9 @@ import { BookCard } from '../components/books/BookCard'
 import { ProgressBar, StatCard, EmptyState, BookCardSkeleton } from '../components/ui/index.jsx'
 import { BookSearchModal } from '../components/books/BookSearch'
 import { BookForm } from '../components/books/BookForm'
+import { LibrarySearchSheet } from '../components/books/LibrarySearchSheet'
 import { computeStats, pluralize } from '../lib/utils'
 import { useUIStore } from '../store/uiStore'
-import { Moon, Sun } from 'lucide-react'
 
 export function Dashboard() {
   const { data: books = [], isLoading } = useLibrary()
@@ -18,7 +18,9 @@ export function Dashboard() {
   const { data: goal } = useReadingGoal(thisYear)
   const { darkMode, toggleDarkMode } = useUIStore()
 
+  const [libSearchOpen, setLibSearchOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [searchPrefill, setSearchPrefill] = useState('')
   const [formOpen, setFormOpen] = useState(false)
   const [selectedBook, setSelectedBook] = useState(null)
 
@@ -52,16 +54,29 @@ export function Dashboard() {
               : 'Start building your reading life'}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {/* Dark mode toggle - mobile only (desktop has it in sidebar) */}
+        <div className="flex items-center gap-1.5">
+          {/* Dark mode toggle - mobile only */}
           <button onClick={toggleDarkMode} className="md:hidden p-2 rounded-xl text-ink-500 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors">
             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
           <Link to="/settings" className="md:hidden p-2 rounded-xl text-ink-500 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors">
             <Settings size={20} />
           </Link>
-          <button onClick={() => setSearchOpen(true)} className="btn-primary">
-            <Plus size={16} /> <span className="hidden sm:inline">Add Book</span><span className="sm:hidden">Add</span>
+          {/* Library search */}
+          <button
+            onClick={() => setLibSearchOpen(true)}
+            className="p-2 rounded-xl text-ink-500 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors"
+            aria-label="Search library"
+          >
+            <Search size={20} />
+          </button>
+          {/* Add book */}
+          <button
+            onClick={() => { setSearchPrefill(''); setSearchOpen(true) }}
+            className="p-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white transition-colors"
+            aria-label="Add book"
+          >
+            <Plus size={20} />
           </button>
         </div>
       </div>
@@ -176,7 +191,13 @@ export function Dashboard() {
       )}
 
 
-      <BookSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} onSelect={handleSearchSelect} onManual={() => { setSelectedBook(null); setFormOpen(true) }} />
+      <LibrarySearchSheet
+        open={libSearchOpen}
+        onClose={() => setLibSearchOpen(false)}
+        books={books}
+        onAddBook={prefill => { setSearchPrefill(prefill || ''); setSearchOpen(true) }}
+      />
+      <BookSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} onSelect={handleSearchSelect} onManual={() => { setSelectedBook(null); setFormOpen(true) }} prefill={searchPrefill} />
       <BookForm open={formOpen} onClose={() => { setFormOpen(false); setSelectedBook(null) }} initialBook={selectedBook} />
     </div>
   )

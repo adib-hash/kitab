@@ -29,8 +29,13 @@ function BarcodeIcon({ size = 18 }) {
   )
 }
 
-export function BookSearchModal({ open, onClose, onSelect, onManual }) {
+export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '' }) {
   const [query, setQuery] = useState('')
+
+  // Pre-populate query when opened with a prefill value
+  useEffect(() => {
+    if (open && prefill) setQuery(prefill)
+  }, [open, prefill])
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [scannerOpen, setScannerOpen] = useState(false)
