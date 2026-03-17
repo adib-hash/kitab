@@ -1,3 +1,7 @@
+## v1.8.4 — 2026-03-16
+### Added
+- **Barcode scanning to add books**: Tap the barcode icon in the search input to open a fullscreen camera overlay. Scan the ISBN on a book's back cover — if Google Books returns a single match, BookForm opens pre-filled. Multiple editions are shown in the search list; zero results surface the "Add manually" CTA. Uses `@zxing/browser` for reliable EAN-13/EAN-8 decoding on iOS Safari. Consecutive-read confidence gate (2 identical reads) prevents false triggers.
+
 ## v1.8.3 — 2026-03-16
 ### Fixed
 - **Library search empty state**: When a search query returns no results, the library now shows `"[query]" isn't in your library.` with an "Add it to your Library" button that opens the Add Book modal — replaces the previous dead-end generic message
