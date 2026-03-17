@@ -41,14 +41,17 @@ export function BookDetail() {
   const [descOpen, setDescOpen] = useState(false)
 
   // Wikipedia link — start with search fallback, upgrade to direct article if API resolves one
-  const wikiSearchQ = encodeURIComponent(`${book?.title || ''} ${book?.author || ''}`.trim())
+  const wikiSearchQ = encodeURIComponent(book?.title || '')
   const [wikiUrl, setWikiUrl] = useState(`https://en.wikipedia.org/w/index.php?search=${wikiSearchQ}`)
   useEffect(() => {
-    if (!book) return
-    const q = encodeURIComponent(`${book.title} ${book.author || ''}`.trim())
-    fetch(`https://en.wikipedia.org/w/api.php?action=opensearch&search=${q}&limit=1&format=json&origin=*`)
+    if (!book?.title) return
+    const encoded = encodeURIComponent(book.title)
+    fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encoded}&prop=info&inprop=url&redirects=1&format=json&origin=*`)
       .then(r => r.json())
-      .then(([, , , urls]) => { if (urls?.[0]) setWikiUrl(urls[0]) })
+      .then(data => {
+        const page = Object.values(data.query.pages)[0]
+        if (page?.pageid > 0 && page?.canonicalurl) setWikiUrl(page.canonicalurl)
+      })
       .catch(() => {})
   }, [book?.id])
 
@@ -169,20 +172,23 @@ export function BookDetail() {
 
           {/* External links */}
           <div className="flex flex-wrap gap-2 pt-1">
-            {book.google_books_id && (
-              <a
-                href={`https://books.google.com/books?id=${book.google_books_id}`}
-                target="_blank" rel="noopener noreferrer"
-                className="btn-ghost text-xs"
-              >
-                <ExternalLink size={12} /> Google Books
-              </a>
-            )}
             <a
-              href={book.isbn
-                ? `https://www.amazon.com/s?k=${encodeURIComponent(book.isbn)}&i=stripbooks`
-                : `https://www.amazon.com/s?k=${encodeURIComponent((book.title || '') + ' ' + (book.author || ''))}&i=stripbooks`
-              }
+              href={(() => {
+                function toIsbn10(isbn13) {
+                  if (!isbn13 || isbn13.length !== 13 || !isbn13.startsWith('978')) return null
+                  const core = isbn13.slice(3, 12)
+                  let sum = 0
+                  for (let i = 0; i < 9; i++) sum += parseInt(core[i]) * (10 - i)
+                  const check = (11 - (sum % 11)) % 11
+                  return core + (check === 10 ? 'X' : String(check))
+                }
+                const isbn10 = book.isbn?.length === 10
+                  ? book.isbn
+                  : toIsbn10(book.isbn)
+                return isbn10
+                  ? `https://www.amazon.com/dp/${isbn10}`
+                  : `https://www.amazon.com/s?k=${encodeURIComponent((book.title || '') + ' ' + (book.author || ''))}&i=stripbooks`
+              })()}
               target="_blank" rel="noopener noreferrer"
               className="btn-ghost text-xs"
             >

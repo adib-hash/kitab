@@ -1,3 +1,9 @@
+## v1.9.0 — 2026-03-16
+### Changed
+- **Amazon link**: upgraded from ISBN search URL to direct product page. ISBN-13 starting with `978` is algorithmically converted to ISBN-10 and linked as `amazon.com/dp/ISBN10`. ISBN-13 starting with `979` (no ISBN-10 equivalent) and books with no ISBN fall back to title+author search.
+- **Wikipedia link**: replaced unreliable `opensearch` API with `action=query` direct title lookup. Searches by book title only (author in the query broke matches), validates `pageid > 0` before upgrading the URL, and falls back to a title-only search URL if no article is found.
+- **Google Books link**: removed from external links row (low utility).
+
 ## v1.8.9 — 2026-03-16
 ### Changed
 - **BookDetail external links**: Replaced Goodreads link with Amazon and Wikipedia links. Amazon uses ISBN when available (`?k=ISBN&i=stripbooks`) or falls back to title + author search. Wikipedia uses the MediaWiki opensearch API to resolve a direct article URL on load, with a search-results fallback if no article is found.
