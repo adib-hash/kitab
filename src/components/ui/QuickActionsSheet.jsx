@@ -295,8 +295,8 @@ export function QuickActionsSheet({ book, open, onClose }) {
 
               </div>
 
-              {/* iOS safe area */}
-              <div style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }} />
+              {/* iOS safe area — extra lift when date picker is active */}
+              <div style={{ paddingBottom: datePicking ? 'max(env(safe-area-inset-bottom), 80px)' : 'max(env(safe-area-inset-bottom), 16px)' }} />
             </motion.div>
           </>
         )}

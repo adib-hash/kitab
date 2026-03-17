@@ -1,3 +1,8 @@
+## v1.8.7 — 2026-03-16
+### Fixed
+- **QuickActionsSheet date picker spacing**: Bottom padding increased to 80px when the "When did you finish?" picker is active, lifting the Confirm button well clear of the bottom nav bar
+- **"Add a Book" modal clipped by sticky header**: Modal z-index raised above the mobile top bar (z-210 vs z-150), and top offset changed from 5vh (~42px) to 72px so the modal always clears the sticky "Kitab" header cleanly
+
 ## v1.8.6 — 2026-03-16
 ### Changed
 - **Global search now offers "Add to library" on empty results**: The search icon (top bar, all pages) already searched your existing library — it now also shows an "Add it to your library" button when nothing is found, pre-filling the Google Books search with your query. Works identically on Home, Library, TBR, Discover, and Rank.
