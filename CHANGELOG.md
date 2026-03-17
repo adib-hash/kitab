@@ -1,3 +1,9 @@
+## v1.9.1 — 2026-03-16
+### Fixed
+- **Amazon link**: switched from direct `/dp/ISBN10` to ISBN search (`?k=ISBN&i=stripbooks`). ISBN search never 404s — Amazon surfaces the product reliably even for delisted or regional editions. Books without an ISBN fall back to title + author search (unchanged). Removed `toIsbn10()` helper and its IIFE wrapper.
+- **Wikipedia fallback**: added a second API tier (fulltext `list=search`) before giving up on obscure titles. Tier 1 still tries an exact title match; Tier 2 runs Wikipedia's fulltext search API; Tier 3 falls back to the `w/index.php?search=` page — so the link is never a dead end.
+- **External links spacing**: removed `flex-wrap` and increased gap from `gap-2` to `gap-3` — the three buttons (Amazon, Wikipedia, Check Libby) now stay on one consistent row with even spacing.
+
 ## v1.9.0 — 2026-03-16
 ### Changed
 - **Amazon link**: upgraded from ISBN search URL to direct product page. ISBN-13 starting with `978` is algorithmically converted to ISBN-10 and linked as `amazon.com/dp/ISBN10`. ISBN-13 starting with `979` (no ISBN-10 equivalent) and books with no ISBN fall back to title+author search.

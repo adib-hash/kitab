@@ -40,17 +40,30 @@ export function BookDetail() {
   const [spoilerRevealed, setSpoilerRevealed] = useState(false)
   const [descOpen, setDescOpen] = useState(false)
 
-  // Wikipedia link — start with search fallback, upgrade to direct article if API resolves one
+  // Wikipedia link — start with search fallback, upgrade via API tiers
   const wikiSearchQ = encodeURIComponent(book?.title || '')
   const [wikiUrl, setWikiUrl] = useState(`https://en.wikipedia.org/w/index.php?search=${wikiSearchQ}`)
   useEffect(() => {
     if (!book?.title) return
     const encoded = encodeURIComponent(book.title)
+    const fallback = `https://en.wikipedia.org/w/index.php?search=${encoded}`
+
     fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encoded}&prop=info&inprop=url&redirects=1&format=json&origin=*`)
       .then(r => r.json())
       .then(data => {
         const page = Object.values(data.query.pages)[0]
-        if (page?.pageid > 0 && page?.canonicalurl) setWikiUrl(page.canonicalurl)
+        if (page?.pageid > 0 && page?.canonicalurl) {
+          setWikiUrl(page.canonicalurl)
+          return
+        }
+        // Tier 2: fulltext search
+        return fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encoded}&srlimit=1&format=json&origin=*`)
+          .then(r => r.json())
+          .then(data => {
+            const hit = data?.query?.search?.[0]
+            if (hit?.title) setWikiUrl(`https://en.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`)
+            // else: stays on fallback search URL
+          })
       })
       .catch(() => {})
   }, [book?.id])
@@ -171,24 +184,12 @@ export function BookDetail() {
           )}
 
           {/* External links */}
-          <div className="flex flex-wrap gap-2 pt-1">
+          <div className="flex gap-3 pt-1">
             <a
-              href={(() => {
-                function toIsbn10(isbn13) {
-                  if (!isbn13 || isbn13.length !== 13 || !isbn13.startsWith('978')) return null
-                  const core = isbn13.slice(3, 12)
-                  let sum = 0
-                  for (let i = 0; i < 9; i++) sum += parseInt(core[i]) * (10 - i)
-                  const check = (11 - (sum % 11)) % 11
-                  return core + (check === 10 ? 'X' : String(check))
-                }
-                const isbn10 = book.isbn?.length === 10
-                  ? book.isbn
-                  : toIsbn10(book.isbn)
-                return isbn10
-                  ? `https://www.amazon.com/dp/${isbn10}`
-                  : `https://www.amazon.com/s?k=${encodeURIComponent((book.title || '') + ' ' + (book.author || ''))}&i=stripbooks`
-              })()}
+              href={book.isbn
+                ? `https://www.amazon.com/s?k=${encodeURIComponent(book.isbn)}&i=stripbooks`
+                : `https://www.amazon.com/s?k=${encodeURIComponent((book.title || '') + ' ' + (book.author || ''))}&i=stripbooks`
+              }
               target="_blank" rel="noopener noreferrer"
               className="btn-ghost text-xs"
             >
