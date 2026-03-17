@@ -40,6 +40,18 @@ export function BookDetail() {
   const [spoilerRevealed, setSpoilerRevealed] = useState(false)
   const [descOpen, setDescOpen] = useState(false)
 
+  // Wikipedia link — start with search fallback, upgrade to direct article if API resolves one
+  const wikiSearchQ = encodeURIComponent(`${book?.title || ''} ${book?.author || ''}`.trim())
+  const [wikiUrl, setWikiUrl] = useState(`https://en.wikipedia.org/w/index.php?search=${wikiSearchQ}`)
+  useEffect(() => {
+    if (!book) return
+    const q = encodeURIComponent(`${book.title} ${book.author || ''}`.trim())
+    fetch(`https://en.wikipedia.org/w/api.php?action=opensearch&search=${q}&limit=1&format=json&origin=*`)
+      .then(r => r.json())
+      .then(([, , , urls]) => { if (urls?.[0]) setWikiUrl(urls[0]) })
+      .catch(() => {})
+  }, [book?.id])
+
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-6">
@@ -167,11 +179,21 @@ export function BookDetail() {
               </a>
             )}
             <a
-              href={`https://www.goodreads.com/search?q=${encodeURIComponent(book.title + ' ' + (book.author || ''))}`}
+              href={book.isbn
+                ? `https://www.amazon.com/s?k=${encodeURIComponent(book.isbn)}&i=stripbooks`
+                : `https://www.amazon.com/s?k=${encodeURIComponent((book.title || '') + ' ' + (book.author || ''))}&i=stripbooks`
+              }
               target="_blank" rel="noopener noreferrer"
               className="btn-ghost text-xs"
             >
-              <ExternalLink size={12} /> Goodreads
+              <ExternalLink size={12} /> Amazon
+            </a>
+            <a
+              href={wikiUrl}
+              target="_blank" rel="noopener noreferrer"
+              className="btn-ghost text-xs"
+            >
+              <ExternalLink size={12} /> Wikipedia
             </a>
             {librarySlug && (
               <a

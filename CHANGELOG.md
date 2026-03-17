@@ -1,3 +1,7 @@
+## v1.8.9 — 2026-03-16
+### Changed
+- **BookDetail external links**: Replaced Goodreads link with Amazon and Wikipedia links. Amazon uses ISBN when available (`?k=ISBN&i=stripbooks`) or falls back to title + author search. Wikipedia uses the MediaWiki opensearch API to resolve a direct article URL on load, with a search-results fallback if no article is found.
+
 ## v1.8.8 — 2026-03-16
 ### Added
 - **Open Library cover fallback in Enrich Library**: When Google Books returns no cover (or no result at all), the enrichment loop now tries Open Library's search API as a second source — first by ISBN, then by title + author. Open Library has a far larger cover database and requires no API key.
