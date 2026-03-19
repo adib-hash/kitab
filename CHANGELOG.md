@@ -1,7 +1,3 @@
-## v1.9.2 — 2026-03-19
-### Changed
-- **Default theme**: app now opens in light mode by default (was dark mode). Existing sessions are reset via a storage key bump (`kitab-ui-v2`) so the new default takes effect immediately.
-
 ## v1.9.1 — 2026-03-16
 ### Fixed
 - **Amazon link**: switched from direct `/dp/ISBN10` to ISBN search (`?k=ISBN&i=stripbooks`). ISBN search never 404s — Amazon surfaces the product reliably even for delisted or regional editions. Books without an ISBN fall back to title + author search (unchanged). Removed `toIsbn10()` helper and its IIFE wrapper.

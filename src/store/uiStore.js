@@ -14,7 +14,7 @@ export const useUIStore = create(
       sidebarOpen: true,
 
       // Dark mode
-      darkMode: false,
+      darkMode: true,
 
       // Reading goal
       readingGoal: null,
@@ -52,7 +52,7 @@ export const useUIStore = create(
       clearReviewPromptBook: () => set({ reviewPromptBook: null }),
     }),
     {
-      name: 'kitab-ui-v2',
+      name: 'kitab-ui',
       partialize: (state) => ({
         libraryView: state.libraryView,
         librarySort: state.librarySort,
