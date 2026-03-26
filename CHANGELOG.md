@@ -1,3 +1,7 @@
+## v2.0.2 — 2026-03-25
+### Fixed
+- **Haptic feedback (again)**: replaced lazy dynamic-import pattern with direct static imports. The async module caching in the Vite production build was silently failing on device, keeping all plugin references null. Static imports are the correct pattern for Capacitor plugins.
+
 ## v2.0.1 — 2026-03-25
 ### Fixed
 - **Haptic feedback**: all haptics were silently broken due to a typo — `@capacitor/haptics` exports `NotificationType`, not `NotificationStyle`. Every success/warning/error notification haptic was a no-op.
