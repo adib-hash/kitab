@@ -1,0 +1,9 @@
+{
+  "appId": "com.kitab.app",
+  "appName": "Kitab",
+  "webDir": "dist",
+  "ios": {
+    "limitsNavigationsToAppBoundDomains": true,
+    "scrollEnabled": true
+  }
+}

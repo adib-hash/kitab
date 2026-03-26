@@ -22,6 +22,9 @@ export const useUIStore = create(
       // Libby library slug (OverDrive subdomain, e.g. "sfpl")
       librarySlug: 'sfpl',
 
+      // Biometric lock (native only)
+      biometricEnabled: false,
+
       // Actions
       setLibraryView: (view) => set({ libraryView: view }),
       setLibrarySort: (sort) => set({ librarySort: sort }),
@@ -45,6 +48,7 @@ export const useUIStore = create(
       },
       setReadingGoal: (goal) => set({ readingGoal: goal }),
       setLibrarySlug: (slug) => set({ librarySlug: slug }),
+      setBiometricEnabled: (enabled) => set({ biometricEnabled: enabled }),
 
       // Review prompt — ephemeral, not persisted
       reviewPromptBook: null,
@@ -60,6 +64,7 @@ export const useUIStore = create(
         readingGoal: state.readingGoal,
         sidebarOpen: state.sidebarOpen,
         librarySlug: state.librarySlug,
+        biometricEnabled: state.biometricEnabled,
       }),
     }
   )

@@ -8,6 +8,7 @@ import { STATUS_LABELS } from '../../lib/utils'
 import { useAddBook } from '../../hooks/useLibrary'
 import { useUpdateBook } from '../../hooks/useLibrary'
 import { AlertTriangle, PenLine, ArrowRight } from 'lucide-react'
+import { notifySuccess } from '../../lib/haptics'
 
 const COVER_PRESETS = [
   { id: 'teal',    label: 'Teal',    bg: '#0F766E', text: '#CCFBF1' },
@@ -110,6 +111,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
     } else {
       await addBook.mutateAsync({ book: payload, tagIds })
     }
+    notifySuccess()
     onClose()
   }
 

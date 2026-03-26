@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react'
-import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2, BookOpen, Zap, AlertCircle, LogOut, ChevronLeft } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2, BookOpen, Zap, AlertCircle, LogOut, ChevronLeft, ShieldCheck } from 'lucide-react'
+import { Capacitor } from '@capacitor/core'
+import { isBiometricsAvailable, authenticateWithBiometrics } from '../lib/biometrics'
 import { useNavigate } from 'react-router-dom'
 import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
 import { useTags, useUpdateTag, useDeleteTag } from '../hooks/useTags'
@@ -320,8 +322,14 @@ export function Settings() {
   const [editingTag, setEditingTag] = useState(null)
   const [editName, setEditName] = useState('')
   const [importing, setImporting] = useState(false)
-  const { librarySlug, setLibrarySlug } = useUIStore()
+  const { librarySlug, setLibrarySlug, biometricEnabled, setBiometricEnabled } = useUIStore()
   const [slugInput, setSlugInput] = useState(librarySlug || '')
+  const [biometricsAvailable, setBiometricsAvailable] = useState(false)
+  const [biometricLoading, setBiometricLoading] = useState(false)
+
+  useEffect(() => {
+    isBiometricsAvailable().then(setBiometricsAvailable)
+  }, [])
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -535,6 +543,48 @@ export function Settings() {
           ))}
         </div>
       </div>
+      {/* Security — native iOS only */}
+      {Capacitor.isNativePlatform() && biometricsAvailable && (
+        <div className="card p-6">
+          <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 mb-3 flex items-center gap-2">
+            <ShieldCheck size={18} className="text-teal-600" /> Security
+          </h2>
+          <div className="flex items-center justify-between py-1">
+            <div>
+              <p className="text-sm font-medium text-ink-900 dark:text-paper-50">Unlock with Face ID / Touch ID</p>
+              <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">Require biometric confirmation when opening Kitab</p>
+            </div>
+            <button
+              disabled={biometricLoading}
+              onClick={async () => {
+                setBiometricLoading(true)
+                if (!biometricEnabled) {
+                  // Verify biometrics works before enabling
+                  const ok = await authenticateWithBiometrics('Confirm to enable biometric unlock')
+                  if (ok) {
+                    setBiometricEnabled(true)
+                    toast.success('Biometric unlock enabled')
+                  } else {
+                    toast.error('Biometric authentication failed')
+                  }
+                } else {
+                  setBiometricEnabled(false)
+                  toast.success('Biometric unlock disabled')
+                }
+                setBiometricLoading(false)
+              }}
+              className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none ${
+                biometricEnabled ? 'bg-teal-600' : 'bg-ink-300 dark:bg-ink-600'
+              }`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                biometricEnabled ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Account / Logout */}
       <div className="card p-6">
         <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 mb-3 flex items-center gap-2">
@@ -547,7 +597,7 @@ export function Settings() {
 
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v1.9.1
+        Kitab · v2.0.0
       </p>
     </div>
   )

@@ -1,8 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient } from '@tanstack/react-query'
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { supabase } from './lib/supabase'
 import { useUIStore } from './store/uiStore'
+import { isBiometricsAvailable, authenticateWithBiometrics } from './lib/biometrics'
+import { useNetworkStatus } from './hooks/useNetworkStatus'
+
+// localStorage-based persister — survives app restarts, works on both web and native
+const localStoragePersister = {
+  persistClient: async (client) => {
+    try { localStorage.setItem('kitab-rq-cache', JSON.stringify(client)) } catch {}
+  },
+  restoreClient: async () => {
+    try {
+      const data = localStorage.getItem('kitab-rq-cache')
+      return data ? JSON.parse(data) : undefined
+    } catch { return undefined }
+  },
+  removeClient: async () => {
+    try { localStorage.removeItem('kitab-rq-cache') } catch {}
+  },
+}
 import { Layout } from './components/layout/Layout'
 import { Auth } from './pages/Auth'
 import { Dashboard } from './pages/Dashboard'
@@ -20,8 +39,8 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      staleTime: 1000 * 60 * 10,   // 10 min — data stays fresh longer
-      gcTime:    1000 * 60 * 30,   // 30 min — keep cached data in memory
+      staleTime: 1000 * 60 * 10,   // 10 min — data stays fresh
+      gcTime:    1000 * 60 * 60 * 24 * 7, // 7 days — keep in cache for offline access
       refetchOnWindowFocus: false, // don't re-fetch just because you tabbed away
     }
   }
@@ -64,13 +83,43 @@ function ReviewPrompt() {
   )
 }
 
+function OfflineBanner() {
+  const { isOnline } = useNetworkStatus()
+  if (isOnline) return null
+  return (
+    <div
+      className="fixed top-0 left-0 right-0 z-[500] flex items-center justify-center py-1.5 text-xs font-medium text-white"
+      style={{ background: '#78716C', paddingTop: 'calc(env(safe-area-inset-top) + 0.375rem)' }}
+    >
+      Offline — viewing cached data
+    </div>
+  )
+}
+
 export default function App() {
   const [session, setSession] = useState(undefined) // undefined = loading
-  const { initDarkMode } = useUIStore()
+  const [biometricPending, setBiometricPending] = useState(false)
+  const biometricChecked = useRef(false)
+  const { initDarkMode, biometricEnabled } = useUIStore()
 
   useEffect(() => {
     initDarkMode()
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      // On cold launch: if biometrics is enabled and we have a valid session, gate the app
+      if (session && biometricEnabled && !biometricChecked.current) {
+        biometricChecked.current = true
+        const available = await isBiometricsAvailable()
+        if (available) {
+          setBiometricPending(true)
+          const ok = await authenticateWithBiometrics()
+          setBiometricPending(false)
+          if (!ok) {
+            await supabase.auth.signOut()
+            setSession(null)
+            return
+          }
+        }
+      }
       setSession(session)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -79,8 +128,8 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Loading state
-  if (session === undefined) {
+  // Loading state (also shown while biometric prompt is pending)
+  if (session === undefined || biometricPending) {
     return (
       <div className="min-h-screen bg-paper-50 dark:bg-ink-900 flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">
@@ -164,8 +213,12 @@ export default function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister: localStoragePersister, maxAge: 1000 * 60 * 60 * 24 * 7 }}
+    >
       <BrowserRouter>
+        <OfflineBanner />
         <Routes>
           <Route path="/login" element={<Auth session={session} />} />
           <Route path="/" element={<ProtectedRoute session={session}><Dashboard /></ProtectedRoute>} />
@@ -180,6 +233,6 @@ export default function App() {
         </Routes>
         <ReviewPrompt />
       </BrowserRouter>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   )
 }

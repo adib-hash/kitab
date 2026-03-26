@@ -40,11 +40,46 @@ export function Auth({ session }) {
     }
   }
 
-  async function handleGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/` }
-    })
+ async function handleGoogle() {
+    const isNative = window.Capacitor?.isNativePlatform();
+    
+    if (isNative) {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'com.kitab.app://login',
+          skipBrowserRedirect: true,
+        }
+      });
+      if (data?.url) {
+        const { Browser } = await import('@capacitor/browser');
+        
+        // Listen for the app to reopen via the custom URL scheme
+        const handleUrl = async (event) => {
+          if (event.url?.startsWith('com.kitab.app://')) {
+            const url = new URL(event.url.replace('com.kitab.app://', 'https://placeholder/'));
+            // Extract tokens from the URL fragment
+            const params = new URLSearchParams(event.url.split('#')[1] || event.url.split('?')[1] || '');
+            const access_token = params.get('access_token');
+            const refresh_token = params.get('refresh_token');
+            if (access_token) {
+              await supabase.auth.setSession({ access_token, refresh_token });
+            }
+            await Browser.close();
+          }
+        };
+        
+        const { App } = await import('@capacitor/app');
+        App.addListener('appUrlOpen', handleUrl);
+        
+        await Browser.open({ url: data.url });
+      }
+    } else {
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/` }
+      });
+    }
   }
 
   return (

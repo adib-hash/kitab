@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { getCoverFallback } from '../../lib/utils'
+import { getCachedCoverUrl } from '../../lib/coverCache'
 import { clsx } from 'clsx'
 
 export function BookCover({ book, className, size = 'md' }) {
   const [error, setError] = useState(false)
+  const [displayUrl, setDisplayUrl] = useState(book.cover_url || null)
   const fallback = getCoverFallback(book.title, book.author)
 
   const sizeClasses = {
@@ -14,7 +16,19 @@ export function BookCover({ book, className, size = 'md' }) {
     full: 'w-full',
   }
 
-  if (!book.cover_url || error) {
+  // On native, resolve through the filesystem cache; on web, no-op
+  useEffect(() => {
+    setError(false)
+    setDisplayUrl(book.cover_url || null)
+    if (!book.cover_url) return
+    let cancelled = false
+    getCachedCoverUrl(book.cover_url).then(url => {
+      if (!cancelled) setDisplayUrl(url)
+    })
+    return () => { cancelled = true }
+  }, [book.cover_url])
+
+  if (!displayUrl || error) {
     return (
       <div
         className={clsx(
@@ -38,7 +52,7 @@ export function BookCover({ book, className, size = 'md' }) {
 
   return (
     <img
-      src={book.cover_url}
+      src={displayUrl}
       alt={`Cover of ${book.title}`}
       loading="lazy"
       decoding="async"

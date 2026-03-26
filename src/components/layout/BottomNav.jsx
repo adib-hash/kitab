@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Home, BookOpen, BookMarked, Compass, Swords } from 'lucide-react'
 import { clsx } from 'clsx'
+import { impactLight } from '../../lib/haptics'
 
 const NAV_ITEMS = [
   { path: '/', icon: Home, label: 'Home' },
@@ -14,6 +15,7 @@ export function BottomNav() {
   const location = useLocation()
 
   function handleNavTap(e, itemPath, isActive) {
+    impactLight()
     if (isActive) {
       // Already on this page — scroll to top instead of navigating
       e.preventDefault()
@@ -33,7 +35,6 @@ export function BottomNav() {
         return (
           <Link
             key={item.path}
-            style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
             style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
             to={item.path}
             onClick={e => handleNavTap(e, item.path, active)}

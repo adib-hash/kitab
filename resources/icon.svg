@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F7B70"/>
+      <stop offset="100%" stop-color="#0A5950"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+
+  <!-- Subtle inner glow at top-left for depth -->
+  <ellipse cx="300" cy="280" rx="400" ry="320" fill="#FFFFFF" opacity="0.04"/>
+
+  <!-- K lettermark — geometric sans-serif, white -->
+  <!-- Vertical stem -->
+  <rect x="272" y="192" width="88" height="640" rx="10" fill="#FFFFFF"/>
+
+  <!-- Upper arm: diagonal parallelogram from stem center to upper-right -->
+  <!-- Points: inner-low (360,512), inner-high (360,444), outer-high (752,192), outer-low (752,260) -->
+  <polygon points="360,512 360,444 752,192 752,260" fill="#FFFFFF"/>
+
+  <!-- Lower leg: mirror of upper arm -->
+  <!-- Points: inner-high (360,512), inner-low (360,580), outer-low (752,832), outer-high (752,764) -->
+  <polygon points="360,512 360,580 752,832 752,764" fill="#FFFFFF"/>
+
+  <!-- Amber accent: small decorative dot anchoring the brand -->
+  <circle cx="512" cy="880" r="20" fill="#F59E0B"/>
+</svg>

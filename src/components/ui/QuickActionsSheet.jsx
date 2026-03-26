@@ -7,6 +7,7 @@ import { StarRating } from '../books/StarRating'
 import { BookForm } from '../books/BookForm'
 import { ReviewModal } from '../books/ReviewModal'
 import toast from 'react-hot-toast'
+import { impactMedium, notifySuccess, notifyWarning } from '../../lib/haptics'
 
 const STATUS_OPTIONS = [
   { value: 'reading', label: 'Currently Reading', icon: BookOpen,     color: 'text-teal-600 dark:text-teal-400' },
@@ -27,6 +28,11 @@ export function QuickActionsSheet({ book, open, onClose }) {
   const [datePicking, setDatePicking] = useState(false)
   const [finishMonth, setFinishMonth] = useState(String(now.getMonth() + 1))
   const [finishYear, setFinishYear]   = useState(String(now.getFullYear()))
+
+  // Haptic feedback when sheet opens
+  useEffect(() => {
+    if (open) impactMedium()
+  }, [open])
 
   // Lock body scroll when sheet is open; reset date picker state on close
   useEffect(() => {
@@ -58,6 +64,7 @@ export function QuickActionsSheet({ book, open, onClose }) {
 
   async function handleRate(value) {
     await updateBook.mutateAsync({ id: book.id, updates: { rating: value } })
+    notifySuccess()
     toast.success(`Rated "${book.title}"`)
     onClose()
   }
@@ -70,6 +77,11 @@ export function QuickActionsSheet({ book, open, onClose }) {
     }
     const updates = { status: newStatus }
     await updateBook.mutateAsync({ id: book.id, updates })
+    if (newStatus === 'dnf') {
+      notifyWarning()
+    } else {
+      notifySuccess()
+    }
     const messages = {
       reading: `Now reading "${book.title}" — enjoy!`,
       read: `Finished "${book.title}"!`,

@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { Plus, GripVertical, Shuffle, BookOpen, Trash2, Bookmark, ArrowRight } from 'lucide-react'
+import { impactMedium } from '../lib/haptics'
 import {
   DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor,
   useSensor, useSensors
@@ -373,7 +374,7 @@ export function TBR() {
           }
         />
       ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} onDragStart={() => impactMedium()}>
           <SortableContext items={displayBooks.map(b => b.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-2">
               {displayBooks.map(book => <SortableBook key={book.id} book={book} />)}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { clsx } from 'clsx'
+import { selectionChanged } from '../../lib/haptics'
 
 function HalfStar({ filled, half, size = 16 }) {
   return (
@@ -50,6 +51,7 @@ export function StarRating({ value, onChange, size = 'md', readOnly = false }) {
     const rect = e.currentTarget.getBoundingClientRect()
     const x = e.clientX - rect.left
     const newVal = x < rect.width / 2 ? starIndex - 0.5 : starIndex
+    selectionChanged()
     // Toggle off if same value
     onChange(value === newVal ? null : newVal)
   }

@@ -1,3 +1,14 @@
+## v2.0.0 — 2026-03-25
+### iOS Native Overhaul
+- **Safe area fix**: header no longer overlaps the iOS status bar — `env(safe-area-inset-top)` applied to the mobile sticky header in Layout.jsx.
+- **Scroll polish**: added `-webkit-overflow-scrolling: touch` and `overscroll-behavior-y: contain` for native momentum scrolling; `-webkit-tap-highlight-color: transparent` on all interactive elements; `-webkit-touch-callout: none` on images to suppress long-press context menus.
+- **Capacitor config**: `limitsNavigationsToAppBoundDomains: true` prevents accidental navigation to Safari; display name updated to "Kitab".
+- **Haptic feedback**: native haptic engine wired to nav taps (light), star ratings (selection), QuickActionsSheet open (medium), add/edit book confirmation (success), DNF/delete actions (warning), TBR drag start (medium). Implemented via `@capacitor/haptics`, no-ops on web.
+- **Native cover caching**: book covers fetched and stored to iOS Cache directory via `@capacitor/filesystem`. Library loads instantly with covers even in airplane mode after first load. Web falls back to browser HTTP cache.
+- **App icon**: new 1024x1024 icon — teal gradient background, white geometric K lettermark, amber accent dot. Full iOS icon set generated via `@capacitor/assets`.
+- **Biometric authentication**: optional Face ID / Touch ID lock via `@aparajita/capacitor-biometric-auth`. Toggle in Settings → Security. Biometrics gates an existing valid Supabase session on cold app open; failed auth signs the user out. Hidden on web.
+- **Offline mode**: React Query cache persisted to localStorage (7-day TTL) — library, stats, and dashboard are readable after connectivity drops. `@capacitor/network` monitors real connectivity on device. Offline banner shown across the top of the app. Web app benefits equally from the offline cache.
+
 ## v1.9.1 — 2026-03-16
 ### Fixed
 - **Amazon link**: switched from direct `/dp/ISBN10` to ISBN search (`?k=ISBN&i=stripbooks`). ISBN search never 404s — Amazon surfaces the product reliably even for delisted or regional editions. Books without an ISBN fall back to title + author search (unchanged). Removed `toIsbn10()` helper and its IIFE wrapper.
