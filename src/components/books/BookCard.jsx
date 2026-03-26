@@ -1,6 +1,5 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { BookCover } from './BookCover'
 import { StarRating } from './StarRating'
 import { StatusBadge } from './StatusBadge'
@@ -8,7 +7,7 @@ import { QuickActionsSheet } from '../ui/QuickActionsSheet'
 import { BookForm } from './BookForm'
 import { useLongPress } from '../../hooks/useLongPress'
 
-export function BookCard({ book, index = 0 }) {
+export const BookCard = memo(function BookCard({ book }) {
   const navigate = useNavigate()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
@@ -18,10 +17,7 @@ export function BookCard({ book, index = 0 }) {
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.01, duration: 0.15 }}
+      <div
         {...longPress}
         onClick={() => { if (!sheetOpen) navigate(`/library/${book.id}`) }}
         className="group flex flex-col gap-2.5 cursor-pointer"
@@ -44,7 +40,7 @@ export function BookCard({ book, index = 0 }) {
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
 
       <QuickActionsSheet
         book={book}
@@ -62,4 +58,4 @@ export function BookCard({ book, index = 0 }) {
       />
     </>
   )
-}
+})

@@ -1,9 +1,10 @@
+import { memo } from 'react'
 import { Link } from 'react-router-dom'
 import { BookCover } from './BookCover'
 import { StarRating } from './StarRating'
 import { StatusBadge } from './StatusBadge'
 
-export function BookRow({ book }) {
+export const BookRow = memo(function BookRow({ book }) {
   return (
     <Link
       to={`/library/${book.id}`}
@@ -42,4 +43,4 @@ export function BookRow({ book }) {
       </div>
     </Link>
   )
-}
+})

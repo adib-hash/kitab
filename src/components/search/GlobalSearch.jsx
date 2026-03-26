@@ -65,7 +65,7 @@ export function GlobalSearch({ open, onClose }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-ink-900/60 backdrop-blur-sm z-50"
+              className="fixed inset-0 bg-ink-900/60 backdrop-blur-sm z-[500]"
               onClick={onClose}
             />
             <motion.div
@@ -73,7 +73,8 @@ export function GlobalSearch({ open, onClose }) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.97, y: -8 }}
               transition={{ type: 'spring', duration: 0.25 }}
-              className="fixed top-[10vh] inset-x-4 max-w-lg z-50 md:left-1/2 md:-translate-x-1/2 md:inset-x-auto md:w-full md:px-4"
+              className="fixed inset-x-4 max-w-lg z-[510] md:left-1/2 md:-translate-x-1/2 md:inset-x-auto md:w-full md:px-4"
+              style={{ top: 'calc(env(safe-area-inset-top) + 72px)' }}
             >
               <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden">
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-paper-100 dark:border-ink-700">

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, BookOpen, ArrowRight, Target, Settings, Star, FileText, Bookmark, CheckCircle, Moon, Sun } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -21,15 +21,21 @@ export function Dashboard() {
   const [formOpen, setFormOpen] = useState(false)
   const [selectedBook, setSelectedBook] = useState(null)
 
-  const currentlyReading = books.filter(b => b.status === 'reading')
-  const recentlyRead = books.filter(b => b.status === 'read' && b.date_finished)
-    .sort((a,b) => b.date_finished.localeCompare(a.date_finished)).slice(0, 6)
-  // Use string slicing (timezone-safe) — new Date('YYYY-MM-01') can shift to Dec 31
-  const yearBooks = books.filter(b =>
-    b.status === 'read' && b.date_finished &&
-    parseInt(b.date_finished.slice(0, 4)) === thisYear
+  const currentlyReading = useMemo(() => books.filter(b => b.status === 'reading'), [books])
+  const recentlyRead = useMemo(() =>
+    books.filter(b => b.status === 'read' && b.date_finished)
+      .sort((a,b) => b.date_finished.localeCompare(a.date_finished)).slice(0, 6),
+    [books]
   )
-  const yearStats = computeStats(yearBooks)
+  // Use string slicing (timezone-safe) — new Date('YYYY-MM-01') can shift to Dec 31
+  const yearBooks = useMemo(() =>
+    books.filter(b =>
+      b.status === 'read' && b.date_finished &&
+      parseInt(b.date_finished.slice(0, 4)) === thisYear
+    ),
+    [books, thisYear]
+  )
+  const yearStats = useMemo(() => computeStats(yearBooks), [yearBooks])
   const booksThisYear = yearStats.totalRead
 
   function handleSearchSelect(book) {

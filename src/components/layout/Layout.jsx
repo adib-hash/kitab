@@ -60,6 +60,11 @@ export function Layout({ children }) {
 
       <Toaster
         position="top-center"
+        containerStyle={{
+          // Clear the sticky header (safe-area + header height) and sit above everything
+          top: 'calc(env(safe-area-inset-top) + 72px)',
+          zIndex: 9999,
+        }}
         toastOptions={{
           className: '!font-sans !text-sm',
           style: {

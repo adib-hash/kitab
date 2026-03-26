@@ -1,3 +1,18 @@
+## v2.0.3 — 2026-03-25
+### Fixed
+- **Header blocking overlays**: GlobalSearch raised from z-50 to z-[510] and repositioned to `calc(env(safe-area-inset-top) + 72px)` so it always appears below the header, never behind it.
+- **Toast notifications blocked**: Toaster now has `containerStyle` with `top: calc(env(safe-area-inset-top) + 72px)` and `zIndex: 9999` — toasts clear the sticky header on all iOS devices including notched models.
+- **Modal z-index and positioning**: Modal backdrop raised to z-[250], content to z-[260]. Hardcoded `top: 72px` replaced with `calc(env(safe-area-inset-top) + 72px)` and `maxHeight` updated to account for safe area.
+- **Offline banner z-index**: Raised to z-[9990] to guarantee it sits above all other overlays.
+
+### Performance
+- **Book card scroll jank**: Removed framer-motion entrance animations (`opacity + y` stagger) from BookCard — 60+ concurrent animations on large libraries were causing frame drops during scroll. Cards now render instantly.
+- **React.memo on BookCard, BookRow, BookCover**: Prevents unnecessary re-renders when filters/search change but individual book data hasn't.
+- **Dashboard memoization**: `currentlyReading`, `recentlyRead`, `yearBooks`, and `computeStats` all wrapped in `useMemo` — avoids recomputing derived data on every render.
+- **BookCover flicker eliminated**: Cover now initializes with the remote URL immediately; native filesystem cache upgrades it in the background only if a cached version exists.
+- **React Query gcTime**: Reduced from 7 days to 24 hours — sufficient for offline use, avoids unnecessary memory growth on large libraries.
+- **Vite build**: Added `target: 'esnext'` and explicit `minify: 'esbuild'` for faster, smaller builds.
+
 ## v2.0.2 — 2026-03-25
 ### Fixed
 - **Haptic feedback (again)**: replaced lazy dynamic-import pattern with direct static imports. The async module caching in the Vite production build was silently failing on device, keeping all plugin references null. Static imports are the correct pattern for Capacitor plugins.
