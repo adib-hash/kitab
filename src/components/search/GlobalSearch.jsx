@@ -20,9 +20,25 @@ export function GlobalSearch({ open, onClose }) {
 
   useEffect(() => {
     if (open) {
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
       setTimeout(() => inputRef.current?.focus(), 80)
     } else {
+      const scrollY = Math.abs(parseInt(document.body.style.top || '0'))
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      if (scrollY) window.scrollTo(0, scrollY)
       setQuery('')
+    }
+    return () => {
+      const scrollY = Math.abs(parseInt(document.body.style.top || '0'))
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      if (scrollY) window.scrollTo(0, scrollY)
     }
   }, [open])
 

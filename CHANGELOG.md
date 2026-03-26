@@ -1,3 +1,7 @@
+## v2.0.4 — 2026-03-25
+### Fixed
+- **GlobalSearch scroll conflict**: Opening the search overlay now locks the background page using `position: fixed` + scroll position save/restore. Scrolling within search results no longer scrolls the background page on iOS or web.
+
 ## v2.0.3 — 2026-03-25
 ### Fixed
 - **Header blocking overlays**: GlobalSearch raised from z-50 to z-[510] and repositioned to `calc(env(safe-area-inset-top) + 72px)` so it always appears below the header, never behind it.
