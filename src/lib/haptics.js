@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core'
 // Lazily loaded — only imports on native platforms
 let _Haptics = null
 let _ImpactStyle = null
-let _NotificationStyle = null
+let _NotificationType = null
 
 async function getHaptics() {
   if (!Capacitor.isNativePlatform()) return null
@@ -11,7 +11,7 @@ async function getHaptics() {
   const mod = await import('@capacitor/haptics')
   _Haptics = mod.Haptics
   _ImpactStyle = mod.ImpactStyle
-  _NotificationStyle = mod.NotificationStyle
+  _NotificationType = mod.NotificationType   // was incorrectly named NotificationStyle
   return _Haptics
 }
 
@@ -40,26 +40,19 @@ export async function impactHeavy() {
 export async function notifySuccess() {
   const h = await getHaptics()
   if (!h) return
-  await h.notification({ type: _NotificationStyle.Success })
+  await h.notification({ type: _NotificationType.Success })
 }
 
 /** Warning notification — delete, DNF */
 export async function notifyWarning() {
   const h = await getHaptics()
   if (!h) return
-  await h.notification({ type: _NotificationStyle.Warning })
+  await h.notification({ type: _NotificationType.Warning })
 }
 
 /** Error notification */
 export async function notifyError() {
   const h = await getHaptics()
   if (!h) return
-  await h.notification({ type: _NotificationStyle.Error })
-}
-
-/** Continuous selection feedback (e.g. star rating drag) */
-export async function selectionChanged() {
-  const h = await getHaptics()
-  if (!h) return
-  await h.selectionChanged()
+  await h.notification({ type: _NotificationType.Error })
 }
