@@ -1,3 +1,8 @@
+## v2.0.1 — 2026-03-25
+### Fixed
+- **Haptic feedback**: all haptics were silently broken due to a typo — `@capacitor/haptics` exports `NotificationType`, not `NotificationStyle`. Every success/warning/error notification haptic was a no-op.
+- **Star rating haptic**: replaced `selectionChanged()` with `impactLight()` — `selectionChanged` requires a preceding `selectionStart()` call and is designed for continuous scroll interactions, not discrete taps.
+
 ## v2.0.0 — 2026-03-25
 ### iOS Native Overhaul
 - **Safe area fix**: header no longer overlaps the iOS status bar — `env(safe-area-inset-top)` applied to the mobile sticky header in Layout.jsx.
