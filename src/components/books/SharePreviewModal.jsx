@@ -6,27 +6,76 @@ import { searchBooks, searchByISBN } from '../../lib/googleBooks'
 
 // ── URL parsing ───────────────────────────────────────────────────────────────
 
+// Returns the parsed hint from a URL if it can be extracted client-side,
+// or { type: 'resolve' } to indicate the URL needs server-side redirect resolution.
 function parseSharedUrl(url) {
   try {
     const { hostname, pathname } = new URL(url)
+
+    // Amazon short links — can't extract ASIN without following redirect
+    if (hostname === 'a.co' || hostname === 'amzn.to' || hostname === 'amzn.com') {
+      return { type: 'resolve' }
+    }
+
     if (hostname.includes('amazon.')) {
       const m = pathname.match(/\/(?:dp|product)\/([A-Z0-9]{10})/)
       if (m) return { type: 'isbn', value: m[1] }
       // Amazon title slug fallback: /Book-Title-Here/dp/...
       const slug = pathname.match(/^\/([^/]+)\/dp\//)
       if (slug) return { type: 'title', value: slug[1].replace(/-/g, ' ') }
+      // No ASIN and no title — need resolution
+      return { type: 'resolve' }
     }
+
     if (hostname.includes('goodreads.com')) {
+      // Full slug: /book/show/12345-title-here or /book/show/12345.Title_Here
       const gr = pathname.match(/\/book\/show\/\d+[.-](.+)$/)
       if (gr) return { type: 'title', value: gr[1].replace(/[-_]/g, ' ') }
+      // ID-only: /book/show/12345 — need og:title from the page
+      if (/\/book\/show\/\d+$/.test(pathname)) return { type: 'resolve' }
     }
   } catch {}
   return null
 }
 
+// Resolve a URL server-side (follows redirects, extracts og:title)
+async function resolveUrl(url) {
+  try {
+    const res = await fetch(`/api/resolve-url?url=${encodeURIComponent(url)}`)
+    if (!res.ok) return null
+    return await res.json() // { resolvedUrl, ogTitle, pageTitle }
+  } catch {
+    return null
+  }
+}
+
+// Clean up Amazon/Goodreads page titles to extract just the book title
+function cleanPageTitle(rawTitle, hostname) {
+  if (!rawTitle) return null
+  if (hostname.includes('amazon.')) {
+    // Amazon titles look like: "Book Title: Subtitle: Author: Amazon.com: Books"
+    // or "Book Title (Series) Hardcover – January 1, 2020"
+    // Strip everything after common delimiters that aren't part of the book title
+    return rawTitle
+      .replace(/\s*[:\|]\s*Amazon\.com.*$/i, '')
+      .replace(/\s+(Hardcover|Paperback|Kindle Edition|Mass Market Paperback|Audio CD|Audible).*$/i, '')
+      .replace(/\s+by\s+.+$/i, '')
+      .trim()
+  }
+  if (hostname.includes('goodreads.com')) {
+    // Goodreads titles look like: "Book Title by Author Name | Goodreads"
+    return rawTitle
+      .replace(/\s+by\s+.+\|.*$/i, '')
+      .replace(/\s*\|.*$/, '')
+      .trim()
+  }
+  return rawTitle
+}
+
 async function lookupFromSharedUrl(url) {
   const parsed = parseSharedUrl(url)
   if (!parsed) return null
+
   if (parsed.type === 'isbn') {
     const results = await searchByISBN(parsed.value)
     if (results.length) return results[0]
@@ -34,10 +83,37 @@ async function lookupFromSharedUrl(url) {
     const fallback = await searchBooks(parsed.value, 3)
     if (fallback.length) return fallback[0]
   }
+
   if (parsed.type === 'title') {
     const results = await searchBooks(parsed.value, 5)
     if (results.length) return results[0]
   }
+
+  if (parsed.type === 'resolve') {
+    const resolved = await resolveUrl(url)
+    if (!resolved) return null
+
+    const { resolvedUrl, ogTitle, pageTitle } = resolved
+
+    // Try parsing the resolved URL first (it may now have an ASIN)
+    const resolvedParsed = parseSharedUrl(resolvedUrl)
+    if (resolvedParsed && resolvedParsed.type !== 'resolve') {
+      const deepResult = await lookupFromSharedUrl(resolvedUrl)
+      if (deepResult) return deepResult
+    }
+
+    // Fall back to searching by og:title or page title
+    try {
+      const hostname = new URL(resolvedUrl).hostname
+      const rawTitle = ogTitle || pageTitle
+      const cleanTitle = cleanPageTitle(rawTitle, hostname)
+      if (cleanTitle) {
+        const results = await searchBooks(cleanTitle, 5)
+        if (results.length) return results[0]
+      }
+    } catch {}
+  }
+
   return null
 }
 

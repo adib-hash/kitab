@@ -1,3 +1,7 @@
+## v2.1.5 — 2026-03-27
+### Fixed
+- **Share Extension — native app book identification**: Amazon short URLs (`a.co`, `amzn.to`) and Goodreads ID-only URLs (`/book/show/12345`) no longer fail silently. A new Vercel serverless function (`api/resolve-url.js`) follows redirects server-side and extracts `og:title`/`<title>` from the resolved page, allowing `SharePreviewModal` to identify books shared from the Amazon and Goodreads iOS apps. Amazon and Goodreads page titles are cleaned before searching (strips "by Author | Amazon.com: Books" suffix, etc.).
+
 ## v2.1.4 — 2026-03-27
 ### Fixed
 - **Share Extension modal**: Centred vertically on screen instead of sliding up from the bottom.
