@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@aparajita/capacitor-biometric-auth": "^10.0.0",
+    "@capgo/inappbrowser": "^8.5.0",
     "@capacitor/app": "^8.1.0",
     "@capacitor/browser": "^8.0.3",
     "@capacitor/cli": "^8.3.0",
@@ -47,6 +47,7 @@
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.33",
     "tailwindcss": "^3.4.1",
-    "vite": "^5.0.10"
+    "vite": "^5.0.10",
+    "vite-plugin-pwa": "^0.21.0"
   }
 }

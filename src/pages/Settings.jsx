@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2, BookOpen, Zap, AlertCircle, LogOut, ChevronLeft, ShieldCheck } from 'lucide-react'
+import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2, BookOpen, Zap, AlertCircle, LogOut, ChevronLeft } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
-import { isBiometricsAvailable, authenticateWithBiometrics } from '../lib/biometrics'
 import { useNavigate } from 'react-router-dom'
 import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
 import { useTags, useUpdateTag, useDeleteTag } from '../hooks/useTags'
@@ -13,7 +12,7 @@ import { findCoverUrl } from '../lib/openLibrary'
 import { BookCover } from '../components/books/BookCover'
 import Papa from 'papaparse'
 import { useAddBook } from '../hooks/useLibrary'
-import { useClippingsImport, useAllUnmatched, useAssignHighlights } from '../hooks/useHighlights'
+import { useClippingsImport, useAllUnmatched, useAssignHighlights, useKindleSync, KINDLE_SCRAPER_JS } from '../hooks/useHighlights'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
@@ -229,6 +228,118 @@ function EnrichLibrary({ books }) {
   )
 }
 
+// ── Kindle WKWebView sync (iOS native only) ───────────────────────────────
+function KindleSyncSection() {
+  const kindleSync = useKindleSync()
+  const [syncing, setSyncing] = useState(false)
+  const [progress, setProgress] = useState(null)
+
+  async function handleSync() {
+    let InAppBrowser
+    try {
+      InAppBrowser = (await import('@capgo/inappbrowser')).InAppBrowser
+    } catch {
+      toast.error('Kindle sync requires the iOS app')
+      return
+    }
+
+    setSyncing(true)
+    setProgress('Opening Kindle…')
+
+    try {
+      await InAppBrowser.open({ url: 'https://read.amazon.com/kp/notebook' })
+
+      // Wait for page to load
+      await new Promise(r => setTimeout(r, 4000))
+
+      // Inject the scraper
+      await InAppBrowser.executeScript({ code: KINDLE_SCRAPER_JS })
+
+      // Poll until the scraper sets window.__kitabDone = true
+      const POLL_INTERVAL = 3000
+      const MAX_POLLS = 120 // 6 minutes max
+
+      for (let i = 0; i < MAX_POLLS; i++) {
+        await new Promise(r => setTimeout(r, POLL_INTERVAL))
+
+        // Update progress display
+        const prog = await InAppBrowser.executeScript({ code: 'JSON.stringify(window.__kitabProgress || null)' })
+        if (prog?.value) {
+          try {
+            const p = JSON.parse(prog.value)
+            if (p && p.total > 0) setProgress(`${p.current}/${p.total} books`)
+          } catch {}
+        }
+
+        // Check if done
+        const done = await InAppBrowser.executeScript({ code: 'window.__kitabDone' })
+        if (!done?.value) continue
+
+        // Check for error
+        const err = await InAppBrowser.executeScript({ code: 'window.__kitabError' })
+        if (err?.value) {
+          await InAppBrowser.close()
+          toast.error(String(err.value))
+          setSyncing(false)
+          setProgress(null)
+          return
+        }
+
+        // Get results
+        const res = await InAppBrowser.executeScript({ code: 'JSON.stringify(window.__kitabHighlights)' })
+        await InAppBrowser.close()
+
+        if (res?.value) {
+          const highlights = JSON.parse(res.value)
+          if (highlights.length === 0) {
+            toast("No highlights found. Make sure you are logged in to Amazon.")
+          } else {
+            kindleSync.mutate({ highlights })
+          }
+        }
+
+        setSyncing(false)
+        setProgress(null)
+        return
+      }
+
+      // Timeout
+      await InAppBrowser.close()
+      toast.error('Sync timed out. Try again.')
+    } catch (e) {
+      toast.error('Sync failed. Try again.')
+      try { const IB = (await import('@capgo/inappbrowser')).InAppBrowser; await IB.close() } catch {}
+    } finally {
+      setSyncing(false)
+      setProgress(null)
+    }
+  }
+
+  return (
+    <div className="card p-6 space-y-4">
+      <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 flex items-center gap-2">
+        <Zap size={18} className="text-teal-600" /> Kindle Highlights Sync
+      </h2>
+      <p className="text-sm text-ink-600 dark:text-ink-400">
+        Sync all your Kindle highlights in one tap. An Amazon sign-in page will open — log in once and your session will be remembered for future syncs.
+      </p>
+      <button
+        onClick={handleSync}
+        disabled={syncing || kindleSync.isPending}
+        className={`btn-secondary ${(syncing || kindleSync.isPending) ? 'opacity-50' : ''}`}
+      >
+        <Zap size={14} />
+        {syncing ? (progress || 'Syncing…') : kindleSync.isPending ? 'Importing…' : 'Sync Kindle Highlights'}
+      </button>
+      {syncing && (
+        <p className="text-xs text-ink-400">
+          This may take a few minutes if you have many books. Keep the app open.
+        </p>
+      )}
+    </div>
+  )
+}
+
 // ── Kindle clippings import card ──────────────────────────────────────────
 function ClippingsSection() {
   const importClippings = useClippingsImport()
@@ -260,7 +371,7 @@ function ClippingsSection() {
         <Zap size={18} className="text-teal-600" /> Kindle Highlights
       </h2>
       <p className="text-sm text-ink-600 dark:text-ink-400">
-        Connect your Kindle via USB, then find <span className="font-mono text-xs bg-paper-100 dark:bg-ink-700 px-1.5 py-0.5 rounded">documents/My Clippings.txt</span> on the device and upload it here. All your highlights and notes will be imported automatically.
+        Import from a physical Kindle: connect Kindle to Mac → copy <span className="font-mono text-xs bg-paper-100 dark:bg-ink-700 px-1.5 py-0.5 rounded">documents/My Clippings.txt</span> → AirDrop to iPhone → pick it below.
       </p>
 
       <label className={`btn-secondary cursor-pointer ${importClippings.isPending ? 'opacity-50' : ''}`}>
@@ -322,14 +433,8 @@ export function Settings() {
   const [editingTag, setEditingTag] = useState(null)
   const [editName, setEditName] = useState('')
   const [importing, setImporting] = useState(false)
-  const { librarySlug, setLibrarySlug, biometricEnabled, setBiometricEnabled } = useUIStore()
+  const { librarySlug, setLibrarySlug } = useUIStore()
   const [slugInput, setSlugInput] = useState(librarySlug || '')
-  const [biometricsAvailable, setBiometricsAvailable] = useState(false)
-  const [biometricLoading, setBiometricLoading] = useState(false)
-
-  useEffect(() => {
-    isBiometricsAvailable().then(setBiometricsAvailable)
-  }, [])
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -524,7 +629,10 @@ export function Settings() {
         )}
       </div>
 
-      {/* Kindle Highlights */}
+      {/* Kindle Highlights — WKWebView sync (iOS only) */}
+      {Capacitor.isNativePlatform() && <KindleSyncSection />}
+
+      {/* Kindle Highlights — My Clippings.txt file import (backup) */}
       <ClippingsSection />
 
       {/* Library stats */}
@@ -543,48 +651,6 @@ export function Settings() {
           ))}
         </div>
       </div>
-      {/* Security — native iOS only */}
-      {Capacitor.isNativePlatform() && biometricsAvailable && (
-        <div className="card p-6">
-          <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 mb-3 flex items-center gap-2">
-            <ShieldCheck size={18} className="text-teal-600" /> Security
-          </h2>
-          <div className="flex items-center justify-between py-1">
-            <div>
-              <p className="text-sm font-medium text-ink-900 dark:text-paper-50">Unlock with Face ID / Touch ID</p>
-              <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">Require biometric confirmation when opening Kitab</p>
-            </div>
-            <button
-              disabled={biometricLoading}
-              onClick={async () => {
-                setBiometricLoading(true)
-                if (!biometricEnabled) {
-                  // Verify biometrics works before enabling
-                  const ok = await authenticateWithBiometrics('Confirm to enable biometric unlock')
-                  if (ok) {
-                    setBiometricEnabled(true)
-                    toast.success('Biometric unlock enabled')
-                  } else {
-                    toast.error('Biometric authentication failed')
-                  }
-                } else {
-                  setBiometricEnabled(false)
-                  toast.success('Biometric unlock disabled')
-                }
-                setBiometricLoading(false)
-              }}
-              className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none ${
-                biometricEnabled ? 'bg-teal-600' : 'bg-ink-300 dark:bg-ink-600'
-              }`}
-            >
-              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                biometricEnabled ? 'translate-x-5' : 'translate-x-0'
-              }`} />
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Account / Logout */}
       <div className="card p-6">
         <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 mb-3 flex items-center gap-2">
@@ -597,7 +663,7 @@ export function Settings() {
 
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v2.0.4
+        Kitab · v2.1.0
       </p>
     </div>
   )

@@ -1,11 +1,11 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { supabase } from './lib/supabase'
 import { useUIStore } from './store/uiStore'
-import { isBiometricsAvailable, authenticateWithBiometrics } from './lib/biometrics'
 import { useNetworkStatus } from './hooks/useNetworkStatus'
+import { startQueueReplay } from './lib/offlineQueue'
 
 // localStorage-based persister — survives app restarts, works on both web and native
 const localStoragePersister = {
@@ -34,17 +34,26 @@ import { Settings } from './pages/Settings'
 import { Discover } from './pages/Discover'
 import { Modal, Button } from './components/ui/index.jsx'
 import { ReviewModal } from './components/books/ReviewModal'
+import { BookSearchModal } from './components/books/BookSearch'
+import { BookForm } from './components/books/BookForm'
+import { App as CapacitorApp } from '@capacitor/app'
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      networkMode: 'offlineFirst', // serve cache immediately when offline, don't pause
       retry: 1,
-      staleTime: 1000 * 60 * 10,   // 10 min — data stays fresh
-      gcTime:    1000 * 60 * 60 * 24,     // 24 hours — sufficient for offline, avoids memory bloat
-      refetchOnWindowFocus: false, // don't re-fetch just because you tabbed away
-    }
-  }
+      staleTime: 1000 * 60 * 10,
+      gcTime: 1000 * 60 * 60 * 24,
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      networkMode: 'offlineFirst',
+    },
+  },
 })
+
+startQueueReplay(queryClient)
 
 function ProtectedRoute({ session, children }) {
   if (!session) return <Navigate to="/login" replace />
@@ -98,38 +107,44 @@ function OfflineBanner() {
 
 export default function App() {
   const [session, setSession] = useState(undefined) // undefined = loading
-  const [biometricPending, setBiometricPending] = useState(false)
-  const biometricChecked = useRef(false)
-  const { initDarkMode, biometricEnabled } = useUIStore()
+  const [sharedUrl, setSharedUrl] = useState('')
+  const [showShareSearch, setShowShareSearch] = useState(false)
+  const [selectedBookFromShare, setSelectedBookFromShare] = useState(null)
+  const [showShareForm, setShowShareForm] = useState(false)
+  const { initDarkMode } = useUIStore()
 
   useEffect(() => {
     initDarkMode()
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      // On cold launch: if biometrics is enabled and we have a valid session, gate the app
-      if (session && biometricEnabled && !biometricChecked.current) {
-        biometricChecked.current = true
-        const available = await isBiometricsAvailable()
-        if (available) {
-          setBiometricPending(true)
-          const ok = await authenticateWithBiometrics()
-          setBiometricPending(false)
-          if (!ok) {
-            await supabase.auth.signOut()
-            setSession(null)
-            return
-          }
-        }
-      }
+    // Session timeout: if getSession() hangs (e.g. no network), treat as logged out after 5s
+    const timeout = setTimeout(() => {
+      setSession(prev => prev === undefined ? null : prev)
+    }, 5000)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(timeout)
       setSession(session)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
-    return () => subscription.unsubscribe()
+    return () => { subscription.unsubscribe(); clearTimeout(timeout) }
   }, [])
 
-  // Loading state (also shown while biometric prompt is pending)
-  if (session === undefined || biometricPending) {
+  // Handle deep links from the iOS Share Extension (kitab://add?url=...)
+  useEffect(() => {
+    const handle = CapacitorApp.addListener('appUrlOpen', ({ url }) => {
+      if (url.startsWith('kitab://add')) {
+        try {
+          const params = new URL(url)
+          const incoming = params.searchParams.get('url') || ''
+          setSharedUrl(incoming)
+          setShowShareSearch(true)
+        } catch {}
+      }
+    })
+    return () => { handle.then(h => h.remove()).catch(() => {}) }
+  }, [])
+
+  if (session === undefined) {
     return (
       <div className="min-h-screen bg-paper-50 dark:bg-ink-900 flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">
@@ -232,6 +247,20 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <ReviewPrompt />
+
+        {/* Share Extension add-book flow */}
+        <BookSearchModal
+          open={showShareSearch}
+          onClose={() => { setShowShareSearch(false); setSharedUrl('') }}
+          onSelect={(book) => { setSelectedBookFromShare(book); setShowShareSearch(false); setShowShareForm(true) }}
+          onManual={() => { setSelectedBookFromShare(null); setShowShareSearch(false); setShowShareForm(true) }}
+          sharedUrl={sharedUrl}
+        />
+        <BookForm
+          open={showShareForm}
+          onClose={() => { setShowShareForm(false); setSelectedBookFromShare(null); setSharedUrl('') }}
+          initialBook={selectedBookFromShare}
+        />
       </BrowserRouter>
     </PersistQueryClientProvider>
   )

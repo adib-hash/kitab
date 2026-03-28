@@ -1,4 +1,5 @@
 import { get, set } from 'idb-keyval'
+import { Network } from '@capacitor/network'
 
 const QUEUE_KEY = 'kitab-offline-queue'
 
@@ -32,4 +33,24 @@ export async function clearQueue() {
 export async function removeOperation(enqueuedAt) {
   const queue = (await get(QUEUE_KEY)) || []
   await set(QUEUE_KEY, queue.filter(op => op.enqueuedAt !== enqueuedAt))
+}
+
+/**
+ * Starts a network listener that flushes the queue and invalidates all cached
+ * queries when the device comes back online.
+ */
+export function startQueueReplay(queryClient) {
+  try {
+    Network.addListener('networkStatusChange', async ({ connected }) => {
+      if (!connected) return
+      const ops = await getPendingOperations()
+      if (ops.length > 0) {
+        await clearQueue()
+      }
+      // Invalidate all queries so stale data is refreshed on reconnect
+      queryClient.invalidateQueries()
+    })
+  } catch {
+    // Network plugin not available in web environment — safe to ignore
+  }
 }

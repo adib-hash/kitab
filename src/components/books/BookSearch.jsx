@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { Search, Loader2, BookOpen, ArrowRight } from 'lucide-react'
+import { Search, Loader2, BookOpen, ArrowRight, ExternalLink } from 'lucide-react'
 import { Modal } from '../ui/index.jsx'
 import { searchBooks, searchByISBN } from '../../lib/googleBooks'
 import { BookCover } from './BookCover'
@@ -29,13 +29,30 @@ function BarcodeIcon({ size = 18 }) {
   )
 }
 
-export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '' }) {
+function extractTitleFromUrl(url) {
+  if (!url) return ''
+  try {
+    const path = new URL(url).pathname
+    // Amazon: /Book-Title-Here/dp/ASIN or /dp/ASIN/
+    // Goodreads: /book/show/12345.Book_Title or /book/show/12345-book-title
+    const amazonMatch = path.match(/^\/([^/]+)\/dp\//)
+    if (amazonMatch) return amazonMatch[1].replace(/-/g, ' ')
+    const goodreadsMatch = path.match(/\/book\/show\/\d+[.-](.+)$/)
+    if (goodreadsMatch) return goodreadsMatch[1].replace(/[-_]/g, ' ')
+  } catch {}
+  return ''
+}
+
+export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '', sharedUrl = '' }) {
   const [query, setQuery] = useState('')
 
-  // Pre-populate query when opened with a prefill value
+  // Pre-populate query when opened with a prefill value or shared URL
   useEffect(() => {
-    if (open && prefill) setQuery(prefill)
-  }, [open, prefill])
+    if (open) {
+      if (prefill) setQuery(prefill)
+      else if (sharedUrl) setQuery(extractTitleFromUrl(sharedUrl))
+    }
+  }, [open, prefill, sharedUrl])
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [scannerOpen, setScannerOpen] = useState(false)
@@ -75,6 +92,14 @@ export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '
     <>
       <Modal open={open} onClose={() => { onClose(); setQuery(''); setResults([]) }} title="Add a Book" size="lg">
         <div className="p-4">
+          {sharedUrl && (
+            <div className="mb-3 px-3 py-2 rounded-lg bg-paper-100 dark:bg-ink-800 flex items-start gap-2">
+              <ExternalLink size={13} className="text-ink-400 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-ink-500 dark:text-ink-400 truncate">
+                Shared from: <span className="font-mono">{(() => { try { return new URL(sharedUrl).hostname } catch { return sharedUrl } })()}</span>
+              </p>
+            </div>
+          )}
           <div className="relative mb-4">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
             <input

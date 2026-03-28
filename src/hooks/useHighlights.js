@@ -3,6 +3,86 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
+// ── Kindle WKWebView scraper (injected via @capgo/inappbrowser) ────────────
+// Stores results in window.__kitabHighlights and sets window.__kitabDone = true when finished.
+// React polls via executeScript({ code: 'window.__kitabDone' }) every 3s.
+export const KINDLE_SCRAPER_JS = `
+(function() {
+  window.__kitabHighlights = [];
+  window.__kitabProgress = { current: 0, total: 0, book: '' };
+  window.__kitabDone = false;
+  window.__kitabError = null;
+
+  // Check page is loaded
+  var library = document.querySelectorAll('#kp-notebook-library > .a-row[id]');
+  if (!library || library.length === 0) {
+    window.__kitabError = 'Library not loaded. Please wait for the page to fully load and try again.';
+    window.__kitabDone = true;
+    return;
+  }
+
+  var bookItems = Array.from(library);
+  window.__kitabProgress.total = bookItems.length;
+
+  // Async scraper
+  (async function scrape() {
+    var seen = new Set();
+
+    for (var i = 0; i < bookItems.length; i++) {
+      var bookEl = bookItems[i];
+      var titleEl = bookEl.querySelector('.kp-notebook-searchable');
+      var bookTitle = titleEl ? titleEl.textContent.trim() : 'Unknown';
+      var authorEl = bookEl.querySelector('.a-color-secondary');
+      var bookAuthor = authorEl ? authorEl.textContent.trim() : null;
+
+      window.__kitabProgress = { current: i + 1, total: bookItems.length, book: bookTitle };
+
+      // Click book to load its highlights
+      bookEl.click();
+      await new Promise(function(r) { setTimeout(r, 1500); });
+
+      // Paginate through all highlights for this book
+      var pageNum = 0;
+      while (pageNum < 30) {
+        var rows = document.querySelectorAll('#kp-notebook-annotations .a-row.a-spacing-base, #kp-notebook-annotations .kp-notebook-record');
+        rows.forEach(function(row) {
+          var textEl = row.querySelector('.kp-notebook-highlight');
+          if (!textEl) return;
+          var text = textEl.textContent.trim();
+          if (!text) return;
+          var metaEl = row.querySelector('.kp-notebook-metadata');
+          var meta = metaEl ? metaEl.textContent : '';
+          var locMatch = meta.match(/Location\\s+(\\d+)/i);
+          var location = locMatch ? parseInt(locMatch[1]) : null;
+          var noteEl = row.querySelector('.kp-notebook-note');
+          var note = noteEl ? noteEl.textContent.trim() || null : null;
+          var key = bookTitle + '|' + (location || '') + '|' + text.slice(0, 60);
+          if (!seen.has(key)) {
+            seen.add(key);
+            window.__kitabHighlights.push({ bookTitle: bookTitle, bookAuthor: bookAuthor, text: text, note: note, location: location });
+          }
+        });
+
+        // Check for next page token
+        var nextToken = document.getElementById('kp-notebook-annotations-next-page-start');
+        if (!nextToken || !nextToken.value) break;
+        // Try to find and click the next page button
+        var nextBtn = document.querySelector('.kp-notebook-pagination-bar .a-last:not(.a-disabled) a, #kp-notebook-pagination-bar-next:not(.a-disabled)');
+        if (!nextBtn) break;
+        nextBtn.click();
+        await new Promise(function(r) { setTimeout(r, 1000); });
+        pageNum++;
+      }
+    }
+
+    window.__kitabDone = true;
+  })().catch(function(err) {
+    window.__kitabError = String(err);
+    window.__kitabDone = true;
+  });
+})();
+`
+
 export function useHighlights(bookId) {
   return useQuery({
     queryKey: ['highlights', bookId],
@@ -155,50 +235,75 @@ function clippingHash(bookTitle, location, text) {
   return h.toString()
 }
 
+// Shared upsert logic used by both clippings import and Kindle WKWebView sync
+async function upsertHighlights(user, kitabBooks, highlights) {
+  const byBook = {}
+  for (const h of highlights) {
+    if (!byBook[h.bookTitle]) byBook[h.bookTitle] = { ...h, highlights: [] }
+    byBook[h.bookTitle].highlights.push(h)
+  }
+
+  let totalHighlights = 0, unmatched = 0
+  for (const [bookTitle, group] of Object.entries(byBook)) {
+    const matchedBookId = matchBook(
+      { title: bookTitle, author: group.bookAuthor },
+      kitabBooks || []
+    )
+    if (!matchedBookId) unmatched++
+
+    const rows = group.highlights.map(h => ({
+      user_id: user.id,
+      book_id: matchedBookId,
+      clipping_hash: clippingHash(h.bookTitle, h.location, h.text),
+      text: h.text,
+      note: h.note || null,
+      location: h.location,
+      book_title: h.bookTitle,
+      book_author: h.bookAuthor,
+      highlighted_at: h.highlighted_at || null,
+    }))
+
+    const { error } = await supabase
+      .from('highlights')
+      .upsert(rows, { onConflict: 'clipping_hash', ignoreDuplicates: true })
+    if (!error) totalHighlights += rows.length
+  }
+  return { totalHighlights, unmatched }
+}
+
+export function useKindleSync() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ highlights }) => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not logged in')
+      const { data: kitabBooks } = await supabase
+        .from('books').select('id, title, author').eq('user_id', user.id)
+      return upsertHighlights(user, kitabBooks, highlights)
+    },
+    onSuccess: ({ totalHighlights, unmatched }) => {
+      qc.invalidateQueries({ queryKey: ['highlights'] })
+      qc.invalidateQueries({ queryKey: ['highlight_count'] })
+      qc.invalidateQueries({ queryKey: ['highlights_unmatched'] })
+      const msg = `Imported ${totalHighlights} highlight${totalHighlights !== 1 ? 's' : ''}`
+        + (unmatched > 0 ? ` · ${unmatched} unmatched (check Settings)` : '')
+      toast.success(msg, { duration: 6000 })
+    },
+    onError: (err) => toast.error(err.message),
+  })
+}
+
 export function useClippingsImport() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ file }) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not logged in')
-
       const text = await file.text()
       const clippings = parseClippings(text)
       const { data: kitabBooks } = await supabase
         .from('books').select('id, title, author').eq('user_id', user.id)
-
-      const byBook = {}
-      for (const c of clippings) {
-        if (!byBook[c.bookTitle]) byBook[c.bookTitle] = { ...c, highlights: [] }
-        byBook[c.bookTitle].highlights.push(c)
-      }
-
-      let totalHighlights = 0, unmatched = 0
-      for (const [bookTitle, group] of Object.entries(byBook)) {
-        const matchedBookId = matchBook(
-          { title: bookTitle, author: group.bookAuthor },
-          kitabBooks || []
-        )
-        if (!matchedBookId) unmatched++
-
-        const rows = group.highlights.map(h => ({
-          user_id: user.id,
-          book_id: matchedBookId,
-          clipping_hash: clippingHash(h.bookTitle, h.location, h.text),
-          text: h.text,
-          note: null,
-          location: h.location,
-          book_title: h.bookTitle,
-          book_author: h.bookAuthor,
-          highlighted_at: h.highlighted_at,
-        }))
-
-        const { error } = await supabase
-          .from('highlights')
-          .upsert(rows, { onConflict: 'clipping_hash', ignoreDuplicates: true })
-        if (!error) totalHighlights += rows.length
-      }
-      return { totalHighlights, unmatched }
+      return upsertHighlights(user, kitabBooks, clippings)
     },
     onSuccess: ({ totalHighlights, unmatched }) => {
       qc.invalidateQueries({ queryKey: ['highlights'] })

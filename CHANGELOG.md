@@ -1,3 +1,19 @@
+## v2.1.0 — 2026-03-27
+### Added
+- **Kindle Highlights Sync (iOS)**: One-tap sync of all Kindle highlights via `read.amazon.com/kp/notebook`. Opens an in-app browser, injects a scraper, extracts highlights across all books, fuzzy-matches to your library, and stores in Supabase. Sign in to Amazon once; session persists for future syncs. Accessible from Settings (iOS only).
+- **iOS Share Extension**: Share any Goodreads or Amazon book page from Safari → Kitab appears in the share sheet → Add Book modal opens with the book title pre-filled from the URL.
+- **`kitab://` URL scheme**: Registered in Info.plist to support deep links from the Share Extension.
+
+### Changed
+- **Offline mode**: Added `networkMode: 'offlineFirst'` to React Query — cached library data now loads immediately when the app is opened offline instead of showing a loading spinner.
+- **Offline mode**: Added 5-second timeout on `getSession()` — app no longer hangs indefinitely on initial load when there's no network connection.
+- **Offline mode**: Added `startQueueReplay()` — when the device reconnects, all active queries are invalidated and refreshed.
+- **Offline mode (web)**: Added `vite-plugin-pwa` for service worker caching of the web app shell — the web app now loads offline.
+- **Kindle Highlights**: Updated Settings description to be iOS-friendly (AirDrop flow for physical Kindle users).
+
+### Removed
+- **Biometric login**: Removed Face ID / Touch ID unlock entirely. `@aparajita/capacitor-biometric-auth` dependency removed. `NSFaceIDUsageDescription` removed from Info.plist.
+
 ## v2.0.4 — 2026-03-25
 ### Fixed
 - **GlobalSearch scroll conflict**: Opening the search overlay now locks the background page using `position: fixed` + scroll position save/restore. Scrolling within search results no longer scrolls the background page on iOS or web.

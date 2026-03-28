@@ -8,8 +8,6 @@
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
 	<string>Kitab</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>Use Face ID to securely unlock Kitab.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -30,6 +28,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.kitab.app</string>
+				<string>kitab</string>
 			</array>
 		</dict>
 	</array>
