@@ -3,29 +3,25 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
-// ── Kindle WKWebView scraper (injected via @capgo/inappbrowser) ────────────
-// Stores results in window.__kitabHighlights and sets window.__kitabDone = true when finished.
-// React polls via executeScript({ code: 'window.__kitabDone' }) every 3s.
+// ── Kindle WKWebView scraper (injected via @capgo/inappbrowser executeScript) ──
+// Communication: window.mobileApp.postMessage() → native addListener('messageFromWebview')
+// Guards: only runs on the highlights page; prevents double execution.
 export const KINDLE_SCRAPER_JS = `
 (function() {
-  window.__kitabHighlights = [];
-  window.__kitabProgress = { current: 0, total: 0, book: '' };
-  window.__kitabDone = false;
-  window.__kitabError = null;
+  // Only run on the Kindle highlights page
+  if (!document.querySelector('#kp-notebook-library')) return;
+  // Prevent double execution across multiple browserPageLoaded events
+  if (window.__kitabRunning) return;
+  window.__kitabRunning = true;
 
-  // Check page is loaded
-  var library = document.querySelectorAll('#kp-notebook-library > .a-row[id]');
-  if (!library || library.length === 0) {
-    window.__kitabError = 'Library not loaded. Please wait for the page to fully load and try again.';
-    window.__kitabDone = true;
+  var bookItems = Array.from(document.querySelectorAll('#kp-notebook-library > .a-row[id]'));
+  if (bookItems.length === 0) {
+    window.__kitabRunning = false;
     return;
   }
 
-  var bookItems = Array.from(library);
-  window.__kitabProgress.total = bookItems.length;
-
-  // Async scraper
   (async function scrape() {
+    var allHighlights = [];
     var seen = new Set();
 
     for (var i = 0; i < bookItems.length; i++) {
@@ -35,13 +31,12 @@ export const KINDLE_SCRAPER_JS = `
       var authorEl = bookEl.querySelector('.a-color-secondary');
       var bookAuthor = authorEl ? authorEl.textContent.trim() : null;
 
-      window.__kitabProgress = { current: i + 1, total: bookItems.length, book: bookTitle };
+      // Send progress to native via mobileApp bridge
+      window.mobileApp.postMessage({ type: 'kitabProgress', current: i + 1, total: bookItems.length });
 
-      // Click book to load its highlights
       bookEl.click();
       await new Promise(function(r) { setTimeout(r, 1500); });
 
-      // Paginate through all highlights for this book
       var pageNum = 0;
       while (pageNum < 30) {
         var rows = document.querySelectorAll('#kp-notebook-annotations .a-row.a-spacing-base, #kp-notebook-annotations .kp-notebook-record');
@@ -59,15 +54,13 @@ export const KINDLE_SCRAPER_JS = `
           var key = bookTitle + '|' + (location || '') + '|' + text.slice(0, 60);
           if (!seen.has(key)) {
             seen.add(key);
-            window.__kitabHighlights.push({ bookTitle: bookTitle, bookAuthor: bookAuthor, text: text, note: note, location: location });
+            allHighlights.push({ bookTitle: bookTitle, bookAuthor: bookAuthor, text: text, note: note, location: location });
           }
         });
 
-        // Check for next page token
         var nextToken = document.getElementById('kp-notebook-annotations-next-page-start');
         if (!nextToken || !nextToken.value) break;
-        // Try to find and click the next page button
-        var nextBtn = document.querySelector('.kp-notebook-pagination-bar .a-last:not(.a-disabled) a, #kp-notebook-pagination-bar-next:not(.a-disabled)');
+        var nextBtn = document.querySelector('.kp-notebook-pagination-bar .a-last:not(.a-disabled) a');
         if (!nextBtn) break;
         nextBtn.click();
         await new Promise(function(r) { setTimeout(r, 1000); });
@@ -75,10 +68,11 @@ export const KINDLE_SCRAPER_JS = `
       }
     }
 
-    window.__kitabDone = true;
+    // Send all results back to native
+    window.mobileApp.postMessage({ type: 'kitabDone', highlights: allHighlights });
   })().catch(function(err) {
-    window.__kitabError = String(err);
-    window.__kitabDone = true;
+    window.mobileApp.postMessage({ type: 'kitabDone', error: String(err), highlights: [] });
+    window.__kitabRunning = false;
   });
 })();
 `

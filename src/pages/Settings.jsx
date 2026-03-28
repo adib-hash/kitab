@@ -246,72 +246,57 @@ function KindleSyncSection() {
     setSyncing(true)
     setProgress('Opening Kindle…')
 
+    const listeners = []
+    let finished = false
+
+    function cleanup() {
+      listeners.forEach(l => { try { l.remove() } catch {} })
+      listeners.length = 0
+      setSyncing(false)
+      setProgress(null)
+    }
+
     try {
-      await InAppBrowser.open({ url: 'https://read.amazon.com/kp/notebook' })
-
-      // Wait for page to load
-      await new Promise(r => setTimeout(r, 4000))
-
-      // Inject the scraper
-      await InAppBrowser.executeScript({ code: KINDLE_SCRAPER_JS })
-
-      // Poll until the scraper sets window.__kitabDone = true
-      const POLL_INTERVAL = 3000
-      const MAX_POLLS = 120 // 6 minutes max
-
-      for (let i = 0; i < MAX_POLLS; i++) {
-        await new Promise(r => setTimeout(r, POLL_INTERVAL))
-
-        // Update progress display
-        const prog = await InAppBrowser.executeScript({ code: 'JSON.stringify(window.__kitabProgress || null)' })
-        if (prog?.value) {
-          try {
-            const p = JSON.parse(prog.value)
-            if (p && p.total > 0) setProgress(`${p.current}/${p.total} books`)
-          } catch {}
+      // Listen for messages posted by the injected scraper via window.mobileApp.postMessage()
+      const msgListener = await InAppBrowser.addListener('messageFromWebview', async ({ detail }) => {
+        if (!detail) return
+        if (detail.type === 'kitabProgress') {
+          setProgress(`${detail.current}/${detail.total} books…`)
         }
-
-        // Check if done
-        const done = await InAppBrowser.executeScript({ code: 'window.__kitabDone' })
-        if (!done?.value) continue
-
-        // Check for error
-        const err = await InAppBrowser.executeScript({ code: 'window.__kitabError' })
-        if (err?.value) {
-          await InAppBrowser.close()
-          toast.error(String(err.value))
-          setSyncing(false)
-          setProgress(null)
-          return
-        }
-
-        // Get results
-        const res = await InAppBrowser.executeScript({ code: 'JSON.stringify(window.__kitabHighlights)' })
-        await InAppBrowser.close()
-
-        if (res?.value) {
-          const highlights = JSON.parse(res.value)
+        if (detail.type === 'kitabDone') {
+          finished = true
+          try { await InAppBrowser.close() } catch {}
+          cleanup()
+          const highlights = detail.highlights || []
           if (highlights.length === 0) {
-            toast("No highlights found. Make sure you are logged in to Amazon.")
+            toast('No highlights found. Make sure you are logged in to Amazon.')
           } else {
             kindleSync.mutate({ highlights })
           }
         }
+      })
+      listeners.push(msgListener)
 
-        setSyncing(false)
-        setProgress(null)
-        return
-      }
+      // Inject the scraper after each page load (handles login redirects)
+      const pageListener = await InAppBrowser.addListener('browserPageLoaded', () => {
+        setProgress('Loading Kindle notebook…')
+        setTimeout(() => {
+          InAppBrowser.executeScript({ code: KINDLE_SCRAPER_JS }).catch(() => {})
+        }, 2500)
+      })
+      listeners.push(pageListener)
 
-      // Timeout
-      await InAppBrowser.close()
-      toast.error('Sync timed out. Try again.')
+      // Handle user closing the webview manually
+      const closeListener = await InAppBrowser.addListener('closeEvent', () => {
+        if (!finished) cleanup()
+      })
+      listeners.push(closeListener)
+
+      await InAppBrowser.openWebView({ url: 'https://read.amazon.com/kp/notebook' })
     } catch (e) {
       toast.error('Sync failed. Try again.')
-      try { const IB = (await import('@capgo/inappbrowser')).InAppBrowser; await IB.close() } catch {}
-    } finally {
-      setSyncing(false)
-      setProgress(null)
+      try { await InAppBrowser.close() } catch {}
+      cleanup()
     }
   }
 
