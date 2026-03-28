@@ -12,7 +12,7 @@ import { findCoverUrl } from '../lib/openLibrary'
 import { BookCover } from '../components/books/BookCover'
 import Papa from 'papaparse'
 import { useAddBook } from '../hooks/useLibrary'
-import { useClippingsImport, useAllUnmatched, useAssignHighlights, useKindleSync, KINDLE_SCRAPER_JS } from '../hooks/useHighlights'
+import { useAllUnmatched, useAssignHighlights, useKindleSync, KINDLE_SCRAPER_JS } from '../hooks/useHighlights'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
@@ -233,6 +233,32 @@ function KindleSyncSection() {
   const kindleSync = useKindleSync()
   const [syncing, setSyncing] = useState(false)
   const [progress, setProgress] = useState(null)
+  const [showResult, setShowResult] = useState(false)
+  const { data: unmatched = [] } = useAllUnmatched()
+  const assign = useAssignHighlights()
+  const { data: books = [] } = useLibrary()
+  const readBooks = books.filter(b => b.status === 'read')
+
+  // Show the result card briefly after the mutation settles
+  useEffect(() => {
+    if (kindleSync.isSuccess || kindleSync.isError) {
+      setShowResult(true)
+      const t = setTimeout(() => setShowResult(false), 5000)
+      return () => clearTimeout(t)
+    }
+  }, [kindleSync.isSuccess, kindleSync.isError])
+
+  // Group unmatched highlights by book title for the review queue
+  const unmatchedGroups = Object.values(
+    unmatched.reduce((acc, h) => {
+      const key = h.book_title || 'Unknown'
+      if (!acc[key]) acc[key] = { title: key, author: h.book_author, highlights: [] }
+      acc[key].highlights.push(h)
+      return acc
+    }, {})
+  )
+
+  const showStatusCard = syncing || kindleSync.isPending || (showResult && (kindleSync.isSuccess || kindleSync.isError))
 
   async function handleSync() {
     let InAppBrowser
@@ -245,6 +271,7 @@ function KindleSyncSection() {
 
     setSyncing(true)
     setProgress('Opening Kindle…')
+    kindleSync.reset()
 
     const listeners = []
     let finished = false
@@ -277,18 +304,22 @@ function KindleSyncSection() {
       })
       listeners.push(msgListener)
 
-      // Inject the scraper after each page load (handles login redirects)
+      // Inject the scraper after each page load (handles login redirects).
+      // Reduced delay: scraper polls for DOM readiness internally.
       const pageListener = await InAppBrowser.addListener('browserPageLoaded', () => {
         setProgress('Loading Kindle notebook…')
         setTimeout(() => {
           InAppBrowser.executeScript({ code: KINDLE_SCRAPER_JS }).catch(() => {})
-        }, 2500)
+        }, 800)
       })
       listeners.push(pageListener)
 
-      // Handle user closing the webview manually
+      // When user closes the browser before the scraper finishes, show a clear message
       const closeListener = await InAppBrowser.addListener('closeEvent', () => {
-        if (!finished) cleanup()
+        if (!finished) {
+          cleanup()
+          toast('Sync cancelled — tap Sync to try again.')
+        }
       })
       listeners.push(closeListener)
 
@@ -306,76 +337,61 @@ function KindleSyncSection() {
         <Zap size={18} className="text-teal-600" /> Kindle Highlights Sync
       </h2>
       <p className="text-sm text-ink-600 dark:text-ink-400">
-        Sync all your Kindle highlights in one tap. An Amazon sign-in page will open — log in once and your session will be remembered for future syncs.
+        Sync all your Kindle highlights in one tap. A sign-in page opens — log in once and your session is saved for future syncs.
+      </p>
+      <p className="text-xs text-ink-500 dark:text-ink-500 flex items-center gap-1.5">
+        <AlertCircle size={12} className="flex-shrink-0" />
+        The browser closes automatically when done — you don't need to do anything after logging in.
       </p>
       <button
         onClick={handleSync}
         disabled={syncing || kindleSync.isPending}
         className={`btn-secondary ${(syncing || kindleSync.isPending) ? 'opacity-50' : ''}`}
       >
-        <Zap size={14} />
+        {syncing || kindleSync.isPending
+          ? <Loader2 size={14} className="animate-spin" />
+          : <Zap size={14} />
+        }
         {syncing ? (progress || 'Syncing…') : kindleSync.isPending ? 'Importing…' : 'Sync Kindle Highlights'}
       </button>
-      {syncing && (
-        <p className="text-xs text-ink-400">
-          This may take a few minutes if you have many books. Keep the app open.
-        </p>
+
+      {/* Persistent status card — visible while syncing and briefly after completion */}
+      {showStatusCard && (
+        <div className={`rounded-xl border p-4 space-y-1 ${
+          kindleSync.isError
+            ? 'border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20'
+            : 'border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-900/20'
+        }`}>
+          <div className="flex items-center gap-2 text-sm">
+            {kindleSync.isSuccess ? (
+              <CheckCircle size={15} className="text-teal-600 flex-shrink-0" />
+            ) : kindleSync.isError ? (
+              <XCircle size={15} className="text-rose-600 flex-shrink-0" />
+            ) : (
+              <Loader2 size={15} className="animate-spin text-teal-600 flex-shrink-0" />
+            )}
+            <span className={`font-medium ${kindleSync.isError ? 'text-rose-700 dark:text-rose-300' : 'text-teal-700 dark:text-teal-300'}`}>
+              {kindleSync.isSuccess
+                ? `${kindleSync.data?.totalHighlights ?? 0} new highlight${kindleSync.data?.totalHighlights !== 1 ? 's' : ''} imported`
+                : kindleSync.isError
+                ? `Sync failed: ${kindleSync.error?.message}`
+                : syncing ? (progress || 'Syncing…') : 'Importing highlights…'
+              }
+            </span>
+          </div>
+          {kindleSync.isSuccess && (kindleSync.data?.unmatched ?? 0) > 0 && (
+            <p className="text-xs text-teal-600 dark:text-teal-400 pl-6">
+              {kindleSync.data.unmatched} book{kindleSync.data.unmatched !== 1 ? 's' : ''} couldn't be matched — link them below.
+            </p>
+          )}
+        </div>
       )}
-    </div>
-  )
-}
-
-// ── Kindle clippings import card ──────────────────────────────────────────
-function ClippingsSection() {
-  const importClippings = useClippingsImport()
-  const { data: unmatched = [] } = useAllUnmatched()
-  const assign = useAssignHighlights()
-  const { data: books = [] } = useLibrary()
-  const readBooks = books.filter(b => b.status === 'read')
-
-  // Group unmatched by book_title
-  const unmatchedGroups = Object.values(
-    unmatched.reduce((acc, h) => {
-      const key = h.book_title || 'Unknown'
-      if (!acc[key]) acc[key] = { title: key, author: h.book_author, highlights: [] }
-      acc[key].highlights.push(h)
-      return acc
-    }, {})
-  )
-
-  function handleFile(e) {
-    const file = e.target.files[0]
-    if (!file) return
-    importClippings.mutate({ file })
-    e.target.value = ''
-  }
-
-  return (
-    <div className="card p-6 space-y-4">
-      <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 flex items-center gap-2">
-        <Zap size={18} className="text-teal-600" /> Kindle Highlights
-      </h2>
-      <p className="text-sm text-ink-600 dark:text-ink-400">
-        Import from a physical Kindle: connect Kindle to Mac → copy <span className="font-mono text-xs bg-paper-100 dark:bg-ink-700 px-1.5 py-0.5 rounded">documents/My Clippings.txt</span> → AirDrop to iPhone → pick it below.
-      </p>
-
-      <label className={`btn-secondary cursor-pointer ${importClippings.isPending ? 'opacity-50' : ''}`}>
-        <Upload size={14} />
-        {importClippings.isPending ? 'Importing…' : 'Choose My Clippings.txt'}
-        <input
-          type="file"
-          accept=".txt"
-          onChange={handleFile}
-          className="hidden"
-          disabled={importClippings.isPending}
-        />
-      </label>
 
       {/* Unmatched review queue */}
       {unmatchedGroups.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
-            <AlertCircle size={14} />
+            <AlertCircle size={14} className="flex-shrink-0" />
             <span>{unmatchedGroups.length} book{unmatchedGroups.length > 1 ? 's' : ''} couldn't be matched automatically — link them below.</span>
           </div>
           <div className="space-y-2">
@@ -617,9 +633,6 @@ export function Settings() {
       {/* Kindle Highlights — WKWebView sync (iOS only) */}
       {Capacitor.isNativePlatform() && <KindleSyncSection />}
 
-      {/* Kindle Highlights — My Clippings.txt file import (backup) */}
-      <ClippingsSection />
-
       {/* Library stats */}
       <div className="card p-6">
         <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 mb-4">Library Overview</h2>
@@ -648,7 +661,7 @@ export function Settings() {
 
       {/* App version */}
       <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v2.1.5
+        Kitab · v2.2.0
       </p>
     </div>
   )

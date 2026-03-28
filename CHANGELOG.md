@@ -1,3 +1,19 @@
+## v2.2.0 — 2026-03-28
+### Fixed
+- **Kindle Highlights Sync — new highlights not picked up**: The scraper previously used a fixed 2.5s delay before checking for the book list DOM. Amazon renders the notebook page asynchronously, so fast loads or slow connections could both miss the ready state. The scraper now polls for `#kp-notebook-library` every 500ms for up to 15s, ensuring it always waits for the page to be fully rendered before scraping.
+- **Kindle Highlights Sync — books not in DOM**: Before iterating books, the scraper now scrolls the page to the bottom in steps to trigger any lazy-loaded / infinite-scroll book rows, then re-queries the book list. Books that were below the fold are now captured.
+- **Kindle Highlights Sync — pagination reliability**: Instead of a fixed 1.5s wait for annotations to appear, the scraper polls for `#kp-notebook-annotations` per-book (up to 6s). Pagination now includes a stale-detection guard (stops if row count doesn't change) and a fallback selector for the "next" button.
+- **Kindle Highlights Sync — inflated import count**: `upsertHighlights` now uses `.select('id')` on the Supabase upsert to count only the rows that were *actually inserted* (not duplicates silently skipped by `ON CONFLICT DO NOTHING`). The toast and status card now show accurate new-highlight counts.
+
+### Changed
+- **Kindle Highlights Sync — UX**: Added an instructional tip beneath the section description: "The browser closes automatically when done — you don't need to do anything after logging in." The webview injection delay reduced from 2.5s to 0.8s (scraper handles its own timing internally).
+- **Kindle Highlights Sync — in-browser banner**: The injected scraper now adds a sticky teal banner inside the Amazon webview: "Kitab is syncing your highlights — please wait. This window will close automatically."
+- **Kindle Highlights Sync — persistent status card**: Replaced the single-line progress text with a persistent status card (spinner → checkmark on success, red on error) that stays visible after the browser closes and shows the final result for 5s.
+- **Kindle Highlights Sync — cancel feedback**: Closing the browser before sync completes now shows a toast "Sync cancelled — tap Sync to try again" instead of silently resetting the UI.
+
+### Removed
+- **Physical Kindle (My Clippings.txt) sync**: Removed the file-upload option entirely. The unmatched review queue (for books that couldn't be auto-matched) has been moved into the main Kindle Highlights Sync card and now applies to online sync results only.
+
 ## v2.1.5 — 2026-03-27
 ### Known Issue
 - **Share Extension — native app book identification**: Attempted fix via `api/resolve-url.js` (server-side redirect resolution + `og:title` extraction) did not resolve the issue. Books shared from the Amazon and Goodreads iOS apps still cannot be identified. To be revisited.
