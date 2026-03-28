@@ -32,7 +32,7 @@ export const KINDLE_SCRAPER_JS = `
       var bookAuthor = authorEl ? authorEl.textContent.trim() : null;
 
       // Send progress to native via mobileApp bridge
-      window.mobileApp.postMessage({ type: 'kitabProgress', current: i + 1, total: bookItems.length });
+      window.mobileApp.postMessage({ detail: { type: 'kitabProgress', current: i + 1, total: bookItems.length } });
 
       bookEl.click();
       await new Promise(function(r) { setTimeout(r, 1500); });
@@ -69,9 +69,9 @@ export const KINDLE_SCRAPER_JS = `
     }
 
     // Send all results back to native
-    window.mobileApp.postMessage({ type: 'kitabDone', highlights: allHighlights });
+    window.mobileApp.postMessage({ detail: { type: 'kitabDone', highlights: allHighlights } });
   })().catch(function(err) {
-    window.mobileApp.postMessage({ type: 'kitabDone', error: String(err), highlights: [] });
+    window.mobileApp.postMessage({ detail: { type: 'kitabDone', error: String(err), highlights: [] } });
     window.__kitabRunning = false;
   });
 })();
