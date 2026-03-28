@@ -15,15 +15,15 @@
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
-		777F769C2F776DA9007E6C03 /* KitabShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 777F76922F776DA9007E6C03 /* KitabShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		777F76B72F777FF4007E6C03 /* KitabShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 777F76AD2F777FF4007E6C03 /* KitabShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		777F769A2F776DA9007E6C03 /* PBXContainerItemProxy */ = {
+		777F76B52F777FF4007E6C03 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 777F76912F776DA9007E6C03;
+			remoteGlobalIDString = 777F76AC2F777FF4007E6C03;
 			remoteInfo = KitabShare;
 		};
 /* End PBXContainerItemProxy section */
@@ -35,7 +35,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				777F769C2F776DA9007E6C03 /* KitabShare.appex in Embed Foundation Extensions */,
+				777F76B72F777FF4007E6C03 /* KitabShare.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -52,22 +52,22 @@
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
-		777F76922F776DA9007E6C03 /* KitabShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KitabShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		777F76AD2F777FF4007E6C03 /* KitabShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KitabShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		777F76A02F776DA9007E6C03 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		777F76B82F777FF4007E6C03 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 777F76912F776DA9007E6C03 /* KitabShare */;
+			target = 777F76AC2F777FF4007E6C03 /* KitabShare */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		777F76932F776DA9007E6C03 /* KitabShare */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (777F76A02F776DA9007E6C03 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = KitabShare; sourceTree = "<group>"; };
+		777F76AE2F777FF4007E6C03 /* KitabShare */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (777F76B82F777FF4007E6C03 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = KitabShare; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,7 +79,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		777F768F2F776DA9007E6C03 /* Frameworks */ = {
+		777F76AA2F777FF4007E6C03 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -94,7 +94,7 @@
 			children = (
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
 				504EC3061FED79650016851F /* App */,
-				777F76932F776DA9007E6C03 /* KitabShare */,
+				777F76AE2F777FF4007E6C03 /* KitabShare */,
 				504EC3051FED79650016851F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -103,7 +103,7 @@
 			isa = PBXGroup;
 			children = (
 				504EC3041FED79650016851F /* App.app */,
-				777F76922F776DA9007E6C03 /* KitabShare.appex */,
+				777F76AD2F777FF4007E6C03 /* KitabShare.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -138,7 +138,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				777F769B2F776DA9007E6C03 /* PBXTargetDependency */,
+				777F76B62F777FF4007E6C03 /* PBXTargetDependency */,
 			);
 			name = App;
 			packageProductDependencies = (
@@ -148,26 +148,26 @@
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
 		};
-		777F76912F776DA9007E6C03 /* KitabShare */ = {
+		777F76AC2F777FF4007E6C03 /* KitabShare */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 777F76A12F776DA9007E6C03 /* Build configuration list for PBXNativeTarget "KitabShare" */;
+			buildConfigurationList = 777F76B92F777FF4007E6C03 /* Build configuration list for PBXNativeTarget "KitabShare" */;
 			buildPhases = (
-				777F768E2F776DA9007E6C03 /* Sources */,
-				777F768F2F776DA9007E6C03 /* Frameworks */,
-				777F76902F776DA9007E6C03 /* Resources */,
+				777F76A92F777FF4007E6C03 /* Sources */,
+				777F76AA2F777FF4007E6C03 /* Frameworks */,
+				777F76AB2F777FF4007E6C03 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				777F76932F776DA9007E6C03 /* KitabShare */,
+				777F76AE2F777FF4007E6C03 /* KitabShare */,
 			);
 			name = KitabShare;
 			packageProductDependencies = (
 			);
 			productName = KitabShare;
-			productReference = 777F76922F776DA9007E6C03 /* KitabShare.appex */;
+			productReference = 777F76AD2F777FF4007E6C03 /* KitabShare.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -185,7 +185,7 @@
 						LastSwiftMigration = 1100;
 						ProvisioningStyle = Automatic;
 					};
-					777F76912F776DA9007E6C03 = {
+					777F76AC2F777FF4007E6C03 = {
 						CreatedOnToolsVersion = 26.4;
 					};
 				};
@@ -207,7 +207,7 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* App */,
-				777F76912F776DA9007E6C03 /* KitabShare */,
+				777F76AC2F777FF4007E6C03 /* KitabShare */,
 			);
 		};
 /* End PBXProject section */
@@ -226,7 +226,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		777F76902F776DA9007E6C03 /* Resources */ = {
+		777F76AB2F777FF4007E6C03 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -244,7 +244,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		777F768E2F776DA9007E6C03 /* Sources */ = {
+		777F76A92F777FF4007E6C03 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -254,10 +254,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		777F769B2F776DA9007E6C03 /* PBXTargetDependency */ = {
+		777F76B62F777FF4007E6C03 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 777F76912F776DA9007E6C03 /* KitabShare */;
-			targetProxy = 777F769A2F776DA9007E6C03 /* PBXContainerItemProxy */;
+			target = 777F76AC2F777FF4007E6C03 /* KitabShare */;
+			targetProxy = 777F76B52F777FF4007E6C03 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -448,7 +448,7 @@
 			};
 			name = Release;
 		};
-		777F769E2F776DA9007E6C03 /* Debug */ = {
+		777F76BA2F777FF4007E6C03 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -460,7 +460,7 @@
 				INFOPLIST_FILE = KitabShare/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = KitabShare;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -483,7 +483,7 @@
 			};
 			name = Debug;
 		};
-		777F769F2F776DA9007E6C03 /* Release */ = {
+		777F76BB2F777FF4007E6C03 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -495,7 +495,7 @@
 				INFOPLIST_FILE = KitabShare/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = KitabShare;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -537,11 +537,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		777F76A12F776DA9007E6C03 /* Build configuration list for PBXNativeTarget "KitabShare" */ = {
+		777F76B92F777FF4007E6C03 /* Build configuration list for PBXNativeTarget "KitabShare" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				777F769E2F776DA9007E6C03 /* Debug */,
-				777F769F2F776DA9007E6C03 /* Release */,
+				777F76BA2F777FF4007E6C03 /* Debug */,
+				777F76BB2F777FF4007E6C03 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

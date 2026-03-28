@@ -134,24 +134,17 @@ export function SharePreviewModal({ open, sharedUrl, onClose, onEditDetails, onF
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[500] flex items-end justify-center sm:items-center"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-    >
+    <div className="fixed inset-0 z-[500] flex items-center justify-center px-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50"
         onClick={onClose}
       />
 
-      {/* Sheet */}
-      <div className="relative z-10 w-full max-w-sm bg-paper-50 dark:bg-ink-900 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden">
-        {/* Drag handle (mobile) */}
-        <div className="flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-10 h-1 rounded-full bg-paper-300 dark:bg-ink-700" />
-        </div>
+      {/* Modal */}
+      <div className="relative z-10 w-full max-w-sm bg-paper-50 dark:bg-ink-900 rounded-2xl shadow-2xl overflow-hidden">
 
-        <div className="px-5 pb-6 pt-2">
+        <div className="px-5 pb-6 pt-5">
           {loading && <LoadingSkeleton hostname={hostname} />}
 
           {notFound && (

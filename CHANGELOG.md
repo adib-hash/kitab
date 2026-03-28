@@ -1,3 +1,8 @@
+## v2.1.4 — 2026-03-27
+### Fixed
+- **Share Extension modal**: Centred vertically on screen instead of sliding up from the bottom.
+- **Share Extension — native app support**: Kitab now appears in the share sheet of the Amazon and Goodreads iOS apps (not just Safari). Activation rule broadened to match plain-text shares; `ShareViewController` extracts Amazon/Goodreads URLs from shared text using `NSDataDetector`, preferring those domains over any other URLs in the text.
+
 ## v2.1.3 — 2026-03-27
 ### Added
 - **Share Extension — Smart Book Preview**: Replaced the manual search flow with an instant auto-lookup. Sharing an Amazon or Goodreads page now opens a pre-populated book card (cover, title, author, year, page count, description) via Google Books API. One tap to add to library with status selection (Want to Read / Reading / Read). "Edit details" opens the full form; "Not the right book?" falls back to manual search.
