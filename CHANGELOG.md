@@ -1,3 +1,7 @@
+## v2.1.1 — 2026-03-27
+### Fixed
+- **Kindle Highlights Sync**: Fixed "Sync Failed" error on Amazon login. Switched from `InAppBrowser.open()` (SFSafariViewController — no JS injection) to `openWebView()` (WKWebView — JS-injectable). Replaced broken `executeScript()` polling (returns `void`, not values) with `addListener('messageFromWebview')` to receive progress and results from the injected scraper via `window.mobileApp.postMessage()`. Login redirects handled gracefully — scraper re-injects on every page load; `window.__kitabRunning` guard prevents double execution.
+
 ## v2.1.0 — 2026-03-27
 ### Added
 - **Kindle Highlights Sync (iOS)**: One-tap sync of all Kindle highlights via `read.amazon.com/kp/notebook`. Opens an in-app browser, injects a scraper, extracts highlights across all books, fuzzy-matches to your library, and stores in Supabase. Sign in to Amazon once; session persists for future syncs. Accessible from Settings (iOS only).
