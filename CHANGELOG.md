@@ -1,3 +1,7 @@
+## v2.1.2 — 2026-03-27
+### Fixed
+- **Kindle Highlights Sync**: Fixed scraper's `postMessage` calls to wrap data in `{ detail: { ... } }` as required by the `@capgo/inappbrowser` Capacitor bridge. Without this, `event.detail` was `undefined` in the listener and all messages were silently dropped.
+
 ## v2.1.1 — 2026-03-27
 ### Fixed
 - **Kindle Highlights Sync**: Fixed "Sync Failed" error on Amazon login. Switched from `InAppBrowser.open()` (SFSafariViewController — no JS injection) to `openWebView()` (WKWebView — JS-injectable). Replaced broken `executeScript()` polling (returns `void`, not values) with `addListener('messageFromWebview')` to receive progress and results from the injected scraper via `window.mobileApp.postMessage()`. Login redirects handled gracefully — scraper re-injects on every page load; `window.__kitabRunning` guard prevents double execution.
