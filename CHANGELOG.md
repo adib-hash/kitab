@@ -1,3 +1,7 @@
+## v2.1.3 — 2026-03-27
+### Added
+- **Share Extension — Smart Book Preview**: Replaced the manual search flow with an instant auto-lookup. Sharing an Amazon or Goodreads page now opens a pre-populated book card (cover, title, author, year, page count, description) via Google Books API. One tap to add to library with status selection (Want to Read / Reading / Read). "Edit details" opens the full form; "Not the right book?" falls back to manual search.
+
 ## v2.1.2 — 2026-03-27
 ### Fixed
 - **Kindle Highlights Sync**: Fixed scraper's `postMessage` calls to wrap data in `{ detail: { ... } }` as required by the `@capgo/inappbrowser` Capacitor bridge. Without this, `event.detail` was `undefined` in the listener and all messages were silently dropped.

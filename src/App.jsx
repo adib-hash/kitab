@@ -36,6 +36,7 @@ import { Modal, Button } from './components/ui/index.jsx'
 import { ReviewModal } from './components/books/ReviewModal'
 import { BookSearchModal } from './components/books/BookSearch'
 import { BookForm } from './components/books/BookForm'
+import { SharePreviewModal } from './components/books/SharePreviewModal'
 import { App as CapacitorApp } from '@capacitor/app'
 
 const queryClient = new QueryClient({
@@ -108,8 +109,9 @@ function OfflineBanner() {
 export default function App() {
   const [session, setSession] = useState(undefined) // undefined = loading
   const [sharedUrl, setSharedUrl] = useState('')
+  const [showSharePreview, setShowSharePreview] = useState(false)
   const [showShareSearch, setShowShareSearch] = useState(false)
-  const [selectedBookFromShare, setSelectedBookFromShare] = useState(null)
+  const [sharePreviewBook, setSharePreviewBook] = useState(null)
   const [showShareForm, setShowShareForm] = useState(false)
   const { initDarkMode } = useUIStore()
 
@@ -137,7 +139,7 @@ export default function App() {
           const params = new URL(url)
           const incoming = params.searchParams.get('url') || ''
           setSharedUrl(incoming)
-          setShowShareSearch(true)
+          setShowSharePreview(true)
         } catch {}
       }
     })
@@ -249,17 +251,24 @@ export default function App() {
         <ReviewPrompt />
 
         {/* Share Extension add-book flow */}
+        <SharePreviewModal
+          open={showSharePreview}
+          sharedUrl={sharedUrl}
+          onClose={() => { setShowSharePreview(false); setSharedUrl('') }}
+          onEditDetails={(book) => { setSharePreviewBook(book); setShowSharePreview(false); setShowShareForm(true) }}
+          onFallback={() => { setShowSharePreview(false); setShowShareSearch(true) }}
+        />
         <BookSearchModal
           open={showShareSearch}
           onClose={() => { setShowShareSearch(false); setSharedUrl('') }}
-          onSelect={(book) => { setSelectedBookFromShare(book); setShowShareSearch(false); setShowShareForm(true) }}
-          onManual={() => { setSelectedBookFromShare(null); setShowShareSearch(false); setShowShareForm(true) }}
+          onSelect={(book) => { setSharePreviewBook(book); setShowShareSearch(false); setShowShareForm(true) }}
+          onManual={() => { setSharePreviewBook(null); setShowShareSearch(false); setShowShareForm(true) }}
           sharedUrl={sharedUrl}
         />
         <BookForm
           open={showShareForm}
-          onClose={() => { setShowShareForm(false); setSelectedBookFromShare(null); setSharedUrl('') }}
-          initialBook={selectedBookFromShare}
+          onClose={() => { setShowShareForm(false); setSharePreviewBook(null); setSharedUrl('') }}
+          initialBook={sharePreviewBook}
         />
       </BrowserRouter>
     </PersistQueryClientProvider>
