@@ -12,7 +12,7 @@ import { findCoverUrl } from '../lib/openLibrary'
 import { BookCover } from '../components/books/BookCover'
 import Papa from 'papaparse'
 import { useAddBook } from '../hooks/useLibrary'
-import { useAllUnmatched, useAssignHighlights, useKindleSync, KINDLE_SCRAPER_JS } from '../hooks/useHighlights'
+import { useAllUnmatched, useAssignHighlights, useDeleteUnmatched, useKindleSync, KINDLE_SCRAPER_JS } from '../hooks/useHighlights'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
@@ -228,7 +228,7 @@ function EnrichLibrary({ books }) {
   )
 }
 
-function UnmatchedBookRow({ group, readBooks, onAssign }) {
+function UnmatchedBookRow({ group, readBooks, onAssign, onRemove }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
 
@@ -243,14 +243,23 @@ function UnmatchedBookRow({ group, readBooks, onAssign }) {
 
   return (
     <div className="p-4 bg-paper-50 dark:bg-ink-800 rounded-xl space-y-3">
-      <div>
-        <p className="font-medium text-ink-900 dark:text-paper-100 text-sm">{group.title}</p>
-        {group.author && <p className="text-xs text-ink-500 dark:text-ink-400">{group.author}</p>}
-        <p className="text-xs text-ink-400 mt-0.5">
-          {group.highlights.length} highlight{group.highlights.length !== 1 ? 's' : ''}
-          {firstHighlight && <span className="italic"> · "{firstHighlight}…"</span>}
-        </p>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="font-medium text-ink-900 dark:text-paper-100 text-sm">{group.title}</p>
+          {group.author && <p className="text-xs text-ink-500 dark:text-ink-400">{group.author}</p>}
+        </div>
+        <button
+          onClick={() => onRemove(group.title)}
+          className="p-1 rounded-lg hover:bg-paper-200 dark:hover:bg-ink-600 text-ink-400 hover:text-rose-500 flex-shrink-0 transition-colors"
+          title="Remove"
+        >
+          <Trash2 size={14} />
+        </button>
       </div>
+      <p className="text-xs text-ink-400 mt-0.5">
+        {group.highlights.length} highlight{group.highlights.length !== 1 ? 's' : ''}
+        {firstHighlight && <span className="italic"> · "{firstHighlight}…"</span>}
+      </p>
       <div className="relative">
         <input
           className="input w-full"
@@ -293,8 +302,9 @@ function KindleSyncSection() {
   const [showResult, setShowResult] = useState(false)
   const { data: unmatched = [] } = useAllUnmatched()
   const assign = useAssignHighlights()
+  const deleteUnmatched = useDeleteUnmatched()
   const { data: books = [] } = useLibrary()
-  const readBooks = books.filter(b => b.status === 'read')
+  const readBooks = books.filter(b => b.status === 'read' || b.status === 'reading')
 
   // Show the result card briefly after the mutation settles
   useEffect(() => {
@@ -460,6 +470,9 @@ function KindleSyncSection() {
                 onAssign={async (bookTitle, bookId) => {
                   await assign.mutateAsync({ bookTitle, bookId })
                 }}
+                onRemove={async (bookTitle) => {
+                  await deleteUnmatched.mutateAsync({ bookTitle })
+                }}
               />
             ))}
           </div>
@@ -575,7 +588,7 @@ export function Settings() {
         </button>
         <div>
           <h1 className="page-title">Settings</h1>
-          <p className="text-xs text-ink-400 dark:text-ink-600 mt-0.5">Kitab · v2.3.0</p>
+          <p className="text-xs text-ink-400 dark:text-ink-600 mt-0.5">Kitab · v2.3.1</p>
         </div>
       </div>
 

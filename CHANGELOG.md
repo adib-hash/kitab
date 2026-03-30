@@ -1,3 +1,10 @@
+## v2.3.1 — 2026-03-29
+
+### Fixed
+- **Unmatched book queue — dismiss button**: Added a trash icon button on each unmatched entry to permanently delete those highlights from Supabase. Useful for Kindle books you don't have in your library and don't want cluttering the queue.
+- **Unmatched book queue — "Currently Reading" books missing from search**: The manual link combobox was filtered to `status === 'read'` only, so books marked "Currently Reading" never appeared as options and couldn't be linked. Now includes both `read` and `reading` books.
+- **"Currently Reading" Kindle highlights not syncing**: Root cause of the above — if auto-matching failed for a currently-reading book and the manual link dropdown excluded it, there was no path to link the highlights. Both the auto-match (which already used all books) and the manual combobox now correctly surface currently-reading books.
+
 ## v2.3.0 — 2026-03-29
 
 ### Added

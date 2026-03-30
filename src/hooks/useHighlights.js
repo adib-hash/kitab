@@ -203,6 +203,27 @@ export function useAllUnmatched() {
   })
 }
 
+export function useDeleteUnmatched() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ bookTitle }) => {
+      const { data: { user } } = await supabase.auth.getUser()
+      const { error } = await supabase
+        .from('highlights')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('book_title', bookTitle)
+        .is('book_id', null)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['highlights_unmatched'] })
+      toast.success('Removed')
+    },
+    onError: (err) => toast.error(`Failed to remove: ${err.message}`),
+  })
+}
+
 export function useAssignHighlights() {
   const qc = useQueryClient()
   return useMutation({
