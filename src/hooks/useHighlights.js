@@ -87,15 +87,36 @@ export const KINDLE_SCRAPER_JS = `
 
     window.mobileApp.postMessage({ detail: { type: 'kitabProgress', current: i + 1, total: bookItems.length } });
 
-    bookEl.click();
+    // Scroll the book row into view — off-screen elements may not receive events reliably
+    bookEl.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+    await new Promise(function(r) { setTimeout(r, 200); });
 
-    // Poll for the annotations panel to appear (up to 6s) instead of fixed wait
+    // Dispatch a full mouse event sequence on the most specific clickable element.
+    // Amazon's notebook is a React SPA — simple .click() on the container div does not
+    // reliably fire React's synthetic event handlers. Bubbling mousedown/mouseup/click
+    // from a child element (the title link or the row itself) is far more reliable.
+    function fireClick(el) {
+      ['mousedown', 'mouseup', 'click'].forEach(function(type) {
+        el.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
+      });
+    }
+    var clickTarget = bookEl.querySelector('a') || titleEl || bookEl;
+    fireClick(clickTarget);
+
+    // Poll for the annotations panel to appear (up to 6s)
     var annotWait = 0;
     while (annotWait < 6000) {
       if (document.querySelector('#kp-notebook-annotations')) break;
       await new Promise(function(r) { setTimeout(r, 300); });
       annotWait += 300;
     }
+
+    // If still no annotations panel, retry the click on the row itself and wait 4s more
+    if (!document.querySelector('#kp-notebook-annotations')) {
+      fireClick(bookEl);
+      await new Promise(function(r) { setTimeout(r, 4000); });
+    }
+
     if (!document.querySelector('#kp-notebook-annotations')) continue;
 
     var pageNum = 0;

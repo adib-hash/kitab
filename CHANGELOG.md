@@ -1,3 +1,8 @@
+## v2.3.2 — 2026-03-29
+
+### Fixed
+- **Kindle sync — scraper hangs requiring manual book tap**: The scraper was calling `bookEl.click()` directly on the row container div. Amazon's Kindle notebook page is a React SPA — programmatic `.click()` on a container element doesn't reliably fire React's synthetic event handlers, so the annotations panel would sometimes never appear. The scraper now: (1) scrolls each book into view before clicking, (2) dispatches a full `mousedown` → `mouseup` → `click` event sequence on the most specific clickable child element (a link or the title), which correctly bubbles through React's event system, and (3) retries once on the row itself with a 4s wait if the first attempt gets no response. Total patience before skipping a book: 10 seconds.
+
 ## v2.3.1 — 2026-03-29
 
 ### Fixed
