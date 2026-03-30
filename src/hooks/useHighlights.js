@@ -30,7 +30,7 @@ export const KINDLE_SCRAPER_JS = `
     var b = document.createElement('div');
     b.id = '__kitabBanner';
     b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#0d9488;color:#fff;text-align:center;padding:12px 16px;font-size:14px;font-weight:600;font-family:-apple-system,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.25);';
-    b.textContent = 'Kitab is syncing your highlights — please wait. This window will close automatically.';
+    b.textContent = 'Kitab is loading your Kindle notebook — please wait…';
     document.body.prepend(b);
   })();
 
@@ -39,13 +39,23 @@ export const KINDLE_SCRAPER_JS = `
     if (b) b.remove();
   }
 
-  // Scroll to the bottom in steps to trigger any infinite-scroll / lazy-loaded books
-  for (var s = 0; s < 30; s++) {
-    window.scrollBy(0, 400);
-    await new Promise(function(r) { setTimeout(r, 150); });
+  // Scroll until the book list stops growing (handles large libraries with lazy-loading)
+  var prevCount = -1, stableFor = 0;
+  var scrollStart = Date.now();
+  while (Date.now() - scrollStart < 30000) {
+    window.scrollBy(0, 600);
+    await new Promise(function(r) { setTimeout(r, 400); });
+    var count = document.querySelectorAll('#kp-notebook-library > .a-row[id]').length;
+    if (count === prevCount) {
+      stableFor++;
+      if (stableFor >= 3) break;
+    } else {
+      stableFor = 0;
+      prevCount = count;
+    }
   }
   window.scrollTo(0, 0);
-  await new Promise(function(r) { setTimeout(r, 800); });
+  await new Promise(function(r) { setTimeout(r, 1000); });
 
   // Re-query after scrolling to capture lazily loaded book rows
   var bookItems = Array.from(document.querySelectorAll('#kp-notebook-library > .a-row[id]'));
@@ -56,14 +66,23 @@ export const KINDLE_SCRAPER_JS = `
     return;
   }
 
+  // Update banner with discovered book count
+  (function() {
+    var b = document.getElementById('__kitabBanner');
+    if (b) b.textContent = 'Kitab found ' + bookItems.length + ' book' + (bookItems.length !== 1 ? 's' : '') + ' — syncing highlights…';
+  })();
+
   var allHighlights = [];
   var seen = new Set();
 
   for (var i = 0; i < bookItems.length; i++) {
     var bookEl = bookItems[i];
-    var titleEl = bookEl.querySelector('.kp-notebook-searchable');
+    var titleEl = bookEl.querySelector('.kp-notebook-searchable') ||
+                  bookEl.querySelector('[class*="title"]') ||
+                  bookEl.querySelector('h2') || bookEl.querySelector('h3');
     var bookTitle = titleEl ? titleEl.textContent.trim() : 'Unknown';
-    var authorEl = bookEl.querySelector('.a-color-secondary');
+    var authorEl = bookEl.querySelector('.a-color-secondary') ||
+                   bookEl.querySelector('[class*="author"]');
     var bookAuthor = authorEl ? authorEl.textContent.trim() : null;
 
     window.mobileApp.postMessage({ detail: { type: 'kitabProgress', current: i + 1, total: bookItems.length } });
@@ -121,7 +140,7 @@ export const KINDLE_SCRAPER_JS = `
       if (!nextBtn) break;
 
       nextBtn.click();
-      await new Promise(function(r) { setTimeout(r, 1200); });
+      await new Promise(function(r) { setTimeout(r, 2000); });
       pageNum++;
     }
   }

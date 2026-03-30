@@ -1,3 +1,16 @@
+## v2.3.0 — 2026-03-29
+
+### Added
+- **Settings — version at top**: Version string moved from the bottom of the Settings page to directly under the "Settings" heading. Makes it easy to spot-check that the latest deployment is live without scrolling.
+- **Settings — collapsible Manage Tags**: Tags section is now collapsed by default. Tap the header to expand. The header shows the tag count `(N)` when collapsed so you know what's inside without opening it.
+- **Kindle Highlights — redesigned unmatched book matching**: Replaced the blind native dropdown (which showed book titles with no context) with an inline searchable combobox. Each unmatched entry now shows the full Kindle title, author, highlight count, and a snippet of the first highlight. Type 2+ characters in the search box to filter your library by title or author and tap a result to link it.
+
+### Fixed
+- **Kindle Highlights Sync — incomplete scroll on large libraries**: The scraper previously scrolled a fixed `30 × 400px`, which wasn't enough to reveal all books in large Kindle notebooks. It now scrolls in a loop and stops only when the book list count has been stable for 3 consecutive checks (capped at 30s). Libraries of any size are now fully loaded before scraping begins.
+- **Kindle Highlights Sync — pagination wait too short**: Increased the wait after clicking "next page" within a book's annotations from 1.2s to 2.0s, giving Amazon's panel more time to fully render before the scraper reads the next batch.
+- **Kindle Highlights Sync — scraper banner**: Banner now updates after scroll to show the number of books found: "Kitab found N books — syncing highlights…", giving better visibility into progress.
+- **Kindle Highlights Sync — title/author selector resilience**: Added fallback DOM selectors for book title and author in case Amazon updates their class names.
+
 ## v2.2.0 — 2026-03-28
 ### Fixed
 - **Kindle Highlights Sync — new highlights not picked up**: The scraper previously used a fixed 2.5s delay before checking for the book list DOM. Amazon renders the notebook page asynchronously, so fast loads or slow connections could both miss the ready state. The scraper now polls for `#kp-notebook-library` every 500ms for up to 15s, ensuring it always waits for the page to be fully rendered before scraping.

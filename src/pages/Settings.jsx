@@ -228,6 +228,63 @@ function EnrichLibrary({ books }) {
   )
 }
 
+function UnmatchedBookRow({ group, readBooks, onAssign }) {
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+
+  const filtered = query.trim().length >= 2
+    ? readBooks.filter(b =>
+        b.title.toLowerCase().includes(query.toLowerCase()) ||
+        (b.author || '').toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 6)
+    : []
+
+  const firstHighlight = group.highlights[0]?.text?.slice(0, 100)
+
+  return (
+    <div className="p-4 bg-paper-50 dark:bg-ink-800 rounded-xl space-y-3">
+      <div>
+        <p className="font-medium text-ink-900 dark:text-paper-100 text-sm">{group.title}</p>
+        {group.author && <p className="text-xs text-ink-500 dark:text-ink-400">{group.author}</p>}
+        <p className="text-xs text-ink-400 mt-0.5">
+          {group.highlights.length} highlight{group.highlights.length !== 1 ? 's' : ''}
+          {firstHighlight && <span className="italic"> · "{firstHighlight}…"</span>}
+        </p>
+      </div>
+      <div className="relative">
+        <input
+          className="input w-full"
+          style={{ fontSize: '16px' }}
+          placeholder="Search your library to link…"
+          value={query}
+          onChange={e => { setQuery(e.target.value); setOpen(true) }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+        />
+        {open && filtered.length > 0 && (
+          <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-white dark:bg-ink-700 rounded-xl border border-paper-200 dark:border-ink-600 shadow-lg overflow-hidden">
+            {filtered.map(b => (
+              <button
+                key={b.id}
+                className="w-full text-left px-4 py-3 text-sm hover:bg-paper-100 dark:hover:bg-ink-600 border-b border-paper-100 dark:border-ink-600 last:border-0"
+                onMouseDown={e => {
+                  e.preventDefault()
+                  onAssign(group.title, b.id)
+                  setQuery('')
+                  setOpen(false)
+                }}
+              >
+                <span className="font-medium text-ink-900 dark:text-paper-100">{b.title}</span>
+                {b.author && <span className="text-ink-400 text-xs block mt-0.5">{b.author}</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Kindle WKWebView sync (iOS native only) ───────────────────────────────
 function KindleSyncSection() {
   const kindleSync = useKindleSync()
@@ -396,26 +453,14 @@ function KindleSyncSection() {
           </div>
           <div className="space-y-2">
             {unmatchedGroups.map(group => (
-              <div key={group.title} className="flex items-center gap-3 p-3 bg-paper-50 dark:bg-ink-800 rounded-lg text-sm">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-ink-900 dark:text-paper-100 truncate">{group.title}</p>
-                  <p className="text-ink-400 text-xs">{group.highlights.length} highlight{group.highlights.length > 1 ? 's' : ''}</p>
-                </div>
-                <select
-                  className="input text-xs py-1"
-                  style={{ fontSize: '16px' }}
-                  defaultValue=""
-                  onChange={async e => {
-                    if (!e.target.value) return
-                    await assign.mutateAsync({ bookTitle: group.title, bookId: e.target.value })
-                  }}
-                >
-                  <option value="">Link to book…</option>
-                  {readBooks.map(b => (
-                    <option key={b.id} value={b.id}>{b.title}</option>
-                  ))}
-                </select>
-              </div>
+              <UnmatchedBookRow
+                key={group.title}
+                group={group}
+                readBooks={readBooks}
+                onAssign={async (bookTitle, bookId) => {
+                  await assign.mutateAsync({ bookTitle, bookId })
+                }}
+              />
             ))}
           </div>
         </div>
@@ -434,6 +479,7 @@ export function Settings() {
   const [editingTag, setEditingTag] = useState(null)
   const [editName, setEditName] = useState('')
   const [importing, setImporting] = useState(false)
+  const [tagsOpen, setTagsOpen] = useState(false)
   const { librarySlug, setLibrarySlug } = useUIStore()
   const [slugInput, setSlugInput] = useState(librarySlug || '')
 
@@ -527,7 +573,10 @@ export function Settings() {
         >
           <ChevronLeft size={20} />
         </button>
-        <h1 className="page-title">Settings</h1>
+        <div>
+          <h1 className="page-title">Settings</h1>
+          <p className="text-xs text-ink-400 dark:text-ink-600 mt-0.5">Kitab · v2.3.0</p>
+        </div>
       </div>
 
       {/* Libby */}
@@ -599,33 +648,46 @@ export function Settings() {
         </label>
       </div>
 
-      {/* Tag management */}
-      <div className="card p-6 space-y-4">
-        <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 flex items-center gap-2">
-          <Tag size={18} className="text-teal-600" /> Manage Tags
-        </h2>
-        {tags.length === 0 ? (
-          <p className="text-sm text-ink-500 dark:text-ink-400">No tags yet. Tags are created when you add them to books.</p>
-        ) : (
-          <div className="divide-y divide-paper-100 dark:divide-ink-700">
-            {tags.map(tag => (
-              editingTag?.id === tag.id ? (
-                <div key={tag.id} className="flex items-center gap-3 py-2.5 px-4">
-                  <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: tag.color }} />
-                  <input
-                    value={editName}
-                    onChange={e => setEditName(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && saveTag()}
-                    className="input flex-1"
-                    autoFocus
-                  />
-                  <Button size="sm" onClick={saveTag}>Save</Button>
-                  <Button size="sm" variant="ghost" onClick={() => setEditingTag(null)}>Cancel</Button>
-                </div>
-              ) : (
-                <TagRow key={tag.id} tag={tag} onEdit={startEditTag} onDelete={handleDeleteTag} />
-              )
-            ))}
+      {/* Tag management — collapsible */}
+      <div className="card p-6">
+        <button
+          className="w-full flex items-center justify-between"
+          onClick={() => setTagsOpen(o => !o)}
+        >
+          <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 flex items-center gap-2">
+            <Tag size={18} className="text-teal-600" /> Manage Tags
+            {tags.length > 0 && (
+              <span className="text-sm font-normal text-ink-400 font-sans">({tags.length})</span>
+            )}
+          </h2>
+          <ChevronDown size={18} className={`text-ink-400 transition-transform flex-shrink-0 ${tagsOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {tagsOpen && (
+          <div className="mt-4">
+            {tags.length === 0 ? (
+              <p className="text-sm text-ink-500 dark:text-ink-400">No tags yet. Tags are created when you add them to books.</p>
+            ) : (
+              <div className="divide-y divide-paper-100 dark:divide-ink-700">
+                {tags.map(tag => (
+                  editingTag?.id === tag.id ? (
+                    <div key={tag.id} className="flex items-center gap-3 py-2.5 px-4">
+                      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: tag.color }} />
+                      <input
+                        value={editName}
+                        onChange={e => setEditName(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && saveTag()}
+                        className="input flex-1"
+                        autoFocus
+                      />
+                      <Button size="sm" onClick={saveTag}>Save</Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingTag(null)}>Cancel</Button>
+                    </div>
+                  ) : (
+                    <TagRow key={tag.id} tag={tag} onEdit={startEditTag} onDelete={handleDeleteTag} />
+                  )
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -659,10 +721,6 @@ export function Settings() {
         </button>
       </div>
 
-      {/* App version */}
-      <p className="text-center text-xs text-ink-400 dark:text-ink-600 pb-2">
-        Kitab · v2.2.0
-      </p>
     </div>
   )
 }
