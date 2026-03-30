@@ -12,7 +12,8 @@ import { findCoverUrl } from '../lib/openLibrary'
 import { BookCover } from '../components/books/BookCover'
 import Papa from 'papaparse'
 import { useAddBook } from '../hooks/useLibrary'
-import { useAllUnmatched, useAssignHighlights, useDeleteUnmatched, useKindleSync, KINDLE_SCRAPER_JS } from '../hooks/useHighlights'
+import { useAllUnmatched, useAssignHighlights, useDeleteUnmatched } from '../hooks/useHighlights'
+import { useKindleSyncFlow } from '../hooks/useKindleSyncFlow'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
@@ -296,9 +297,7 @@ function UnmatchedBookRow({ group, readBooks, onAssign, onRemove }) {
 
 // ── Kindle WKWebView sync (iOS native only) ───────────────────────────────
 function KindleSyncSection() {
-  const kindleSync = useKindleSync()
-  const [syncing, setSyncing] = useState(false)
-  const [progress, setProgress] = useState(null)
+  const { syncing, progress, handleSync, kindleSync } = useKindleSyncFlow()
   const [showResult, setShowResult] = useState(false)
   const { data: unmatched = [] } = useAllUnmatched()
   const assign = useAssignHighlights()
@@ -326,77 +325,6 @@ function KindleSyncSection() {
   )
 
   const showStatusCard = syncing || kindleSync.isPending || (showResult && (kindleSync.isSuccess || kindleSync.isError))
-
-  async function handleSync() {
-    let InAppBrowser
-    try {
-      InAppBrowser = (await import('@capgo/inappbrowser')).InAppBrowser
-    } catch {
-      toast.error('Kindle sync requires the iOS app')
-      return
-    }
-
-    setSyncing(true)
-    setProgress('Opening Kindle…')
-    kindleSync.reset()
-
-    const listeners = []
-    let finished = false
-
-    function cleanup() {
-      listeners.forEach(l => { try { l.remove() } catch {} })
-      listeners.length = 0
-      setSyncing(false)
-      setProgress(null)
-    }
-
-    try {
-      // Listen for messages posted by the injected scraper via window.mobileApp.postMessage()
-      const msgListener = await InAppBrowser.addListener('messageFromWebview', async ({ detail }) => {
-        if (!detail) return
-        if (detail.type === 'kitabProgress') {
-          setProgress(`${detail.current}/${detail.total} books…`)
-        }
-        if (detail.type === 'kitabDone') {
-          finished = true
-          try { await InAppBrowser.close() } catch {}
-          cleanup()
-          const highlights = detail.highlights || []
-          if (highlights.length === 0) {
-            toast('No highlights found. Make sure you are logged in to Amazon.')
-          } else {
-            kindleSync.mutate({ highlights })
-          }
-        }
-      })
-      listeners.push(msgListener)
-
-      // Inject the scraper after each page load (handles login redirects).
-      // Reduced delay: scraper polls for DOM readiness internally.
-      const pageListener = await InAppBrowser.addListener('browserPageLoaded', () => {
-        setProgress('Loading Kindle notebook…')
-        setTimeout(() => {
-          InAppBrowser.executeScript({ code: KINDLE_SCRAPER_JS }).catch(() => {})
-        }, 800)
-      })
-      listeners.push(pageListener)
-
-      // When user closes the browser before the scraper finishes, show a clear message
-      const closeListener = await InAppBrowser.addListener('closeEvent', () => {
-        if (!finished) {
-          cleanup()
-          toast('Sync cancelled — tap Sync to try again.')
-        }
-      })
-      listeners.push(closeListener)
-
-      await InAppBrowser.openWebView({ url: 'https://read.amazon.com/kp/notebook' })
-    } catch (e) {
-      toast.error('Sync failed. Try again.')
-      try { await InAppBrowser.close() } catch {}
-      cleanup()
-    }
-  }
 
   return (
     <div className="card p-6 space-y-4">
@@ -588,7 +516,7 @@ export function Settings() {
         </button>
         <div>
           <h1 className="page-title">Settings</h1>
-          <p className="text-xs text-ink-400 dark:text-ink-600 mt-0.5">Kitab · v2.3.2</p>
+          <p className="text-xs text-ink-400 dark:text-ink-600 mt-0.5">Kitab · v2.4.0</p>
         </div>
       </div>
 

@@ -1,9 +1,12 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, BookOpen, ArrowRight, Target, Settings, Star, FileText, Bookmark, CheckCircle, Moon, Sun } from 'lucide-react'
+import { Plus, BookOpen, ArrowRight, Target, Settings, Star, FileText, Bookmark, CheckCircle, Moon, Sun, RefreshCw, Zap, AlertCircle, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { Capacitor } from '@capacitor/core'
 import { useLibrary } from '../hooks/useLibrary'
 import { useReadingGoal } from '../hooks/useTags'
+import { useAllHighlights } from '../hooks/useHighlights'
+import { useKindleSyncFlow } from '../hooks/useKindleSyncFlow'
 import { BookCard } from '../components/books/BookCard'
 import { ProgressBar, StatCard, EmptyState, BookCardSkeleton } from '../components/ui/index.jsx'
 import { BookSearchModal } from '../components/books/BookSearch'
@@ -16,10 +19,53 @@ export function Dashboard() {
   const thisYear = new Date().getFullYear()
   const { data: goal } = useReadingGoal(thisYear)
   const { darkMode, toggleDarkMode } = useUIStore()
+  const { data: allHighlights = [] } = useAllHighlights()
 
   const [searchOpen, setSearchOpen] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
   const [selectedBook, setSelectedBook] = useState(null)
+  const [highlightIdx, setHighlightIdx] = useState(0)
+
+  // Reactive dark mode detection (needed for highlight card inline styles)
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains('dark')
+  )
+  useEffect(() => {
+    const obs = new MutationObserver(() =>
+      setIsDark(document.documentElement.classList.contains('dark'))
+    )
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => obs.disconnect()
+  }, [])
+
+  // Pick a fresh random highlight when the data first loads
+  useEffect(() => {
+    if (allHighlights.length > 0) {
+      setHighlightIdx(Math.floor(Math.random() * allHighlights.length))
+    }
+  }, [allHighlights.length])
+
+  const highlight = allHighlights.length > 0
+    ? allHighlights[highlightIdx % allHighlights.length]
+    : null
+
+  function shuffleHighlight() {
+    if (allHighlights.length <= 1) return
+    setHighlightIdx(i => {
+      let next = Math.floor(Math.random() * allHighlights.length)
+      while (next === i) next = Math.floor(Math.random() * allHighlights.length)
+      return next
+    })
+  }
+
+  // iOS Kindle sync state
+  const isNative = Capacitor.isNativePlatform()
+  const { syncing, progress, handleSync, kindleSync } = useKindleSyncFlow()
+  const lastSyncRaw = localStorage.getItem('kindle_last_sync')
+  const daysSinceSync = lastSyncRaw
+    ? Math.floor((Date.now() - new Date(lastSyncRaw).getTime()) / (1000 * 60 * 60 * 24))
+    : null
+  const showSyncReminder = isNative && (daysSinceSync === null || daysSinceSync >= 7)
 
   const currentlyReading = useMemo(() => books.filter(b => b.status === 'reading'), [books])
   const recentlyRead = useMemo(() =>
@@ -27,7 +73,6 @@ export function Dashboard() {
       .sort((a,b) => b.date_finished.localeCompare(a.date_finished)).slice(0, 6),
     [books]
   )
-  // Use string slicing (timezone-safe) — new Date('YYYY-MM-01') can shift to Dec 31
   const yearBooks = useMemo(() =>
     books.filter(b =>
       b.status === 'read' && b.date_finished &&
@@ -58,7 +103,6 @@ export function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Dark mode toggle - mobile only (desktop has it in sidebar) */}
           <button onClick={toggleDarkMode} className="md:hidden p-2 rounded-xl text-ink-500 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors">
             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
@@ -89,6 +133,63 @@ export function Dashboard() {
               ? <span className="flex items-center gap-1"><CheckCircle size={13} className="text-teal-600" /> Goal achieved!</span>
               : `${goal.target - booksThisYear} more to go`}
           </p>
+        </motion.div>
+      )}
+
+      {/* Highlight of the day */}
+      {highlight && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="card p-6 relative overflow-hidden"
+        >
+          {/* Decorative quote mark */}
+          <div
+            className="absolute -top-3 left-3 font-serif leading-none select-none pointer-events-none"
+            style={{ fontSize: '6rem', color: isDark ? 'rgba(20,184,166,0.07)' : 'rgba(20,184,166,0.10)' }}
+          >&ldquo;</div>
+
+          <div className="relative space-y-4">
+            <p
+              className="font-serif leading-relaxed"
+              style={{
+                fontSize: '0.9375rem',
+                fontStyle: 'italic',
+                color: isDark ? '#e2e8f0' : '#292524',
+                lineHeight: '1.7',
+              }}
+            >
+              {highlight.text}
+            </p>
+
+            <div className="flex items-end justify-between gap-3 pt-1 border-t"
+                 style={{ borderColor: isDark ? '#1e293b' : '#f0ede8' }}>
+              <Link
+                to={`/library/${highlight.book_id}`}
+                className="min-w-0 group"
+              >
+                <p className="text-sm font-semibold text-teal-700 dark:text-teal-400 group-hover:underline truncate">
+                  {highlight.books?.title}
+                </p>
+                {highlight.books?.author && (
+                  <p className="text-xs mt-0.5" style={{ color: isDark ? '#64748b' : '#a8a29e' }}>
+                    {highlight.books.author}
+                  </p>
+                )}
+              </Link>
+              <button
+                onClick={shuffleHighlight}
+                title="Show another highlight"
+                className="p-2 rounded-xl transition-colors flex-shrink-0"
+                style={{ color: isDark ? '#475569' : '#c4bdb8' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#14b8a6'}
+                onMouseLeave={e => e.currentTarget.style.color = isDark ? '#475569' : '#c4bdb8'}
+              >
+                <RefreshCw size={14} />
+              </button>
+            </div>
+          </div>
         </motion.div>
       )}
 
@@ -178,6 +279,61 @@ export function Dashboard() {
             </button>
           }
         />
+      )}
+
+      {/* Kindle Highlights sync — iOS only, always visible at bottom */}
+      {isNative && (
+        <section className="space-y-3 pb-2">
+          <h2 className="font-serif text-lg md:text-xl font-semibold text-ink-900 dark:text-paper-50">
+            Kindle Highlights
+          </h2>
+
+          {/* 7-day reminder banner */}
+          {showSyncReminder && (
+            <div
+              className="flex items-start gap-3 p-4 rounded-xl border"
+              style={{
+                background: isDark ? 'rgba(120,53,15,0.15)' : '#fffbeb',
+                borderColor: isDark ? 'rgba(120,53,15,0.4)' : '#fde68a',
+              }}
+            >
+              <AlertCircle size={15} className="text-amber-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm" style={{ color: isDark ? '#fcd34d' : '#92400e' }}>
+                {daysSinceSync === null
+                  ? "You haven't synced your Kindle highlights yet."
+                  : "It's been a week since your last Kindle sync. Sync now?"}
+              </p>
+            </div>
+          )}
+
+          <div className="card p-4 space-y-3">
+            {lastSyncRaw && !showSyncReminder && (
+              <p className="text-xs" style={{ color: isDark ? '#475569' : '#a8a29e' }}>
+                Last synced {daysSinceSync === 0 ? 'today' : daysSinceSync === 1 ? 'yesterday' : `${daysSinceSync} days ago`}
+              </p>
+            )}
+            <button
+              onClick={handleSync}
+              disabled={syncing || kindleSync.isPending}
+              className={`btn-secondary w-full ${(syncing || kindleSync.isPending) ? 'opacity-50' : ''}`}
+            >
+              {syncing || kindleSync.isPending
+                ? <Loader2 size={14} className="animate-spin" />
+                : <Zap size={14} />
+              }
+              {syncing
+                ? (progress || 'Syncing…')
+                : kindleSync.isPending
+                ? 'Importing…'
+                : 'Sync Kindle Highlights'}
+            </button>
+            {kindleSync.isSuccess && (
+              <p className="text-xs text-teal-600 dark:text-teal-400 text-center">
+                {kindleSync.data?.totalHighlights ?? 0} new highlight{kindleSync.data?.totalHighlights !== 1 ? 's' : ''} imported
+              </p>
+            )}
+          </div>
+        </section>
       )}
 
       <BookSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} onSelect={handleSearchSelect} onManual={() => { setSelectedBook(null); setFormOpen(true) }} />

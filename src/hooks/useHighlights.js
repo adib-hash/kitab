@@ -224,6 +224,37 @@ export function useAllUnmatched() {
   })
 }
 
+export function useDeleteHighlight() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id) => {
+      const { error } = await supabase.from('highlights').delete().eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ['highlights'] })
+      qc.invalidateQueries({ queryKey: ['highlight_count'] })
+      toast.success('Highlight deleted')
+    },
+    onError: (err) => toast.error(`Failed: ${err.message}`),
+  })
+}
+
+export function useAllHighlights() {
+  return useQuery({
+    queryKey: ['all_highlights'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('highlights')
+        .select('id, text, book_id, books(id, title, author, cover_url)')
+        .not('book_id', 'is', null)
+      if (error) throw error
+      return data || []
+    },
+    staleTime: 1000 * 60 * 15,
+  })
+}
+
 export function useDeleteUnmatched() {
   const qc = useQueryClient()
   return useMutation({
@@ -368,9 +399,11 @@ export function useKindleSync() {
       return upsertHighlights(user, kitabBooks, highlights)
     },
     onSuccess: ({ totalHighlights, unmatched }) => {
+      localStorage.setItem('kindle_last_sync', new Date().toISOString())
       qc.invalidateQueries({ queryKey: ['highlights'] })
       qc.invalidateQueries({ queryKey: ['highlight_count'] })
       qc.invalidateQueries({ queryKey: ['highlights_unmatched'] })
+      qc.invalidateQueries({ queryKey: ['all_highlights'] })
       const msg = `${totalHighlights} new highlight${totalHighlights !== 1 ? 's' : ''} imported`
         + (unmatched > 0 ? ` · ${unmatched} unmatched` : '')
       toast.success(msg, { duration: 5000 })

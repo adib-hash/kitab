@@ -1,3 +1,15 @@
+## v2.4.0 — 2026-03-29
+
+### Added
+- **Delete a Kindle highlight**: Each highlight card in a book's detail page now has a small trash icon. Tap to permanently remove that highlight from your library.
+- **Highlight of the day on Home**: A randomly-selected Kindle highlight is displayed at the top of the Home page (below the reading goal), shown in serif italic with the book title as a tappable link. A shuffle button lets you cycle to another highlight. Only shown when you have highlights synced.
+- **Kindle sync on Home page (iOS)**: A "Kindle Highlights" section at the bottom of the Home page lets you sync without digging into Settings. Shows last sync time and a progress indicator while syncing.
+- **7-day sync reminder (iOS)**: If it's been a week or more since your last Kindle sync (or you've never synced), an amber reminder banner appears above the sync button on the Home page.
+- **Last sync time tracking**: After each successful sync, the timestamp is saved to localStorage. The Home page shows "Last synced today / yesterday / N days ago" so you always know where you stand.
+
+### Changed
+- Kindle sync logic extracted into a shared `useKindleSyncFlow` hook used by both Settings and Home — no duplicated code.
+
 ## v2.3.2 — 2026-03-29
 
 ### Fixed

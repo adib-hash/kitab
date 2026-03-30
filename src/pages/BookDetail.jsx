@@ -4,7 +4,7 @@ import { ArrowLeft, Edit2, Trash2, ExternalLink, AlertTriangle, ChevronDown, Che
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import { useBook, useDeleteBook, useLibrary } from '../hooks/useLibrary'
-import { useHighlights, useHighlightCount } from '../hooks/useHighlights'
+import { useHighlights, useHighlightCount, useDeleteHighlight } from '../hooks/useHighlights'
 import { useUIStore } from '../store/uiStore'
 import { BookCover } from '../components/books/BookCover'
 import { StarRating } from '../components/books/StarRating'
@@ -336,6 +336,7 @@ export function BookDetail() {
 function HighlightsSection({ bookId, count, isDark }) {
   const [open, setOpen] = useState(false)
   const { data: highlights = [], isLoading } = useHighlights(open ? bookId : null)
+  const deleteHighlight = useDeleteHighlight()
 
   if (count === 0) return null
 
@@ -367,12 +368,34 @@ function HighlightsSection({ bookId, count, isDark }) {
                 borderLeft: '4px solid #14b8a6',
                 background: isDark ? '#1e293b' : '#fafaf9',
                 padding: '1rem',
+                position: 'relative',
               }}>
+                <button
+                  onClick={() => deleteHighlight.mutate(h.id)}
+                  title="Delete highlight"
+                  style={{
+                    position: 'absolute',
+                    top: '0.5rem',
+                    right: '0.5rem',
+                    padding: '0.25rem',
+                    borderRadius: '0.375rem',
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    color: isDark ? '#475569' : '#d4ccc8',
+                    lineHeight: 1,
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#f43f5e'}
+                  onMouseLeave={e => e.currentTarget.style.color = isDark ? '#475569' : '#d4ccc8'}
+                >
+                  <Trash2 size={13} />
+                </button>
                 <p style={{
                   fontSize: '0.875rem',
                   color: isDark ? '#f1f5f9' : '#1c1917',
                   lineHeight: '1.625',
                   fontStyle: 'italic',
+                  paddingRight: '1.5rem',
                 }}>
                   "{h.text}"
                 </p>
@@ -385,7 +408,7 @@ function HighlightsSection({ bookId, count, isDark }) {
                     borderTop: `1px solid ${isDark ? '#334155' : '#e7e5e4'}`,
                     fontStyle: 'normal',
                   }}>
-                    💬 {h.note}
+                    {h.note}
                   </p>
                 )}
                 {h.location && (
