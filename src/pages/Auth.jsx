@@ -119,6 +119,9 @@ export function Auth({ session }) {
             </svg>
             Continue with Google
           </button>
+          <p className="text-[11px] text-ink-400 dark:text-ink-500 text-center -mt-1">
+            Sign-in is secured by Supabase, our authentication provider
+          </p>
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-paper-200 dark:bg-ink-700" />

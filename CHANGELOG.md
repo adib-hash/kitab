@@ -1,3 +1,8 @@
+## v2.4.3 — 2026-04-01
+
+### Improved
+- **Google sign-in reassurance**: Added a subtle note below the "Continue with Google" button explaining that sign-in is secured by Supabase, so users aren't surprised by the unfamiliar Supabase URL during the OAuth redirect.
+
 ## v2.4.2 — 2026-04-01
 
 ### Fixed
