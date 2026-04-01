@@ -1,3 +1,9 @@
+## v2.4.1 — 2026-04-01
+
+### Fixed
+- **Highlight of the day — expand/collapse**: Long Kindle highlights on the Home page are now clamped to 4 lines with a "Read more" / "Show less" toggle, keeping the dashboard compact. Resets to collapsed when shuffling to a new highlight.
+- **iOS Discover — "string did not match expected pattern" error**: The AI recommendation API call used a relative URL (`/api/recommend`) which fails on Capacitor's native webview. Now uses the absolute Vercel URL when running on iOS.
+
 ## v2.4.0 — 2026-03-29
 
 ### Added

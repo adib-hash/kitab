@@ -25,6 +25,7 @@ export function Dashboard() {
   const [formOpen, setFormOpen] = useState(false)
   const [selectedBook, setSelectedBook] = useState(null)
   const [highlightIdx, setHighlightIdx] = useState(0)
+  const [highlightExpanded, setHighlightExpanded] = useState(false)
 
   // Reactive dark mode detection (needed for highlight card inline styles)
   const [isDark, setIsDark] = useState(
@@ -51,6 +52,7 @@ export function Dashboard() {
 
   function shuffleHighlight() {
     if (allHighlights.length <= 1) return
+    setHighlightExpanded(false)
     setHighlightIdx(i => {
       let next = Math.floor(Math.random() * allHighlights.length)
       while (next === i) next = Math.floor(Math.random() * allHighlights.length)
@@ -151,17 +153,34 @@ export function Dashboard() {
           >&ldquo;</div>
 
           <div className="relative space-y-4">
-            <p
-              className="font-serif leading-relaxed"
-              style={{
-                fontSize: '0.9375rem',
-                fontStyle: 'italic',
-                color: isDark ? '#e2e8f0' : '#292524',
-                lineHeight: '1.7',
-              }}
-            >
-              {highlight.text}
-            </p>
+            <div>
+              <p
+                className="font-serif leading-relaxed"
+                style={{
+                  fontSize: '0.9375rem',
+                  fontStyle: 'italic',
+                  color: isDark ? '#e2e8f0' : '#292524',
+                  lineHeight: '1.7',
+                  ...(!highlightExpanded ? {
+                    display: '-webkit-box',
+                    WebkitLineClamp: 4,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  } : {}),
+                }}
+              >
+                {highlight.text}
+              </p>
+              {highlight.text && highlight.text.length > 150 && (
+                <button
+                  onClick={() => setHighlightExpanded(e => !e)}
+                  className="text-xs font-medium mt-2 transition-colors"
+                  style={{ color: isDark ? '#5eead4' : '#0f766e' }}
+                >
+                  {highlightExpanded ? 'Show less' : 'Read more'}
+                </button>
+              )}
+            </div>
 
             <div className="flex items-end justify-between gap-3 pt-1 border-t"
                  style={{ borderColor: isDark ? '#1e293b' : '#f0ede8' }}>

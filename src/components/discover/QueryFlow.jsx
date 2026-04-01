@@ -1,7 +1,12 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, Loader2, Sparkles } from 'lucide-react'
+import { Capacitor } from '@capacitor/core'
 import { searchBooks } from '../../lib/googleBooks'
+
+// On native iOS, relative /api/ URLs resolve against capacitor://localhost which doesn't work.
+// Use the absolute Vercel URL instead.
+const API_BASE = Capacitor.isNativePlatform() ? 'https://kitab.ihsan.build' : ''
 
 const MODES = [
   {
@@ -131,7 +136,7 @@ export function QueryFlow({ library, onComplete }) {
     try {
       const prompt = buildPrompt(selectedMode, text || 'Surprise me based on my library', library)
 
-      const response = await fetch('/api/recommend', {
+      const response = await fetch(`${API_BASE}/api/recommend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
