@@ -131,17 +131,51 @@ export function QueryFlow({ library, onComplete }) {
     try {
       const prompt = buildPrompt(selectedMode, text || 'Surprise me based on my library', library)
 
-      const response = await fetch('/api/recommend', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      })
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 25000)
+
+      let response
+      try {
+        response = await fetch('/api/recommend', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt }),
+          signal: controller.signal,
+        })
+      } catch (fetchErr) {
+        if (fetchErr.name === 'AbortError') {
+          throw new Error('Request timed out — please try again.')
+        }
+        throw fetchErr
+      } finally {
+        clearTimeout(timeout)
+      }
+
+      // Read as text first — response.json() throws an opaque error in Safari
+      // ("The string did not match the expected pattern") when body isn't valid JSON
+      const responseText = await response.text()
 
       if (!response.ok) {
-        const errData = await response.json().catch(() => ({}))
-        throw new Error(`${response.status}: ${errData.error || 'Unknown error'}`)
+        let errMsg = `${response.status}: Unknown error`
+        try {
+          const errData = JSON.parse(responseText)
+          errMsg = `${response.status}: ${errData.error || 'Unknown error'}`
+        } catch {}
+        throw new Error(errMsg)
       }
-      const data = await response.json()
+
+      let data
+      try {
+        data = JSON.parse(responseText)
+      } catch {
+        // Likely an HTML error page from Vercel (timeout, deploy issue, etc.)
+        const isHtml = responseText.trimStart().startsWith('<')
+        throw new Error(
+          isHtml
+            ? 'Server returned an error page — the request may have timed out. Please try again.'
+            : `Invalid response from server: ${responseText.slice(0, 120)}`
+        )
+      }
 
       const rawText = data.content?.find(b => b.type === 'text')?.text || ''
       if (!rawText) throw new Error('Empty response from API')
@@ -152,7 +186,7 @@ export function QueryFlow({ library, onComplete }) {
       try {
         books = JSON.parse(jsonText)
       } catch {
-        throw new Error(`JSON parse failed. Raw: ${rawText.slice(0, 200)}`)
+        throw new Error(`Couldn't parse recommendations. Please try again.`)
       }
 
       if (!Array.isArray(books)) throw new Error('Invalid response format')
