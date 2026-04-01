@@ -4,6 +4,7 @@ import { Sparkles, Check, X, RefreshCw, Loader2, BookMarked, ChevronRight, Chevr
 import { useLibrary, useAddBook } from '../hooks/useLibrary'
 import { supabase } from '../lib/supabase'
 import { searchBooks } from '../lib/googleBooks'
+import { apiUrl } from '../lib/utils'
 import { BookCover } from '../components/books/BookCover'
 import { Button, EmptyState } from '../components/ui/index.jsx'
 import toast from 'react-hot-toast'
@@ -156,7 +157,7 @@ Return ONLY a JSON array of 10 objects with these exact fields:
 
 Return ONLY valid JSON, no markdown, no prose.`
 
-      const res = await fetch('/api/recommendations', {
+      const res = await fetch(apiUrl('/api/recommendations'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })

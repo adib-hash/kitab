@@ -1,4 +1,16 @@
 import { format, formatDistanceToNow, parseISO, differenceInDays } from 'date-fns'
+import { Capacitor } from '@capacitor/core'
+
+/**
+ * Prefix a relative API path with the production origin when running inside
+ * the Capacitor native shell (where the webview serves from capacitor://localhost).
+ */
+export function apiUrl(path) {
+  if (Capacitor.isNativePlatform()) {
+    return `https://kitab.ihsan.build${path}`
+  }
+  return path
+}
 
 export function formatDate(date) {
   if (!date) return null

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, Loader2, Sparkles } from 'lucide-react'
 import { searchBooks } from '../../lib/googleBooks'
+import { apiUrl } from '../../lib/utils'
 
 const MODES = [
   {
@@ -136,7 +137,7 @@ export function QueryFlow({ library, onComplete }) {
 
       let response
       try {
-        response = await fetch('/api/recommend', {
+        response = await fetch(apiUrl('/api/recommend'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt }),
