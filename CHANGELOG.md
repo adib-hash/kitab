@@ -1,3 +1,8 @@
+## v2.4.2 — 2026-04-01
+
+### Fixed
+- **iOS Discover — "Load failed" error**: The `/api/recommend` Vercel serverless function was missing CORS headers. iOS Capacitor runs from `capacitor://localhost`, making the API call cross-origin. Added `Access-Control-Allow-Origin` and OPTIONS preflight handling.
+
 ## v2.4.1 — 2026-04-01
 
 ### Fixed
