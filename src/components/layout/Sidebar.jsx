@@ -63,13 +63,13 @@ export function Sidebar({ onSearch }) {
       <div className={clsx('flex items-center px-4 py-5 border-b border-paper-200 dark:border-ink-700', collapsed ? 'justify-center' : 'justify-between')}>
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <span className="text-xl">📖</span>
+            <BookOpen size={22} className="text-teal-600 dark:text-teal-400" />
             <Link to="/" className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 hover:text-teal-700 dark:hover:text-teal-400 transition-colors">Kitab</Link>
           </div>
         )}
-        {collapsed && <span className="text-xl">📖</span>}
+        {collapsed && <BookOpen size={22} className="text-teal-600 dark:text-teal-400" />}
         {!collapsed && (
-          <button onClick={toggleSidebar} className="p-1 rounded-lg hover:bg-paper-100 dark:hover:bg-ink-800 text-ink-400 transition-colors">
+          <button onClick={toggleSidebar} className="p-2 rounded-lg hover:bg-paper-100 dark:hover:bg-ink-800 text-ink-400 transition-colors">
             <ChevronLeft size={16} />
           </button>
         )}
@@ -110,7 +110,7 @@ export function Sidebar({ onSearch }) {
                 <button
                   key={tag.id}
                   onClick={() => setLibraryFilters({ tags: [tag.id] })}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-ink-600 dark:text-ink-400 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-ink-600 dark:text-ink-400 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors text-left"
                 >
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: tag.color || '#0F766E' }} />
                   <span className="truncate">{tag.name}</span>
