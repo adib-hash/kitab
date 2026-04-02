@@ -21,8 +21,7 @@ function CoverCard({ book, inLibrary, onAdd, onRemove, isPending, added }) {
   const titleColor = `hsl(${(book.title?.charCodeAt(0) ?? 65) * 37 % 360}, 35%, 28%)`
 
   return (
-    <div className="relative rounded-2xl overflow-hidden shadow-xl mx-auto"
-         style={{ width: 240, height: 320 }}>
+    <div className="relative rounded-2xl overflow-hidden shadow-xl mx-auto w-full max-w-[240px] aspect-[3/4]">
 
       {/* Cover image or fallback */}
       {book.cover_url && !imgError ? (
