@@ -86,7 +86,7 @@ export function RecommendationCard({ book, index = 0, inLibrary = false, onClick
 
         {/* Award badge */}
         {book.award && (
-          <div className="absolute top-2 left-2 bg-amber-500/90 text-amber-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+          <div className="absolute top-2 left-2 bg-amber-500/90 text-amber-900 text-xs font-bold px-1.5 py-0.5 rounded-full">
             ✦ {book.award.split(' ')[0]}
           </div>
         )}

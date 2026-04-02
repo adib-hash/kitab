@@ -9,10 +9,10 @@ import { RecDetailModal } from '../components/discover/RecDetailModal'
 import { timeAgo } from '../lib/utils'
 
 const MODE_LABELS = {
-  vibe:      '✨ A specific vibe',
-  author:    '✍️ More from authors I like',
-  fresh:     '🌍 Something totally new',
-  favorites: '⭐ Based on my favorites',
+  vibe:      'A specific vibe',
+  author:    'More from authors I like',
+  fresh:     'Something totally new',
+  favorites: 'Based on my favorites',
 }
 
 // ── CoverCard — book cover with fallback, X + TBR bookmark buttons ────────────

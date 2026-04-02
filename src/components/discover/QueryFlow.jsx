@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, Loader2, Sparkles } from 'lucide-react'
+import { ArrowRight, Loader2, Sparkles, Pen, Globe, Star } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
 import { searchBooks } from '../../lib/googleBooks'
 
@@ -11,28 +11,28 @@ const API_BASE = Capacitor.isNativePlatform() ? 'https://kitab.ihsan.build' : ''
 const MODES = [
   {
     id: 'vibe',
-    emoji: '✨',
+    icon: Sparkles,
     label: 'A specific vibe',
     placeholder: 'e.g. "dark and atmospheric", "feel-good and funny", "page-turning thriller"',
     prompt: 'The reader is looking for books that match a specific vibe or mood.',
   },
   {
     id: 'author',
-    emoji: '✍️',
+    icon: Pen,
     label: 'More from authors I like',
     placeholder: 'e.g. "authors like Cormac McCarthy" or just "surprise me based on my library"',
     prompt: 'The reader wants more books from authors similar to ones they already love.',
   },
   {
     id: 'fresh',
-    emoji: '🌍',
+    icon: Globe,
     label: 'Something totally new',
     placeholder: 'e.g. "I always read sci-fi, shake things up" or "something from a different culture"',
     prompt: 'The reader wants something outside their usual genres — a genuine stretch pick.',
   },
   {
     id: 'favorites',
-    emoji: '⭐',
+    icon: Star,
     label: 'Based on my favorites',
     placeholder: 'Any extra guidance? (optional — we already know your highest-rated books)',
     prompt: 'The reader wants recommendations based on their all-time favorite reads.',
@@ -206,7 +206,7 @@ export function QueryFlow({ library, onComplete }) {
                   onClick={() => { setSelectedMode(mode.id); setStep('input') }}
                   className="flex items-center gap-3 py-3 text-left group hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
                 >
-                  <span className="text-lg w-7 text-center flex-shrink-0">{mode.emoji}</span>
+                  <span className="w-7 text-center flex-shrink-0"><mode.icon size={18} /></span>
                   <span className="text-sm font-medium text-paper-900 dark:text-paper-50 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
                     {mode.label}
                   </span>
@@ -233,7 +233,7 @@ export function QueryFlow({ library, onComplete }) {
               >
                 ← back
               </button>
-              <span className="text-xl">{currentMode.emoji}</span>
+              <currentMode.icon size={20} />
               <span className="text-sm font-medium text-ink-700 dark:text-ink-300">{currentMode.label}</span>
             </div>
 
