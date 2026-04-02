@@ -53,8 +53,7 @@ function BattleCard({ book, onClick, disabled, isWinner, isLoser }) {
         isLoser  ? { opacity: 0.45, scale: 0.97 } : {}
       }
       transition={{ duration: 0.2 }}
-      className="flex-1 flex flex-col items-center rounded-2xl border-2 overflow-hidden transition-colors duration-150 cursor-pointer group"
-      style={{ borderColor: isWinner ? '#0d9488' : 'transparent' }}
+      className={`flex-1 flex flex-col items-center rounded-2xl border-2 overflow-hidden transition-colors duration-150 cursor-pointer group ${isWinner ? 'border-teal-600' : 'border-transparent'}`}
     >
       <div
         className="w-full relative bg-ink-900 flex items-center justify-center"
@@ -63,7 +62,7 @@ function BattleCard({ book, onClick, disabled, isWinner, isLoser }) {
         {book.cover_url ? (
           <img src={book.cover_url} alt={book.title} className="h-full w-full object-cover" />
         ) : (
-          <div className="h-full w-full flex items-center justify-center font-serif font-bold text-white text-4xl" style={{ backgroundColor: '#2d6a6a' }}>
+          <div className="h-full w-full flex items-center justify-center font-serif font-bold text-white text-4xl bg-teal-700">
             {book.title.slice(0, 2).toUpperCase()}
           </div>
         )}
