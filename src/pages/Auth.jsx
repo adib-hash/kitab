@@ -47,7 +47,7 @@ export function Auth({ session }) {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'com.kitab.app://login',
+          redirectTo: 'com.adibchoudhury.kitab://login',
           skipBrowserRedirect: true,
         }
       });
@@ -56,8 +56,8 @@ export function Auth({ session }) {
         
         // Listen for the app to reopen via the custom URL scheme
         const handleUrl = async (event) => {
-          if (event.url?.startsWith('com.kitab.app://')) {
-            const url = new URL(event.url.replace('com.kitab.app://', 'https://placeholder/'));
+          if (event.url?.startsWith('com.adibchoudhury.kitab://')) {
+            const url = new URL(event.url.replace('com.adibchoudhury.kitab://', 'https://placeholder/'));
             // Extract tokens from the URL fragment
             const params = new URLSearchParams(event.url.split('#')[1] || event.url.split('?')[1] || '');
             const access_token = params.get('access_token');

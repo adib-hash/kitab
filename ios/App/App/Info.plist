@@ -27,7 +27,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.kitab.app</string>
+				<string>com.adibchoudhury.kitab</string>
 				<string>kitab</string>
 			</array>
 		</dict>
