@@ -117,7 +117,7 @@ export function BookPreviewModal({ book, open, onClose }) {
                       {display.author}
                     </p>
                     {book.award && (
-                      <span className="inline-flex mt-2 items-center gap-1 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      <span className="inline-flex mt-2 items-center gap-1 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 text-xs font-bold px-2 py-0.5 rounded-full">
                         ✦ {book.award}
                       </span>
                     )}
@@ -129,7 +129,7 @@ export function BookPreviewModal({ book, open, onClose }) {
                   <div className="bg-paper-50 dark:bg-ink-700/50 rounded-xl p-3">
                     <div className="flex items-center gap-1.5 mb-1">
                       <Calendar size={12} className="text-ink-400" />
-                      <p className="text-[10px] font-semibold uppercase tracking-widest text-ink-400">Published</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-ink-400">Published</p>
                     </div>
                     <p className="text-sm font-medium text-ink-900 dark:text-ink-300">
                       {enriching ? (
@@ -140,7 +140,7 @@ export function BookPreviewModal({ book, open, onClose }) {
                   <div className="bg-paper-50 dark:bg-ink-700/50 rounded-xl p-3">
                     <div className="flex items-center gap-1.5 mb-1">
                       <FileText size={12} className="text-ink-400" />
-                      <p className="text-[10px] font-semibold uppercase tracking-widest text-ink-400">Pages</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-ink-400">Pages</p>
                     </div>
                     <p className="text-sm font-medium text-ink-900 dark:text-ink-300">
                       {enriching ? (

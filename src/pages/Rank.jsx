@@ -127,7 +127,7 @@ function ResultsView({ rankedBooks, matchCount, onContinue, onReset, resetting, 
             </div>
             <div className="text-right flex-shrink-0">
               <p className="text-xs font-mono text-ink-400">{book.elo}</p>
-              <p className="text-[10px] text-ink-300">{book.elo_wins}W / {book.elo_losses}L</p>
+              <p className="text-xs text-ink-300">{book.elo_wins}W / {book.elo_losses}L</p>
             </div>
           </Link>
           </motion.div>

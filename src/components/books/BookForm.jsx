@@ -148,7 +148,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
                 />
               ))}
             </div>
-            <p className="text-[9px] text-ink-400 text-center leading-tight">Cover style</p>
+            <p className="text-xs text-ink-400 text-center leading-tight">Cover style</p>
             <input
               value={form.cover_url?.startsWith('data:') ? '' : (form.cover_url || '')}
               onChange={e => set('cover_url', e.target.value)}

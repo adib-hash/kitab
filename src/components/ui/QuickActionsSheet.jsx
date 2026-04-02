@@ -245,7 +245,7 @@ export function QuickActionsSheet({ book, open, onClose }) {
                                     {opt.label}
                                   </span>
                                   {isActive && (
-                                    <span className="text-[10px] font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wide">
+                                    <span className="text-xs font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wide">
                                       Current
                                     </span>
                                   )}

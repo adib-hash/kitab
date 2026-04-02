@@ -101,7 +101,7 @@ export function RecommendationCard({ book, index = 0, inLibrary = false, onClick
         {book.community_rating && (
           <div className="flex items-center gap-1 mt-0.5">
             <Star size={10} className="text-amber-400 fill-amber-400" />
-            <span className="text-[10px] text-ink-400">{book.community_rating}</span>
+            <span className="text-xs text-ink-400">{book.community_rating}</span>
           </div>
         )}
       </div>

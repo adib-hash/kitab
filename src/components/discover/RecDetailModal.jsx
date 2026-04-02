@@ -121,14 +121,14 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
                   <div className="bg-paper-50 dark:bg-ink-700/50 rounded-xl p-3">
                     <div className="flex items-center gap-1.5 mb-1">
                       <Calendar size={11} className="text-ink-400" />
-                      <p className="text-[10px] font-semibold uppercase tracking-widest text-ink-400">Published</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-ink-400">Published</p>
                     </div>
                     <p className="text-sm font-medium text-ink-900 dark:text-ink-300">{book.published_year || '—'}</p>
                   </div>
                   <div className="bg-paper-50 dark:bg-ink-700/50 rounded-xl p-3">
                     <div className="flex items-center gap-1.5 mb-1">
                       <FileText size={11} className="text-ink-400" />
-                      <p className="text-[10px] font-semibold uppercase tracking-widest text-ink-400">Pages</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-ink-400">Pages</p>
                     </div>
                     <p className="text-sm font-medium text-ink-900 dark:text-ink-300">
                       {book.page_count ? `${book.page_count}` : '—'}
