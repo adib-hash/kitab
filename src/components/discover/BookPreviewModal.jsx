@@ -90,16 +90,14 @@ export function BookPreviewModal({ book, open, onClose }) {
               bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)',
             }}
           >
-            <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col min-h-0">
+            <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col min-h-0 relative">
               {/* Close */}
-              <div className="flex items-center justify-end px-3 pt-2 flex-shrink-0">
-                <button
-                  onClick={onClose}
-                  className="p-1.5 rounded-lg hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-400 transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              </div>
+              <button
+                onClick={onClose}
+                className="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-white/80 dark:bg-ink-800/80 hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-400 transition-colors"
+              >
+                <X size={16} />
+              </button>
 
               {/* Scrollable content */}
               <div className="relative flex-1 min-h-0">

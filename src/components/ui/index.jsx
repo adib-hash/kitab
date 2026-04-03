@@ -85,19 +85,18 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
               }
             )}
           >
-            {title ? (
+            {title && (
               <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-paper-200 dark:border-ink-700">
                 <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50">{title}</h2>
                 <button onClick={onClose} className="p-1 rounded-lg hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-500 transition-colors">
                   <X size={18} />
                 </button>
               </div>
-            ) : (
-              <div className="flex-shrink-0 flex items-center justify-end px-3 pt-2">
-                <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-400 transition-colors">
-                  <X size={16} />
-                </button>
-              </div>
+            )}
+            {!title && (
+              <button onClick={onClose} className="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-white/80 dark:bg-ink-800/80 hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-400 transition-colors">
+                <X size={16} />
+              </button>
             )}
             <div className="relative flex-1 min-h-0">
               <div ref={scrollRef} onScroll={checkScroll} className="overflow-y-auto h-full">
