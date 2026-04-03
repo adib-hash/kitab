@@ -48,7 +48,7 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
   return (
     <Modal open={open && !!book} onClose={handleClose} size="xl">
       {book && (
-        <div className="px-6 pb-6 pt-4 space-y-5">
+        <div className="px-6 pb-6 pt-10 space-y-5">
 
           {/* Cover + title */}
           <div className="flex gap-4">
