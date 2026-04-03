@@ -1,7 +1,7 @@
 ## v2.5.1 — 2026-04-03
 
 ### Fixed
-- **Preview modal clipped by bottom nav**: BookPreviewModal and generic Modal now calculate max-height to account for the bottom nav bar and safe area insets, ensuring content scrolls within the modal instead of being hidden behind the navigation.
+- **Preview modal clipped by bottom nav**: Switched all modal max-height calculations from `vh` to `dvh` (dynamic viewport height) — `100vh` in mobile Safari includes the area behind the browser chrome, making modals taller than the visible viewport. Also fixed BookPreviewModal z-index (`z-50` → `z-[260]`) so it renders above the bottom nav (`z-[200]`).
 
 ## v2.5.0 — 2026-04-03
 

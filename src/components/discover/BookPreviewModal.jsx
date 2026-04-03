@@ -62,7 +62,7 @@ export function BookPreviewModal({ book, open, onClose }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-ink-900/60 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-ink-900/60 backdrop-blur-sm z-[250]"
             onClick={onClose}
           />
 
@@ -73,10 +73,10 @@ export function BookPreviewModal({ book, open, onClose }) {
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ type: 'spring', duration: 0.3 }}
             onAnimationComplete={() => handleOpen(book)}
-            className="fixed inset-x-4 max-w-md mx-auto z-50 flex flex-col"
+            className="fixed inset-x-4 max-w-md mx-auto z-[260] flex flex-col"
             style={{
-              top: '8vh',
-              maxHeight: 'calc(100vh - 8vh - 80px - env(safe-area-inset-bottom))',
+              top: '8dvh',
+              maxHeight: 'calc(100dvh - 8dvh - 80px - env(safe-area-inset-bottom))',
             }}
           >
             <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col max-h-full">
