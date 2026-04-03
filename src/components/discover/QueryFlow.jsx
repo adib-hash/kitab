@@ -151,11 +151,20 @@ export async function generateRecommendations(userText, libraryBooks, sessions, 
 
   const enriched = (await Promise.all(books.map(enrichBook))).filter(Boolean)
 
-  if (enriched.length === 0) {
+  // Post-enrichment dedup: remove books that match library titles after normalization.
+  // This catches cases where Claude recommends a book with a slightly different title
+  // form than what's in the library (e.g. subtitles, punctuation differences).
+  const normalize = s => s?.toLowerCase().replace(/[^a-z0-9]/g, '') || ''
+  const libraryNormalized = new Set(
+    libraryBooks.map(b => normalize(b.title))
+  )
+  const filtered = enriched.filter(b => !libraryNormalized.has(normalize(b.title)))
+
+  if (filtered.length === 0) {
     throw new Error('None of the suggested books could be verified. Please try again.')
   }
 
-  return enriched
+  return filtered
 }
 
 export function QueryFlow({ library, sessions, tags, onComplete }) {
