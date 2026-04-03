@@ -137,6 +137,20 @@
 ::-webkit-scrollbar-thumb:hover { @apply bg-ink-400; }
 .dark ::-webkit-scrollbar-thumb { @apply bg-ink-600; }
 
+/* Persistent scrollbar for modals — forces scrollbar visible on iOS/mobile */
+.scrollbar-persistent {
+  overflow-y: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-300, #a8a29e) transparent;
+}
+.dark .scrollbar-persistent {
+  scrollbar-color: var(--color-ink-600, #57534e) transparent;
+}
+.scrollbar-persistent::-webkit-scrollbar { width: 4px; display: block; }
+.scrollbar-persistent::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-persistent::-webkit-scrollbar-thumb { background: var(--color-ink-300, #a8a29e); border-radius: 9999px; }
+.dark .scrollbar-persistent::-webkit-scrollbar-thumb { background: var(--color-ink-600, #57534e); }
+
 /* Book cover aspect ratio */
 .book-cover { aspect-ratio: 2/3; }
 

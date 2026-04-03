@@ -1,7 +1,13 @@
+## v2.5.2 — 2026-04-03
+
+### Improved
+- **Close button on all modals**: Discover preview modals now always show an X button in the top-right corner, even when there's no title bar.
+- **Persistent scrollbar**: Modal scroll areas show a thin visible scrollbar so users know there's more content below.
+
 ## v2.5.1 — 2026-04-03
 
 ### Fixed
-- **Preview modal clipped by bottom nav**: Switched all modal max-height calculations from `vh` to `dvh` (dynamic viewport height) — `100vh` in mobile Safari includes the area behind the browser chrome, making modals taller than the visible viewport. Also fixed BookPreviewModal z-index (`z-50` → `z-[260]`) so it renders above the bottom nav (`z-[200]`).
+- **Preview modal clipped by bottom nav**: Used `top` + `bottom` fixed positioning instead of unreliable `maxHeight` viewport calculations. Also fixed z-index layering (`z-50` → `z-[260]`).
 
 ## v2.5.0 — 2026-04-03
 

@@ -91,7 +91,7 @@ export function BookPreviewModal({ book, open, onClose }) {
               </div>
 
               {/* Scrollable content */}
-              <div className="overflow-y-auto px-5 pb-5 flex-1 min-h-0">
+              <div className="overflow-y-auto px-5 pb-5 flex-1 min-h-0 scrollbar-persistent">
                 {/* Book header */}
                 <div className="flex gap-4 mb-5">
                   {/* Cover */}
