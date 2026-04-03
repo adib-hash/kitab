@@ -56,28 +56,33 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
     <AnimatePresence onExitComplete={() => { setDescOpen(false); setAdded(inLibrary) }}>
       {open && book && (
         <>
-          {/* Full-screen overlay — flex centers the modal, padding keeps it off the nav bar */}
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center"
-            style={{ paddingBottom: 'calc(60px + env(safe-area-inset-bottom))', paddingTop: '16px', paddingLeft: '12px', paddingRight: '12px' }}
+            className="fixed inset-0 z-[250] bg-ink-900/60 backdrop-blur-sm"
             onClick={onClose}
-          >
-            {/* Backdrop */}
-            <div className="absolute inset-0 bg-ink-900/60 backdrop-blur-sm -z-10" />
+          />
 
+          {/* Modal panel — matches BaseModal positioning */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ type: 'spring', duration: 0.3 }}
             onClick={e => e.stopPropagation()}
-            className="w-full max-w-md flex flex-col"
-            style={{ height: 'calc(100dvh - 76px - env(safe-area-inset-bottom))', maxHeight: 680 }}
+            style={{
+              position: 'fixed',
+              top: 'calc(env(safe-area-inset-top) + 72px)',
+              left: '1rem',
+              right: '1rem',
+              maxHeight: 'calc(100vh - env(safe-area-inset-top) - 88px)',
+              zIndex: 260,
+            }}
+            className="max-w-md mx-auto flex flex-col"
           >
-            <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 flex flex-col overflow-hidden" style={{ height: '100%' }}>
+            <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 flex flex-col overflow-hidden" style={{ maxHeight: 'inherit' }}>
 
               {/* Close */}
               <div className="flex justify-end px-4 pt-4 flex-shrink-0">
@@ -207,7 +212,6 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
 
               </div>
             </div>
-          </motion.div>
           </motion.div>
         </>
       )}

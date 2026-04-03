@@ -97,7 +97,7 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
 
       {/* Horizontal cover strip */}
       <div className="px-4 pb-4">
-        <div className="flex gap-3 overflow-x-auto scrollbar-hide" style={{ touchAction: 'pan-y' }}>
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide">
           {books.map((book, i) => (
             <div key={i} className="flex-shrink-0 w-24">
               <CoverThumb
