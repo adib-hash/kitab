@@ -73,9 +73,13 @@ export function BookPreviewModal({ book, open, onClose }) {
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ type: 'spring', duration: 0.3 }}
             onAnimationComplete={() => handleOpen(book)}
-            className="fixed inset-x-4 top-[8vh] max-w-md mx-auto z-50 max-h-[85vh] flex flex-col"
+            className="fixed inset-x-4 max-w-md mx-auto z-50 flex flex-col"
+            style={{
+              top: '8vh',
+              maxHeight: 'calc(100vh - 8vh - 80px - env(safe-area-inset-bottom))',
+            }}
           >
-            <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col">
+            <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col max-h-full">
               {/* Close */}
               <div className="flex items-center justify-end px-4 pt-4 flex-shrink-0">
                 <button

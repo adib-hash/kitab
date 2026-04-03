@@ -1,3 +1,8 @@
+## v2.5.1 — 2026-04-03
+
+### Fixed
+- **Preview modal clipped by bottom nav**: BookPreviewModal and generic Modal now calculate max-height to account for the bottom nav bar and safe area insets, ensuring content scrolls within the modal instead of being hidden behind the navigation.
+
 ## v2.5.0 — 2026-04-03
 
 ### Improved
