@@ -75,7 +75,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: 'spring', duration: 0.3 }}
-            style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top, 0px) + 72px)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)', left: '1rem', right: '1rem', zIndex: 260 }}
+            style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top, 0px) + 56px)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)', left: '1rem', right: '1rem', zIndex: 260 }}
             className={clsx(
               'bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col',
               {
@@ -93,7 +93,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
                 </button>
               </div>
             ) : (
-              <div className="flex-shrink-0 flex items-center justify-end px-4 pt-3">
+              <div className="flex-shrink-0 flex items-center justify-end px-3 pt-2">
                 <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-400 transition-colors">
                   <X size={16} />
                 </button>

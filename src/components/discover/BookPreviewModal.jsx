@@ -86,13 +86,13 @@ export function BookPreviewModal({ book, open, onClose }) {
             onAnimationComplete={() => handleOpen(book)}
             className="fixed inset-x-4 max-w-md mx-auto z-[260] flex flex-col"
             style={{
-              top: 'calc(env(safe-area-inset-top, 0px) + 72px)',
+              top: 'calc(env(safe-area-inset-top, 0px) + 56px)',
               bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)',
             }}
           >
             <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col min-h-0">
               {/* Close */}
-              <div className="flex items-center justify-end px-4 pt-4 flex-shrink-0">
+              <div className="flex items-center justify-end px-3 pt-2 flex-shrink-0">
                 <button
                   onClick={onClose}
                   className="p-1.5 rounded-lg hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-400 transition-colors"
