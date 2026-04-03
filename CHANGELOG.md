@@ -2,7 +2,7 @@
 
 ### Improved
 - **Close button on all modals**: Discover preview modals now always show an X button in the top-right corner, even when there's no title bar.
-- **Persistent scrollbar**: Modal scroll areas show a thin visible scrollbar so users know there's more content below.
+- **Scroll fade indicator**: Modals with overflowing content show a bottom fade gradient that signals there's more content below. Fades out when the user scrolls to the end.
 
 ## v2.5.1 — 2026-04-03
 

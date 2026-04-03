@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { X, BookmarkPlus, Check, ChevronDown, ChevronUp, Loader2, BookOpen, Calendar, FileText } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAddBook } from '../../hooks/useLibrary'
@@ -9,6 +9,16 @@ export function BookPreviewModal({ book, open, onClose }) {
   const [added, setAdded] = useState(false)
   const [enriched, setEnriched] = useState(null)
   const [enriching, setEnriching] = useState(false)
+  const [showFade, setShowFade] = useState(false)
+  const scrollRef = useRef(null)
+
+  const checkScroll = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const canScroll = el.scrollHeight > el.clientHeight
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8
+    setShowFade(canScroll && !atBottom)
+  }, [])
   const addBook = useAddBook()
 
   // Fetch richer data from Google Books if we don't have it yet
@@ -51,6 +61,7 @@ export function BookPreviewModal({ book, open, onClose }) {
   function handleOpen(b) {
     setDescOpen(false)
     fetchEnriched(b)
+    requestAnimationFrame(checkScroll)
   }
 
   return (
@@ -91,7 +102,8 @@ export function BookPreviewModal({ book, open, onClose }) {
               </div>
 
               {/* Scrollable content */}
-              <div className="overflow-y-auto px-5 pb-5 flex-1 min-h-0 scrollbar-persistent">
+              <div className="relative flex-1 min-h-0">
+              <div ref={scrollRef} onScroll={checkScroll} className="overflow-y-auto h-full px-5 pb-5">
                 {/* Book header */}
                 <div className="flex gap-4 mb-5">
                   {/* Cover */}
@@ -210,6 +222,10 @@ export function BookPreviewModal({ book, open, onClose }) {
                     <><BookmarkPlus size={14} /> Add to TBR</>
                   )}
                 </button>
+              </div>
+              {showFade && (
+                <div className="absolute bottom-0 left-0 right-0 h-10 pointer-events-none bg-gradient-to-t from-white dark:from-ink-800 to-transparent" />
+              )}
               </div>
             </div>
           </motion.div>

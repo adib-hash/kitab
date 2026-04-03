@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { X, BookOpen } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -25,6 +25,17 @@ export function Button({ variant = 'primary', size = 'md', className, children, 
 
 // ── Modal ───────────────────────────────────────────────────────────────
 export function Modal({ open, onClose, title, children, size = 'md' }) {
+  const [showFade, setShowFade] = useState(false)
+  const scrollRef = useRef(null)
+
+  const checkScroll = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const canScroll = el.scrollHeight > el.clientHeight
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8
+    setShowFade(canScroll && !atBottom)
+  }, [])
+
   useEffect(() => {
     if (open) {
       // iOS Safari fix: overflow:hidden alone doesn't prevent scroll.
@@ -35,6 +46,8 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
       document.body.style.top = `-${scrollY}px`
       document.body.style.width = '100%'
       document.body.style.overflow = 'hidden'
+      // Check if content is scrollable after mount
+      requestAnimationFrame(checkScroll)
       return () => {
         const y = Math.abs(parseInt(document.body.style.top || '0'))
         document.body.style.position = ''
@@ -44,7 +57,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
         window.scrollTo(0, y)
       }
     }
-  }, [open])
+  }, [open, checkScroll])
 
   return (
     <AnimatePresence>
@@ -86,8 +99,13 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
                 </button>
               </div>
             )}
-            <div className="overflow-y-auto flex-1 min-h-0 scrollbar-persistent">
-              {children}
+            <div className="relative flex-1 min-h-0">
+              <div ref={scrollRef} onScroll={checkScroll} className="overflow-y-auto h-full">
+                {children}
+              </div>
+              {showFade && (
+                <div className="absolute bottom-0 left-0 right-0 h-10 pointer-events-none rounded-b-2xl bg-gradient-to-t from-white dark:from-ink-800 to-transparent" />
+              )}
             </div>
           </motion.div>
         </>
