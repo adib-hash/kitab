@@ -52,6 +52,9 @@ export function Auth({ session }) {
         }
       });
       if (data?.url) {
+        // Force Google account picker so cached credentials don't auto-select
+        const oauthUrl = new URL(data.url);
+        oauthUrl.searchParams.set('prompt', 'select_account');
         const { Browser } = await import('@capacitor/browser');
         
         // Listen for the app to reopen via the custom URL scheme
@@ -72,7 +75,7 @@ export function Auth({ session }) {
         const { App } = await import('@capacitor/app');
         App.addListener('appUrlOpen', handleUrl);
         
-        await Browser.open({ url: data.url });
+        await Browser.open({ url: oauthUrl.toString() });
       }
     } else {
       await supabase.auth.signInWithOAuth({

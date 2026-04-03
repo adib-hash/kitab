@@ -1,3 +1,8 @@
+## v2.4.4 — 2026-04-02
+
+### Fixed
+- **iOS Google auth auto-selecting wrong account**: The in-app browser cached credentials and skipped the Google account picker on re-login, causing users to silently sign into the wrong account (empty library). Added `prompt=select_account` to the OAuth URL so Google always shows the account chooser.
+
 ## v2.4.3 — 2026-04-01
 
 ### Improved
