@@ -65,11 +65,11 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
             onClick={onClose}
           />
 
-          {/* Modal panel — matches BaseModal positioning */}
+          {/* Modal panel — matches BaseModal positioning exactly */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: 'spring', duration: 0.3 }}
             onClick={e => e.stopPropagation()}
             style={{
@@ -80,9 +80,8 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
               maxHeight: 'calc(100vh - env(safe-area-inset-top) - 88px)',
               zIndex: 260,
             }}
-            className="max-w-md mx-auto flex flex-col"
+            className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col"
           >
-            <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 flex flex-col overflow-hidden" style={{ maxHeight: 'inherit' }}>
 
               {/* Close */}
               <div className="flex justify-end px-4 pt-4 flex-shrink-0">
@@ -211,7 +210,6 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
                 </button>
 
               </div>
-            </div>
           </motion.div>
         </>
       )}
