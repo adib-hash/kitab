@@ -1,51 +1,36 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, Loader2, Sparkles, Pen, Globe, Star } from 'lucide-react'
+import { Loader2, Sparkles } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
 import { searchBooks } from '../../lib/googleBooks'
 
 // On native iOS, relative /api/ URLs resolve against capacitor://localhost which doesn't work.
-// Use the absolute Vercel URL instead.
 const API_BASE = Capacitor.isNativePlatform() ? 'https://kitab.ihsan.build' : ''
 
-const MODES = [
-  {
-    id: 'vibe',
-    icon: Sparkles,
-    label: 'A specific vibe',
-    placeholder: 'e.g. "dark and atmospheric", "feel-good and funny", "page-turning thriller"',
-    prompt: 'The reader is looking for books that match a specific vibe or mood.',
-  },
-  {
-    id: 'author',
-    icon: Pen,
-    label: 'More from authors I like',
-    placeholder: 'e.g. "authors like Cormac McCarthy" or just "surprise me based on my library"',
-    prompt: 'The reader wants more books from authors similar to ones they already love.',
-  },
-  {
-    id: 'fresh',
-    icon: Globe,
-    label: 'Something totally new',
-    placeholder: 'e.g. "I always read sci-fi, shake things up" or "something from a different culture"',
-    prompt: 'The reader wants something outside their usual genres — a genuine stretch pick.',
-  },
-  {
-    id: 'favorites',
-    icon: Star,
-    label: 'Based on my favorites',
-    placeholder: 'Any extra guidance? (optional — we already know your highest-rated books)',
-    prompt: 'The reader wants recommendations based on their all-time favorite reads.',
-  },
+const SUGGESTIONS = [
+  'Surprise me',
+  'Something totally new',
+  'Based on my favorites',
+  'Dark and atmospheric',
+  'Page-turning thriller',
 ]
 
-// Build the Claude prompt from library + mode + user text
-function buildPrompt(mode, userText, libraryBooks) {
+// Build the Claude prompt from library + user text + past recs
+function buildPrompt(userText, libraryBooks, pastRecTitles, tagNames) {
   const topBooks = libraryBooks
     .filter(b => b.status === 'read' && b.rating)
     .sort((a, b) => (b.rating || 0) - (a.rating || 0))
     .slice(0, 20)
-    .map(b => `- "${b.title}" by ${b.author} (${b.rating}★)`)
+    .map(b => {
+      const bookTags = (b.tags || [])
+        .map(t => t.name)
+        .filter(n => !/^\d+$/.test(n)) // exclude numeric tags like "2026"
+      const tagStr = bookTags.length ? ` [${bookTags.join(', ')}]` : ''
+      const snippet = b.review
+        ? ` — "${b.review.slice(0, 100)}${b.review.length > 100 ? '...' : ''}"`
+        : ''
+      return `- "${b.title}" by ${b.author} (${b.rating}\u2605)${tagStr}${snippet}`
+    })
     .join('\n')
 
   const allReadTitles = libraryBooks
@@ -53,34 +38,43 @@ function buildPrompt(mode, userText, libraryBooks) {
     .map(b => `"${b.title}" by ${b.author}`)
     .join(', ')
 
-  const modeObj = MODES.find(m => m.id === mode)
+  const genreContext = tagNames.length
+    ? `\nReader's genre categories (tags they use to organize their library):\n${tagNames.join(', ')}\n`
+    : ''
+
+  const pastRecsSection = pastRecTitles.length
+    ? `\nBooks from previous recommendation sessions (DO NOT recommend these either):\n${pastRecTitles.join(', ')}\n`
+    : ''
 
   return `You are an expert book curator with deep knowledge of literature across all genres.
 
-${modeObj.prompt}
+The reader is looking for their next great read. They've described what they want below. Use their library, ratings, reviews, and tags to understand their taste deeply, then recommend books that fit their request.
 
-Reader's highest-rated books:
+Reader's highest-rated books (with tags and review snippets where available):
 ${topBooks || '(no rated books yet)'}
-
+${genreContext}
 All books already in their library (DO NOT recommend any of these):
 ${allReadTitles || '(none)'}
-
+${pastRecsSection}
 Reader's request: "${userText}"
 
-Return ONLY a JSON array of exactly 5 book recommendations. No other text, no markdown, no explanation outside the JSON.
+Return ONLY a JSON array of exactly 8 book recommendations. No other text, no markdown, no explanation outside the JSON.
 
 Each object must have:
 - "title": exact title (no subtitles unless essential)
 - "author": full author name
 - "published_year": integer year or null
+- "genre_hint": short genre label (e.g. "literary fiction", "memoir", "sci-fi", "philosophy")
 - "why": one punchy sentence (15-25 words) explaining specifically why THIS reader will love it
 
 Rules:
 - Only recommend real, widely-available books
 - No study guides, summaries, lecture collections, omnibus sets, or companion books
 - Prioritize books with strong critical reception
-- Never recommend a book already in the reader's library
-- Vary the picks — different authors, don't cluster in one series
+- Never recommend a book already in the reader's library or from previous sessions
+- Ensure at least 3 different genres across the 8 picks
+- No more than 2 books from the same genre
+- Include at least 1 book from a genre NOT heavily represented in the reader's library
 - The "why" must be specific, not generic ("you'll love the world-building" is bad; "the same slow-burn dread as McCarthy but set in modern Tokyo" is good)`
 }
 
@@ -96,16 +90,15 @@ async function enrichBook(book) {
     const titleWords = book.title.toLowerCase().split(/\s+/).filter(w => w.length > 2)
     const match = results.find(r => {
       const rTitle = r.title.toLowerCase()
-      // At least half the significant words from Claude's title appear in the GB title
       const hits = titleWords.filter(w => rTitle.includes(w))
       return hits.length >= Math.ceil(titleWords.length * 0.5)
     })
 
-    if (!match) return null // Book title doesn't match anything real in Google Books
+    if (!match) return null
 
     return {
       ...book,
-      title: match.title, // use canonical GB title
+      title: match.title,
       cover_url: match.cover_url || null,
       description: match.description || null,
       page_count: match.page_count || null,
@@ -119,167 +112,154 @@ async function enrichBook(book) {
   }
 }
 
-export function QueryFlow({ library, onComplete }) {
-  const [step, setStep] = useState('mode') // 'mode' | 'input' | 'loading'
-  const [selectedMode, setSelectedMode] = useState(null)
+// Shared function so both QueryFlow and regenerate can call it
+export async function generateRecommendations(userText, libraryBooks, sessions, tags) {
+  const pastRecTitles = (sessions || [])
+    .slice(0, 10)
+    .flatMap(s => (s.books || []).map(b => `"${b.title}" by ${b.author}`))
+
+  const tagNames = (tags || [])
+    .map(t => t.name)
+    .filter(n => !/^\d+$/.test(n)) // exclude numeric tags
+
+  const prompt = buildPrompt(userText, libraryBooks, pastRecTitles, tagNames)
+
+  const response = await fetch(`${API_BASE}/api/recommend`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt }),
+  })
+
+  if (!response.ok) {
+    const errData = await response.json().catch(() => ({}))
+    throw new Error(`${response.status}: ${errData.error || 'Unknown error'}`)
+  }
+  const data = await response.json()
+
+  const rawText = data.content?.find(b => b.type === 'text')?.text || ''
+  if (!rawText) throw new Error('Empty response from API')
+
+  const jsonText = rawText.replace(/```json|```/g, '').trim()
+  let books
+  try {
+    books = JSON.parse(jsonText)
+  } catch {
+    throw new Error(`JSON parse failed. Raw: ${rawText.slice(0, 200)}`)
+  }
+
+  if (!Array.isArray(books)) throw new Error('Invalid response format')
+
+  const enriched = (await Promise.all(books.map(enrichBook))).filter(Boolean)
+
+  if (enriched.length === 0) {
+    throw new Error('None of the suggested books could be verified. Please try again.')
+  }
+
+  return enriched
+}
+
+export function QueryFlow({ library, sessions, tags, onComplete }) {
   const [inputText, setInputText] = useState('')
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  async function handleSubmit() {
-    const mode = MODES.find(m => m.id === selectedMode)
-    const text = inputText.trim() || (selectedMode === 'favorites' ? 'Based on my top-rated books' : '')
-    if (!text && selectedMode !== 'favorites') return
+  async function handleSubmit(overrideText) {
+    const text = (overrideText || inputText).trim()
+    if (!text) return
 
-    setStep('loading')
+    setLoading(true)
     setError(null)
 
     try {
-      const prompt = buildPrompt(selectedMode, text || 'Surprise me based on my library', library)
-
-      const response = await fetch(`${API_BASE}/api/recommend`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      })
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}))
-        throw new Error(`${response.status}: ${errData.error || 'Unknown error'}`)
-      }
-      const data = await response.json()
-
-      const rawText = data.content?.find(b => b.type === 'text')?.text || ''
-      if (!rawText) throw new Error('Empty response from API')
-
-      // Strip any markdown fences
-      const jsonText = rawText.replace(/```json|```/g, '').trim()
-      let books
-      try {
-        books = JSON.parse(jsonText)
-      } catch {
-        throw new Error(`JSON parse failed. Raw: ${rawText.slice(0, 200)}`)
-      }
-
-      if (!Array.isArray(books)) throw new Error('Invalid response format')
-
-      // Enrich and verify all books in parallel — drops any that can't be confirmed in Google Books
-      const enriched = (await Promise.all(books.map(enrichBook))).filter(Boolean)
-
-      if (enriched.length === 0) {
-        throw new Error('None of the suggested books could be verified. Please try again.')
-      }
-
+      const books = await generateRecommendations(text, library, sessions, tags)
       onComplete({
-        mode: selectedMode,
-        query: text || 'Based on my favorites',
-        books: enriched,
+        mode: 'prompt',
+        query: text,
+        books,
       })
     } catch (err) {
       console.error(err)
       setError(`Error: ${err.message}`)
-      setStep('input')
+    } finally {
+      setLoading(false)
     }
   }
 
-  const currentMode = MODES.find(m => m.id === selectedMode)
+  function handleChipClick(suggestion) {
+    setInputText(suggestion)
+    handleSubmit(suggestion)
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <AnimatePresence mode="wait">
-
-        {/* Step 1: Mode selection */}
-        {step === 'mode' && (
+        {loading ? (
           <motion.div
-            key="mode"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="space-y-3"
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="py-10 flex flex-col items-center gap-4 text-center"
           >
-            <p className="text-sm font-medium text-ink-700 dark:text-ink-300">
-              What are you looking for?
-            </p>
-            <div className="grid grid-cols-1 divide-y divide-paper-200 dark:divide-ink-700">
-              {MODES.map(mode => (
-                <button
-                  key={mode.id}
-                  onClick={() => { setSelectedMode(mode.id); setStep('input') }}
-                  className="flex items-center gap-3 py-3 text-left group hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
-                >
-                  <span className="w-7 text-center flex-shrink-0"><mode.icon size={18} /></span>
-                  <span className="text-sm font-medium text-paper-900 dark:text-paper-50 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-                    {mode.label}
-                  </span>
-                  <ArrowRight size={13} className="ml-auto text-ink-400 group-hover:text-teal-500 dark:group-hover:text-teal-400 transition-colors flex-shrink-0" />
-                </button>
-              ))}
+            <Loader2 size={28} className="animate-spin text-teal-600" />
+            <div>
+              <p className="font-medium text-ink-800 dark:text-ink-200">Finding your next read...</p>
+              <p className="text-xs text-ink-400 mt-1">Consulting your library and thinking carefully</p>
             </div>
           </motion.div>
-        )}
-
-        {/* Step 2: Text input */}
-        {step === 'input' && currentMode && (
+        ) : (
           <motion.div
             key="input"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="space-y-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="space-y-3"
           >
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => { setStep('mode'); setInputText('') }}
-                className="text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
-              >
-                ← back
-              </button>
-              <currentMode.icon size={20} />
-              <span className="text-sm font-medium text-ink-700 dark:text-ink-300">{currentMode.label}</span>
-            </div>
-
             <textarea
               autoFocus
               value={inputText}
               onChange={e => setInputText(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit() } }}
-              placeholder={currentMode.placeholder}
-              rows={3}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  handleSubmit()
+                }
+              }}
+              placeholder={'e.g. "dark and atmospheric", "more like Cormac McCarthy", "surprise me"...'}
+              rows={2}
               style={{ fontSize: '16px' }}
               className="w-full input resize-none"
             />
+
+            {/* Suggestion chips */}
+            <div className="flex flex-wrap gap-2">
+              {SUGGESTIONS.map(s => (
+                <button
+                  key={s}
+                  onClick={() => handleChipClick(s)}
+                  className="text-xs px-3 py-1.5 rounded-full border border-paper-200 dark:border-ink-600
+                             text-ink-600 dark:text-ink-400 hover:bg-teal-50 dark:hover:bg-teal-900/20
+                             hover:border-teal-300 dark:hover:border-teal-700 hover:text-teal-700 dark:hover:text-teal-400
+                             transition-colors"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
 
             {error && (
               <p className="text-xs text-rose-500">{error}</p>
             )}
 
             <button
-              onClick={handleSubmit}
-              disabled={selectedMode !== 'favorites' && !inputText.trim()}
+              onClick={() => handleSubmit()}
+              disabled={!inputText.trim()}
               className="w-full btn-primary gap-2 justify-center disabled:opacity-40"
             >
               <Sparkles size={14} /> Find my next read
             </button>
           </motion.div>
         )}
-
-        {/* Step 3: Loading */}
-        {step === 'loading' && (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="py-12 flex flex-col items-center gap-4 text-center"
-          >
-            <div className="relative">
-              <Loader2 size={32} className="animate-spin text-teal-600" />
-            </div>
-            <div>
-              <p className="font-medium text-ink-800 dark:text-ink-200">Finding your next read...</p>
-              <p className="text-xs text-ink-400 mt-1">Consulting your library and thinking carefully</p>
-            </div>
-          </motion.div>
-        )}
-
       </AnimatePresence>
     </div>
   )

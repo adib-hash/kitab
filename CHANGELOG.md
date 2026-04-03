@@ -1,3 +1,19 @@
+## v2.5.0 — 2026-04-03
+
+### Improved
+- **Smarter AI recommendations**: Prompt now sends review snippets, tags, and genre categories to Claude for much better taste matching. Asks for 8 recs (up from 5) so after Google Books verification there are reliably 5+ results. Enforces genre diversity (at least 3 genres, max 2 per genre). Excludes books from past recommendation sessions to avoid repeats.
+- **Simplified Discover flow**: Replaced the 4-mode wizard (vibe / author / fresh / favorites) with a single prompt box and tappable suggestion chips. Same power, fewer steps.
+- **Horizontal cover strip**: Replaced the clunky one-at-a-time carousel with a horizontal scrolling row of cover thumbnails. All recommendations visible at a glance — tap any cover for details.
+- **Regenerate button**: Each recommendation session now has a refresh button to get fresh picks with the same prompt.
+- **Genre badges**: Each recommendation now shows a genre hint on the cover thumbnail.
+- **Loading skeleton**: New sessions show a pulsing skeleton card instead of a centered spinner.
+
+### Technical
+- Numeric-only tags (e.g. "2026") are excluded from the AI prompt to avoid confusing the model.
+- Extracted `generateRecommendations()` as a shared utility for reuse by the regenerate button.
+- Bumped Claude API max_tokens from 1000 to 1500 to accommodate 8-book responses.
+- Added `.scrollbar-hide` CSS utility for clean horizontal scroll strips.
+
 ## v2.4.4 — 2026-04-02
 
 ### Fixed

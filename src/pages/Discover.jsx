@@ -1,29 +1,24 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Compass, Trash2, ChevronDown, ChevronUp, ChevronLeft, ChevronRight,
-         Sparkles, BookmarkPlus, Check, Loader2, X } from 'lucide-react'
-import { useLibrary, useAddBook } from '../hooks/useLibrary'
+import { Compass, Trash2, ChevronDown, ChevronUp, RefreshCw,
+         Sparkles, Loader2 } from 'lucide-react'
+import { useLibrary } from '../hooks/useLibrary'
+import { useTags } from '../hooks/useTags'
 import { useRecommendations, useSaveRecommendation, useDeleteRecommendation, useUpdateRecommendation } from '../hooks/useRecommendations'
-import { QueryFlow } from '../components/discover/QueryFlow'
+import { QueryFlow, generateRecommendations } from '../components/discover/QueryFlow'
 import { RecDetailModal } from '../components/discover/RecDetailModal'
 import { timeAgo } from '../lib/utils'
 
-const MODE_LABELS = {
-  vibe:      'A specific vibe',
-  author:    'More from authors I like',
-  fresh:     'Something totally new',
-  favorites: 'Based on my favorites',
-}
-
-// ── CoverCard — book cover with fallback, X + TBR bookmark buttons ────────────
-function CoverCard({ book, inLibrary, onAdd, onRemove, isPending, added }) {
+// ── CoverThumb — small cover thumbnail for the horizontal strip ─────────────
+function CoverThumb({ book, inLibrary, onClick }) {
   const [imgError, setImgError] = useState(false)
   const titleColor = `hsl(${(book.title?.charCodeAt(0) ?? 65) * 37 % 360}, 35%, 28%)`
 
   return (
-    <div className="relative rounded-2xl overflow-hidden shadow-xl mx-auto w-full max-w-[240px] aspect-[3/4]">
-
-      {/* Cover image or fallback */}
+    <button
+      onClick={onClick}
+      className="relative rounded-lg overflow-hidden shadow-md w-full book-cover focus:outline-none focus:ring-2 focus:ring-teal-500"
+    >
       {book.cover_url && !imgError ? (
         <img
           src={book.cover_url}
@@ -33,97 +28,36 @@ function CoverCard({ book, inLibrary, onAdd, onRemove, isPending, added }) {
         />
       ) : (
         <div
-          className="w-full h-full flex flex-col items-center justify-center gap-3 px-4 text-center"
+          className="w-full h-full flex flex-col items-center justify-center gap-1 px-2 text-center"
           style={{ backgroundColor: titleColor }}
         >
-          <span className="font-serif text-4xl font-bold text-white/80 leading-none">
+          <span className="font-serif text-lg font-bold text-white/80 leading-none">
             {book.title?.slice(0, 2).toUpperCase()}
           </span>
-          <span className="font-serif text-sm font-semibold text-white/90 leading-snug px-2">
+          <span className="font-serif text-[10px] font-semibold text-white/70 leading-snug line-clamp-2">
             {book.title}
           </span>
-          <span className="text-xs text-white/60">{book.author}</span>
         </div>
       )}
 
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+      {/* Genre badge */}
+      {book.genre_hint && (
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent pt-4 pb-1.5 px-1.5">
+          <span className="text-[9px] text-white/90 font-medium leading-none">{book.genre_hint}</span>
+        </div>
+      )}
 
-      {/* Title/Author on cover */}
-      <div className="absolute bottom-0 left-0 right-0 p-3">
-        <p className="font-serif font-semibold text-white text-sm leading-snug drop-shadow">{book.title}</p>
-        <p className="text-white/70 text-xs mt-0.5">{book.author}</p>
-      </div>
-
-      {/* Remove (X) button — top left */}
-      <button
-        onClick={onRemove}
-        className="absolute top-2 left-2 p-1.5 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
-        title="Remove from recommendations"
-      >
-        <X size={14} />
-      </button>
-
-      {/* Add to TBR — top right */}
-      <button
-        onClick={onAdd}
-        disabled={added || isPending}
-        className={`absolute top-2 right-2 p-1.5 rounded-full transition-colors ${
-          added
-            ? 'bg-teal-500 text-white'
-            : 'bg-black/50 hover:bg-black/70 text-white'
-        }`}
-        title={added ? 'In your TBR' : 'Add to TBR'}
-      >
-        {isPending ? <Loader2 size={14} className="animate-spin" /> :
-         added    ? <Check size={14} /> :
-                    <BookmarkPlus size={14} />}
-      </button>
-    </div>
+      {/* In-library indicator */}
+      {inLibrary && (
+        <div className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full bg-teal-500 border border-white/50" />
+      )}
+    </button>
   )
 }
 
-// ── SessionCard — expandable card with book carousel ─────────────────────────
-function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBook }) {
-  const [expanded, setExpanded] = useState(true)
-  const [idx, setIdx]           = useState(0)
-  const addBook                 = useAddBook()
-  const [addedSet, setAddedSet] = useState(new Set())
-
+// ── SessionCard — compact card with horizontal book strip ───────────────────
+function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBook, onRegenerate, isRegenerating }) {
   const books = session.books || []
-  const book  = books[idx] ?? null
-
-  function prev() { setIdx(i => (i - 1 + books.length) % books.length) }
-  function next() { setIdx(i => (i + 1) % books.length) }
-
-  // Touch swipe — horizontal only, pan-y allowed for page scroll
-  const touchStartX = useRef(null)
-  function onTouchStart(e) { touchStartX.current = e.touches[0].clientX }
-  function onTouchEnd(e) {
-    if (touchStartX.current === null) return
-    const dx = e.changedTouches[0].clientX - touchStartX.current
-    touchStartX.current = null
-    if (Math.abs(dx) > 40) dx < 0 ? next() : prev()
-  }
-
-  async function handleAdd(book) {
-    if (addedSet.has(book.title) || addBook.isPending) return
-    await addBook.mutateAsync({
-      book: {
-        title: book.title, author: book.author,
-        cover_url: book.cover_url || null,
-        published_year: book.published_year || null,
-        page_count: book.page_count || null,
-        genres: book.genres || [],
-        description: book.description || null,
-        google_books_id: book.google_books_id || null,
-        isbn: book.isbn || null,
-        status: 'tbr',
-      },
-      tagIds: [],
-    })
-    setAddedSet(s => new Set([...s, book.title]))
-  }
 
   return (
     <motion.div
@@ -132,134 +66,87 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
       className="card overflow-hidden"
     >
       {/* Session header */}
-      <div className="flex items-start justify-between p-4 pb-3">
+      <div className="flex items-start justify-between p-4 pb-2">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-0.5 rounded-full">
-              {MODE_LABELS[session.mode] || session.mode}
-            </span>
+          {session.query && (
+            <p className="text-sm text-ink-700 dark:text-ink-300 font-medium">"{session.query}"</p>
+          )}
+          <div className="flex items-center gap-2 mt-1">
             <span className="text-xs text-ink-400">{timeAgo(session.created_at)}</span>
             <span className="text-xs text-ink-400">{books.length} pick{books.length !== 1 ? 's' : ''}</span>
           </div>
-          {session.query && (
-            <p className="text-sm text-ink-600 dark:text-ink-400 mt-1.5 italic">"{session.query}"</p>
-          )}
         </div>
         <div className="flex items-center gap-1 ml-2 flex-shrink-0">
           <button
-            onClick={() => setExpanded(e => !e)}
-            className="p-1.5 rounded-lg text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 hover:bg-paper-100 dark:hover:bg-ink-700 transition-colors"
+            onClick={onRegenerate}
+            disabled={isRegenerating}
+            className="p-1.5 rounded-lg text-ink-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors disabled:opacity-40"
+            title="Get fresh recommendations"
           >
-            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            {isRegenerating ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
           </button>
           <button
             onClick={() => onDelete(session.id)}
             className="p-1.5 rounded-lg text-ink-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
+            title="Delete session"
           >
             <Trash2 size={14} />
           </button>
         </div>
       </div>
 
-      {/* Carousel body */}
-      <AnimatePresence initial={false}>
-        {expanded && book && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="px-4 pb-5 space-y-4">
-
-              {/* Cover carousel — touch-action pan-y keeps page scroll alive */}
-              <div
-                className="flex flex-col items-center gap-3"
-                style={{ touchAction: 'pan-y' }}
-                onTouchStart={onTouchStart}
-                onTouchEnd={onTouchEnd}
-              >
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.18 }}
-                    onClick={() => onBookClick(book)}
-                    className="cursor-pointer"
-                  >
-                    <CoverCard
-                      book={book}
-                      inLibrary={libraryTitles.has(book.title?.toLowerCase().trim())}
-                      added={addedSet.has(book.title) || libraryTitles.has(book.title?.toLowerCase().trim())}
-                      isPending={addBook.isPending}
-                      onAdd={e => { e.stopPropagation(); handleAdd(book) }}
-                      onRemove={e => { e.stopPropagation(); onDeleteBook(session.id, books, idx); if (idx >= books.length - 1) setIdx(0) }}
-                    />
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* Nav dots + arrows */}
-                {books.length > 1 && (
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={prev}
-                      className="p-1 text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <div className="flex gap-1.5">
-                      {books.map((_, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setIdx(i)}
-                          className={`rounded-full transition-all ${
-                            i === idx
-                              ? 'w-5 h-2 bg-teal-500'
-                              : 'w-2 h-2 bg-paper-300 dark:bg-ink-600 hover:bg-ink-400'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <button
-                      onClick={next}
-                      className="p-1 text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Why you'll love it */}
-              {book.why && (
-                <div className="rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/30 p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-teal-600 dark:text-teal-400 mb-2">
-                    Why you'll love it
-                  </p>
-                  <p className="text-sm text-ink-700 dark:text-ink-300 leading-relaxed">{book.why}</p>
-                </div>
-              )}
+      {/* Horizontal cover strip */}
+      <div className="px-4 pb-4">
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide" style={{ touchAction: 'pan-y' }}>
+          {books.map((book, i) => (
+            <div key={i} className="flex-shrink-0 w-24">
+              <CoverThumb
+                book={book}
+                inLibrary={libraryTitles.has(book.title?.toLowerCase().trim())}
+                onClick={() => onBookClick(book)}
+              />
+              <p className="text-[11px] text-ink-600 dark:text-ink-400 mt-1.5 leading-snug line-clamp-2 font-medium">
+                {book.title}
+              </p>
+              <p className="text-[10px] text-ink-400 leading-snug line-clamp-1">{book.author}</p>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ))}
+        </div>
+      </div>
     </motion.div>
+  )
+}
+
+// ── Loading skeleton for new session ────────────────────────────────────────
+function SessionSkeleton() {
+  return (
+    <div className="card overflow-hidden p-4 space-y-3">
+      <div className="h-4 w-48 skeleton rounded" />
+      <div className="flex gap-3">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="flex-shrink-0 w-24">
+            <div className="skeleton rounded-lg book-cover w-full" />
+            <div className="h-3 w-20 skeleton rounded mt-1.5" />
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
 // ── Discover page ─────────────────────────────────────────────────────────────
 export function Discover() {
   const { data: books = [], isLoading: libraryLoading } = useLibrary()
+  const { data: tags = [] } = useTags()
   const { data: sessions = [], isLoading: sessionsLoading } = useRecommendations()
   const saveRec   = useSaveRecommendation()
   const deleteRec = useDeleteRecommendation()
   const updateRec = useUpdateRecommendation()
 
-  const [showFlow,     setShowFlow]     = useState(false)
-  const [previewBook,  setPreviewBook]  = useState(null)
+  const [showFlow,        setShowFlow]        = useState(false)
+  const [previewBook,     setPreviewBook]     = useState(null)
+  const [regeneratingId,  setRegeneratingId]  = useState(null)
+  const [isGenerating,    setIsGenerating]    = useState(false)
 
   const libraryTitles = useMemo(
     () => new Set(books.map(b => b.title?.toLowerCase().trim())),
@@ -277,13 +164,39 @@ export function Discover() {
 
   async function handleComplete(result) {
     setShowFlow(false)
-    await saveRec.mutateAsync(result)
+    setIsGenerating(true)
+    try {
+      await saveRec.mutateAsync(result)
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
-  // Split sessions: 2 most recent shown, rest in "Older"
+  async function handleRegenerate(session) {
+    setRegeneratingId(session.id)
+    try {
+      const newBooks = await generateRecommendations(
+        session.query || 'Surprise me',
+        books,
+        sessions,
+        tags
+      )
+      await saveRec.mutateAsync({
+        mode: 'prompt',
+        query: session.query || 'Surprise me',
+        books: newBooks,
+      })
+    } catch (err) {
+      console.error('Regenerate failed:', err)
+    } finally {
+      setRegeneratingId(null)
+    }
+  }
+
+  // Split sessions: 3 most recent shown, rest in "Older"
   const [showOlder, setShowOlder] = useState(false)
-  const recentSessions = sessions.slice(0, 2)
-  const olderSessions  = sessions.slice(2)
+  const recentSessions = sessions.slice(0, 3)
+  const olderSessions  = sessions.slice(3)
 
   if (libraryLoading) {
     return (
@@ -314,7 +227,7 @@ export function Discover() {
       {/* Desktop two-column */}
       <div className="lg:grid lg:grid-cols-[340px_1fr] lg:gap-8 lg:items-start space-y-6 lg:space-y-0">
 
-        {/* Left: query panel (desktop) */}
+        {/* Left: query panel (desktop — always visible) */}
         <div className="hidden lg:block lg:sticky lg:top-6 space-y-4">
           <div className="card p-5">
             <div className="flex items-center justify-between mb-4">
@@ -322,28 +235,12 @@ export function Discover() {
                 Find your next read
               </h2>
             </div>
-            <AnimatePresence mode="wait">
-              {showFlow ? (
-                <motion.div key="flow" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <QueryFlow library={books} onComplete={handleComplete} />
-                  <button
-                    onClick={() => setShowFlow(false)}
-                    className="mt-3 text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
-                  >
-                    ← cancel
-                  </button>
-                </motion.div>
-              ) : (
-                <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <p className="text-sm text-ink-500 dark:text-ink-400 mb-4">
-                    Tell me what you're looking for and I'll find your next read from your library's taste.
-                  </p>
-                  <button onClick={() => setShowFlow(true)} className="w-full btn-primary gap-2 justify-center">
-                    <Sparkles size={14} /> Get recommendations
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <QueryFlow
+              library={books}
+              sessions={sessions}
+              tags={tags}
+              onComplete={handleComplete}
+            />
           </div>
           {sessions.length > 0 && (
             <p className="text-xs text-ink-400 text-center">
@@ -370,22 +267,30 @@ export function Discover() {
                     cancel
                   </button>
                 </div>
-                <QueryFlow library={books} onComplete={handleComplete} />
+                <QueryFlow
+                  library={books}
+                  sessions={sessions}
+                  tags={tags}
+                  onComplete={handleComplete}
+                />
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Loading skeleton when generating */}
+          {isGenerating && <SessionSkeleton />}
 
           {sessionsLoading ? (
             <div className="space-y-3">
               {[...Array(2)].map((_, i) => <div key={i} className="h-40 skeleton rounded-xl" />)}
             </div>
-          ) : sessions.length === 0 ? (
+          ) : sessions.length === 0 && !isGenerating ? (
             <div className="card p-10 text-center space-y-3">
               <Compass size={36} className="mx-auto text-ink-300" />
               <div>
                 <p className="font-medium text-ink-700 dark:text-ink-300">No recommendations yet</p>
                 <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
-                  Use the panel to get your first AI-powered picks
+                  Tap "New" to get your first AI-powered picks
                 </p>
               </div>
             </div>
@@ -399,6 +304,8 @@ export function Discover() {
                   onBookClick={setPreviewBook}
                   onDelete={id => deleteRec.mutate(id)}
                   onDeleteBook={handleDeleteBook}
+                  onRegenerate={() => handleRegenerate(session)}
+                  isRegenerating={regeneratingId === session.id}
                 />
               ))}
 
@@ -428,6 +335,8 @@ export function Discover() {
                             onBookClick={setPreviewBook}
                             onDelete={id => deleteRec.mutate(id)}
                             onDeleteBook={handleDeleteBook}
+                            onRegenerate={() => handleRegenerate(session)}
+                            isRegenerating={regeneratingId === session.id}
                           />
                         ))}
                       </motion.div>

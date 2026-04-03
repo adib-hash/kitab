@@ -177,6 +177,10 @@
   touch-action: pan-y;
 }
 
+/* Hide scrollbar for horizontal scroll strips */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* ── Touch: remove 300ms tap delay and double-tap zoom on all interactive elements ── */
 a, button, [role="button"], input, select, textarea, label,
 [tabindex], .btn-primary, .btn-secondary, nav a {

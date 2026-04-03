@@ -9,7 +9,7 @@
 Kitab (Arabic/Urdu for "book") is a personal reading tracker web app built by Adib as a solo project. It is intentionally a personal tool — not a product for others — built iteratively with Claude as an active development partner.
 
 **Live URL:** https://kitab.ihsan.build  
-**Current version:** v1.6.12  
+**Current version:** v2.5.0  
 **Stack:** React + Vite, Supabase (auth + DB), Tailwind CSS, Vercel
 
 ---
@@ -195,7 +195,7 @@ Every deploy must:
 2. Update version string in `src/pages/Settings.jsx` — appears **once** at the bottom of the `Settings` component as `Kitab · vX.X.X`
 3. `git add -A && git commit -m "vX.X.X: description" && git push`
 
-Current version: **v1.6.12**
+Current version: **v2.5.0**
 
 ---
 
