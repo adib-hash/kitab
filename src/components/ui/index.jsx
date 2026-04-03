@@ -62,7 +62,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: 'spring', duration: 0.3 }}
-            style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top) + 72px)', left: '1rem', right: '1rem', maxHeight: 'calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 88px)', zIndex: 260 }}
+            style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top, 0px) + 72px)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)', left: '1rem', right: '1rem', zIndex: 260 }}
             className={clsx(
               'bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col',
               {
