@@ -16,6 +16,7 @@
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		777F76B72F777FF4007E6C03 /* KitabShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 777F76AD2F777FF4007E6C03 /* KitabShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		WIDG00012F780001007E6C03 /* KitabWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = WIDG00002F780001007E6C03 /* KitabWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,6 +26,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 777F76AC2F777FF4007E6C03;
 			remoteInfo = KitabShare;
+		};
+		WIDG00022F780001007E6C03 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = WIDG00032F780001007E6C03;
+			remoteInfo = KitabWidgets;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -36,6 +44,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				777F76B72F777FF4007E6C03 /* KitabShare.appex in Embed Foundation Extensions */,
+				WIDG00012F780001007E6C03 /* KitabWidgets.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -54,6 +63,7 @@
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
 		777F76AD2F777FF4007E6C03 /* KitabShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KitabShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		WIDG00002F780001007E6C03 /* KitabWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KitabWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -65,10 +75,18 @@
 			);
 			target = 777F76AC2F777FF4007E6C03 /* KitabShare */;
 		};
+		WIDG00042F780001007E6C03 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = WIDG00032F780001007E6C03 /* KitabWidgets */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		777F76AE2F777FF4007E6C03 /* KitabShare */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (777F76B82F777FF4007E6C03 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = KitabShare; sourceTree = "<group>"; };
+		WIDG00052F780001007E6C03 /* KitabWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (WIDG00042F780001007E6C03 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = KitabWidgets; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +105,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		WIDG00062F780001007E6C03 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -96,6 +121,7 @@
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
 				504EC3061FED79650016851F /* App */,
 				777F76AE2F777FF4007E6C03 /* KitabShare */,
+				WIDG00052F780001007E6C03 /* KitabWidgets */,
 				504EC3051FED79650016851F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -105,6 +131,7 @@
 			children = (
 				504EC3041FED79650016851F /* App.app */,
 				777F76AD2F777FF4007E6C03 /* KitabShare.appex */,
+				WIDG00002F780001007E6C03 /* KitabWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -141,6 +168,7 @@
 			);
 			dependencies = (
 				777F76B62F777FF4007E6C03 /* PBXTargetDependency */,
+				WIDG00092F780001007E6C03 /* PBXTargetDependency */,
 			);
 			name = App;
 			packageProductDependencies = (
@@ -172,6 +200,28 @@
 			productReference = 777F76AD2F777FF4007E6C03 /* KitabShare.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		WIDG00032F780001007E6C03 /* KitabWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = WIDG000D2F780001007E6C03 /* Build configuration list for PBXNativeTarget "KitabWidgets" */;
+			buildPhases = (
+				WIDG00072F780001007E6C03 /* Sources */,
+				WIDG00062F780001007E6C03 /* Frameworks */,
+				WIDG00082F780001007E6C03 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				WIDG00052F780001007E6C03 /* KitabWidgets */,
+			);
+			name = KitabWidgets;
+			packageProductDependencies = (
+			);
+			productName = KitabWidgets;
+			productReference = WIDG00002F780001007E6C03 /* KitabWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -188,6 +238,9 @@
 						ProvisioningStyle = Automatic;
 					};
 					777F76AC2F777FF4007E6C03 = {
+						CreatedOnToolsVersion = 26.4;
+					};
+					WIDG00032F780001007E6C03 = {
 						CreatedOnToolsVersion = 26.4;
 					};
 				};
@@ -210,6 +263,7 @@
 			targets = (
 				504EC3031FED79650016851F /* App */,
 				777F76AC2F777FF4007E6C03 /* KitabShare */,
+				WIDG00032F780001007E6C03 /* KitabWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -235,6 +289,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		WIDG00082F780001007E6C03 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -253,6 +314,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		WIDG00072F780001007E6C03 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -260,6 +328,11 @@
 			isa = PBXTargetDependency;
 			target = 777F76AC2F777FF4007E6C03 /* KitabShare */;
 			targetProxy = 777F76B52F777FF4007E6C03 /* PBXContainerItemProxy */;
+		};
+		WIDG00092F780001007E6C03 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = WIDG00032F780001007E6C03 /* KitabWidgets */;
+			targetProxy = WIDG00022F780001007E6C03 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -520,6 +593,76 @@
 			};
 			name = Release;
 		};
+		WIDG000A2F780001007E6C03 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = KitabWidgets/KitabWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZQ29PU5AKF;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = KitabWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = KitabWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adibchoudhury.kitab.KitabWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		WIDG000B2F780001007E6C03 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = KitabWidgets/KitabWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZQ29PU5AKF;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = KitabWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = KitabWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adibchoudhury.kitab.KitabWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -546,6 +689,15 @@
 			buildConfigurations = (
 				777F76BA2F777FF4007E6C03 /* Debug */,
 				777F76BB2F777FF4007E6C03 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		WIDG000D2F780001007E6C03 /* Build configuration list for PBXNativeTarget "KitabWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				WIDG000A2F780001007E6C03 /* Debug */,
+				WIDG000B2F780001007E6C03 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
