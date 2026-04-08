@@ -17,6 +17,7 @@ export async function syncWidgetData({ books = [], goal = null, highlights = [] 
   if (!native()) return
 
   try {
+    console.log('[WidgetBridge] Syncing widget data...')
     const thisYear = new Date().getFullYear()
 
     // Currently reading books
@@ -102,6 +103,7 @@ export async function syncWidgetData({ books = [], goal = null, highlights = [] 
     if (highlightOfDay) payload.highlightOfDay = highlightOfDay
 
     await KitabDataBridge.syncWidgetData(payload)
+    console.log('[WidgetBridge] Widget data synced successfully')
 
     // Cache cover images for currently reading books
     for (const book of currentlyReading.slice(0, 3)) {
@@ -110,8 +112,8 @@ export async function syncWidgetData({ books = [], goal = null, highlights = [] 
       }
     }
   } catch (e) {
-    // Silent fail — widget data is non-critical
-    console.warn('Widget sync failed:', e)
+    // Log for debugging — widget data sync failures
+    console.warn('Widget sync failed:', e?.message || e)
   }
 }
 

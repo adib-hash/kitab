@@ -1,6 +1,8 @@
 import Foundation
 import Capacitor
+#if canImport(WidgetKit)
 import WidgetKit
+#endif
 
 @objc(KitabDataBridgePlugin)
 public class KitabDataBridgePlugin: CAPPlugin, CAPBridgedPlugin {
@@ -79,9 +81,11 @@ public class KitabDataBridgePlugin: CAPPlugin, CAPBridgedPlugin {
         defaults.synchronize()
 
         // Reload widget timelines
+        #if canImport(WidgetKit)
         if #available(iOS 14.0, *) {
             WidgetCenter.shared.reloadAllTimelines()
         }
+        #endif
 
         call.resolve(["success": true])
     }
