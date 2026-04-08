@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
+import { checkGoalMilestones } from '../lib/notifications'
 
 // ── Fetch all books with their tags ──────────────────────────────────────
 export function useLibrary() {
@@ -126,6 +127,17 @@ export function useUpdateBook() {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['books'] })
       qc.invalidateQueries({ queryKey: ['book', data.id] })
+      // Check goal milestones when a book is marked as read
+      if (data.status === 'read') {
+        const books = qc.getQueryData(['books']) || []
+        const thisYear = new Date().getFullYear()
+        const booksRead = books.filter(
+          b => b.status === 'read' && b.date_finished &&
+          parseInt(b.date_finished.slice(0, 4)) === thisYear
+        ).length
+        const goal = qc.getQueryData(['reading_goal', thisYear])
+        if (goal?.target) checkGoalMilestones(booksRead, goal.target)
+      }
     },
     onError: (err) => toast.error(`Failed to update: ${err.message}`),
   })

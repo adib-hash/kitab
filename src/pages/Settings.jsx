@@ -3,7 +3,7 @@ import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, L
 import { Capacitor } from '@capacitor/core'
 import { useNavigate } from 'react-router-dom'
 import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
-import { useTags, useUpdateTag, useDeleteTag } from '../hooks/useTags'
+import { useTags, useUpdateTag, useDeleteTag, useReadingGoal } from '../hooks/useTags'
 import { Button, Divider } from '../components/ui/index.jsx'
 import { useUIStore } from '../store/uiStore'
 import { buildGoodreadsCSV } from '../lib/utils'
@@ -12,10 +12,11 @@ import { findCoverUrl } from '../lib/openLibrary'
 import { BookCover } from '../components/books/BookCover'
 import Papa from 'papaparse'
 import { useAddBook } from '../hooks/useLibrary'
-import { useAllUnmatched, useAssignHighlights, useDeleteUnmatched } from '../hooks/useHighlights'
+import { useAllUnmatched, useAssignHighlights, useDeleteUnmatched, useAllHighlights } from '../hooks/useHighlights'
 import { useKindleSyncFlow } from '../hooks/useKindleSyncFlow'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
+import { NotificationSettings } from '../components/settings/NotificationSettings'
 
 function TagRow({ tag, onEdit, onDelete }) {
   return (
@@ -423,6 +424,9 @@ export function Settings() {
   const [tagsOpen, setTagsOpen] = useState(false)
   const { librarySlug, setLibrarySlug } = useUIStore()
   const [slugInput, setSlugInput] = useState(librarySlug || '')
+  const thisYear = new Date().getFullYear()
+  const { data: goal } = useReadingGoal(thisYear)
+  const { data: allHighlights = [] } = useAllHighlights()
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -637,6 +641,8 @@ export function Settings() {
       {Capacitor.isNativePlatform() && <KindleSyncSection />}
 
       {/* Library stats */}
+      <NotificationSettings books={books} highlights={allHighlights} goal={goal} />
+
       <div className="card p-6">
         <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 mb-4">Library Overview</h2>
         <div className="grid grid-cols-2 gap-3 text-sm">

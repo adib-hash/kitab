@@ -13,6 +13,8 @@ import { BookSearchModal } from '../components/books/BookSearch'
 import { BookForm } from '../components/books/BookForm'
 import { computeStats, pluralize } from '../lib/utils'
 import { useUIStore } from '../store/uiStore'
+import { syncWidgetData } from '../lib/widgetBridge'
+import { rescheduleAllNotifications } from '../lib/notifications'
 
 export function Dashboard() {
   const { data: books = [], isLoading } = useLibrary()
@@ -49,6 +51,14 @@ export function Dashboard() {
   const highlight = allHighlights.length > 0
     ? allHighlights[highlightIdx % allHighlights.length]
     : null
+
+  // Sync data to iOS widgets and reschedule notifications
+  useEffect(() => {
+    if (books.length > 0) {
+      syncWidgetData({ books, goal, highlights: allHighlights })
+      rescheduleAllNotifications({ books, highlights: allHighlights, goal })
+    }
+  }, [books, goal, allHighlights])
 
   function shuffleHighlight() {
     if (allHighlights.length <= 1) return
