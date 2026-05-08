@@ -59,5 +59,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Kitab uses the camera to scan book barcodes (ISBNs) so you can quickly add books to your library.</string>
 </dict>
 </plist>

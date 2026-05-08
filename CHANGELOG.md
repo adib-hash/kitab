@@ -1,3 +1,8 @@
+## v2.5.3 — 2026-05-08
+
+### Fixed
+- **iOS barcode scanner**: Added the missing `NSCameraUsageDescription` key to `Info.plist`. Without it, iOS silently denied camera access in the WKWebView, so the ISBN scanner jumped straight to "permission denied" without ever prompting. Scanner now works on the iOS app the same way it does on the web.
+
 ## v2.5.2 — 2026-04-03
 
 ### Improved
