@@ -83,7 +83,7 @@ export function ReviewModal({ open, onClose, book }) {
     <Modal open={open} onClose={handleClose} title={book.review ? 'Edit Review' : 'Write a Review'} size="xl">
       <div className="flex flex-col" style={{ minHeight: '480px', maxHeight: '80vh' }}>
         {/* Book title */}
-        <div className="px-6 pb-2 text-sm text-ink-500 dark:text-ink-400 flex-shrink-0">
+        <div className="px-6 pt-3 pb-2 text-sm text-ink-500 dark:text-ink-400 flex-shrink-0">
           {book.title}{book.author ? ` · ${book.author}` : ''}
         </div>
 

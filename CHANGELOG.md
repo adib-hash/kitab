@@ -1,3 +1,11 @@
+## v2.5.4 — 2026-06-04
+
+### Fixed
+- **Kindle sync (IHS-5)**: Amazon changed their notebook URL from `/kp/notebook` to `/notebook`. Updated the InAppBrowser target URL so the sync flow no longer lands on Amazon's "Something went wrong" error page.
+- **Persistent Kindle sync reminder (IHS-6)**: The "It's been a week since your last Kindle sync" notification was firing every time the app opened once 7+ days had elapsed. Now tracks `kindle_sync_reminder_sent_at` in localStorage — reminder fires at most once per 7-day window. Resets when a sync completes.
+- **Edit review modal spacing (IHS-7)**: Book title and author line had no top padding, sitting flush against the modal header separator. Added `pt-3` for breathing room.
+- **Highlight notifications (IHS-8)**: Removed the 200-character truncation limit so the full quote appears in the notification. Tapping a highlight-of-the-day notification now navigates directly to that book's detail page with the Kindle Highlights section pre-opened.
+
 ## v2.5.3 — 2026-05-08
 
 ### Fixed

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import { ArrowLeft, Edit2, Trash2, ExternalLink, AlertTriangle, ChevronDown, ChevronUp, PenLine } from 'lucide-react'
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
@@ -18,6 +18,7 @@ import { formatDate, daysBetween } from '../lib/utils'
 export function BookDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { state: navState } = useLocation()
   const { data: book, isLoading } = useBook(id)
   const { data: hlCount = 0 } = useHighlightCount(id)
   const { data: allBooks = [] } = useLibrary()
@@ -300,7 +301,7 @@ export function BookDetail() {
       )}
 
       {/* Kindle Highlights */}
-      <HighlightsSection bookId={id} count={hlCount} isDark={isDark} />
+      <HighlightsSection bookId={id} count={hlCount} isDark={isDark} autoOpen={!!navState?.openHighlights} />
 
       {/* Similar books */}
       {similar.length > 0 && (
@@ -333,8 +334,9 @@ export function BookDetail() {
 }
 
 // ── Highlights section for BookDetail ─────────────────────────────────────
-function HighlightsSection({ bookId, count, isDark }) {
-  const [open, setOpen] = useState(false)
+function HighlightsSection({ bookId, count, isDark, autoOpen = false }) {
+  const [open, setOpen] = useState(autoOpen)
+  useEffect(() => { if (autoOpen) setOpen(true) }, [autoOpen])
   const { data: highlights = [], isLoading } = useHighlights(open ? bookId : null)
   const deleteHighlight = useDeleteHighlight()
 

@@ -71,16 +71,10 @@ export async function checkPermission() {
 
 /**
  * Schedule the daily reading reminder.
- * @param {Object} params
- * @param {string} params.bookTitle - Currently reading book title
- * @param {number} params.currentPage - Current page
- * @param {number} params.hour - Hour to fire (0-23)
- * @param {number} params.minute - Minute to fire (0-59)
  */
 export async function scheduleReadingReminder({ bookTitle, currentPage, hour, minute }) {
   if (!native()) return
   try {
-    // Cancel existing
     await LocalNotifications.cancel({ notifications: [{ id: IDS.READING_REMINDER }] })
 
     const body = currentPage
@@ -118,30 +112,30 @@ export async function cancelReadingReminder() {
 /**
  * Schedule highlight of the day notification.
  * @param {Object} params
- * @param {string} params.text - Highlight text
+ * @param {string} params.text - Highlight text (full, no truncation)
  * @param {string} params.bookTitle - Book title
+ * @param {string} [params.highlightId] - Highlight ID for deep linking
+ * @param {string} [params.bookId] - Book ID for deep linking
  * @param {number} params.hour - Hour to fire
  * @param {number} params.minute - Minute to fire
  */
-export async function scheduleHighlightOfDay({ text, bookTitle, hour, minute }) {
+export async function scheduleHighlightOfDay({ text, bookTitle, highlightId, bookId, hour, minute }) {
   if (!native()) return
   try {
     await LocalNotifications.cancel({ notifications: [{ id: IDS.HIGHLIGHT_OF_DAY }] })
-
-    // Truncate long highlights for notification body
-    const truncated = text.length > 200 ? text.slice(0, 197) + '…' : text
 
     await LocalNotifications.schedule({
       notifications: [{
         id: IDS.HIGHLIGHT_OF_DAY,
         title: `From ${bookTitle}`,
-        body: truncated,
+        body: text,
         schedule: {
           on: { hour, minute },
           repeats: true,
           allowWhileIdle: true,
         },
         sound: 'default',
+        extra: highlightId && bookId ? { highlightId, bookId } : undefined,
       }],
     })
   } catch (e) {
@@ -161,8 +155,6 @@ export async function cancelHighlightOfDay() {
 
 /**
  * Check and fire goal milestone notifications.
- * @param {number} current - Books read this year
- * @param {number} target - Goal target
  */
 export async function checkGoalMilestones(current, target) {
   if (!native() || !target || target <= 0) return
@@ -178,7 +170,6 @@ export async function checkGoalMilestones(current, target) {
   ]
 
   for (const milestone of milestones) {
-    // Check if we just crossed this milestone
     const prevKey = `kitab_milestone_${milestone.pct}_${new Date().getFullYear()}`
     if (percentage >= milestone.pct && !localStorage.getItem(prevKey)) {
       localStorage.setItem(prevKey, 'true')
@@ -188,7 +179,7 @@ export async function checkGoalMilestones(current, target) {
             id: milestone.id,
             title: percentage >= 100 ? 'Reading Goal Complete!' : 'Reading Goal Progress',
             body: milestone.msg,
-            schedule: { at: new Date(Date.now() + 1000) }, // fire in 1 second
+            schedule: { at: new Date(Date.now() + 1000) },
           }],
         })
       } catch {}
@@ -197,7 +188,8 @@ export async function checkGoalMilestones(current, target) {
 }
 
 /**
- * Schedule Kindle sync reminder (weekly check).
+ * Schedule Kindle sync reminder — fires at most once every 7 days.
+ * Tracks the last send time so repeated app launches don't re-fire it.
  */
 export async function scheduleKindleSyncReminder() {
   if (!native()) return
@@ -207,21 +199,28 @@ export async function scheduleKindleSyncReminder() {
   const lastSync = localStorage.getItem('kindle_last_sync')
   if (!lastSync) return // Don't remind if they've never synced
 
-  const daysSince = Math.floor((Date.now() - new Date(lastSync).getTime()) / (1000 * 60 * 60 * 24))
-  if (daysSince < 7) {
-    // Cancel any existing reminder
+  const daysSinceSync = Math.floor((Date.now() - new Date(lastSync).getTime()) / (1000 * 60 * 60 * 24))
+  if (daysSinceSync < 7) {
     await LocalNotifications.cancel({ notifications: [{ id: IDS.KINDLE_SYNC_REMINDER }] }).catch(() => {})
     return
   }
 
+  // Only fire the reminder once every 7 days regardless of how often the app opens
+  const lastReminderSent = localStorage.getItem('kindle_sync_reminder_sent_at')
+  if (lastReminderSent) {
+    const daysSinceReminder = Math.floor((Date.now() - new Date(lastReminderSent).getTime()) / (1000 * 60 * 60 * 24))
+    if (daysSinceReminder < 7) return
+  }
+
   try {
     await LocalNotifications.cancel({ notifications: [{ id: IDS.KINDLE_SYNC_REMINDER }] })
+    localStorage.setItem('kindle_sync_reminder_sent_at', new Date().toISOString())
     await LocalNotifications.schedule({
       notifications: [{
         id: IDS.KINDLE_SYNC_REMINDER,
         title: 'Kindle Highlights',
         body: "It's been a week since your last Kindle sync.",
-        schedule: { at: new Date(Date.now() + 2000) }, // fire shortly
+        schedule: { at: new Date(Date.now() + 2000) },
       }],
     })
   } catch {}
@@ -229,7 +228,6 @@ export async function scheduleKindleSyncReminder() {
 
 /**
  * Check for book anniversaries and schedule notifications.
- * @param {Array} books - All books from library
  */
 export async function checkBookAnniversaries(books) {
   if (!native()) return
@@ -237,14 +235,13 @@ export async function checkBookAnniversaries(books) {
   if (!settings.bookAnniversary) return
 
   const today = new Date()
-  const thisMonth = today.getMonth() // 0-indexed
+  const thisMonth = today.getMonth()
   const thisYear = today.getFullYear()
 
   const anniversaryBooks = books.filter(b => {
     if (!b.date_finished || b.status !== 'read') return false
     const year = parseInt(b.date_finished.slice(0, 4))
-    const month = parseInt(b.date_finished.slice(5, 7)) - 1 // 0-indexed
-    // Same month, at least 1 year ago
+    const month = parseInt(b.date_finished.slice(5, 7)) - 1
     return month === thisMonth && year < thisYear
   })
 
@@ -294,13 +291,15 @@ export async function rescheduleAllNotifications({ books = [], highlights = [], 
     await cancelReadingReminder()
   }
 
-  // Highlight of the day
+  // Highlight of the day — pass IDs so tapping navigates to the book
   if (settings.highlightOfDay && highlights.length > 0) {
     const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % highlights.length
     const h = highlights[dayIndex]
     await scheduleHighlightOfDay({
       text: h.text,
       bookTitle: h.books?.title || 'Your Library',
+      highlightId: h.id,
+      bookId: h.book_id,
       hour: settings.highlightHour,
       minute: settings.highlightMinute,
     })
@@ -317,7 +316,7 @@ export async function rescheduleAllNotifications({ books = [], highlights = [], 
     await checkGoalMilestones(booksRead, goal.target)
   }
 
-  // Kindle sync reminder
+  // Kindle sync reminder (fires at most once per 7 days)
   await scheduleKindleSyncReminder()
 
   // Book anniversaries

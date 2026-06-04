@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
 import { Search } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { BottomNav } from './BottomNav'
 import { GlobalSearch } from '../search/GlobalSearch'
 import { Toaster } from 'react-hot-toast'
+import { Capacitor } from '@capacitor/core'
 
 export function Layout({ children }) {
   const [searchOpen, setSearchOpen] = useState(false)
+  const navigate = useNavigate()
 
   // ⌘K / Ctrl+K global shortcut
   useEffect(() => {
@@ -20,6 +22,19 @@ export function Layout({ children }) {
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [])
+
+  // Navigate to book detail when a highlight-of-the-day notification is tapped
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return
+    let handle
+    import('@capacitor/local-notifications').then(({ LocalNotifications }) => {
+      handle = LocalNotifications.addListener('localNotificationActionPerformed', ({ notification }) => {
+        const bookId = notification?.extra?.bookId
+        if (bookId) navigate(`/library/${bookId}`, { state: { openHighlights: true } })
+      })
+    }).catch(() => {})
+    return () => { handle?.then?.(h => h.remove()).catch(() => {}) }
+  }, [navigate])
 
   return (
     <>

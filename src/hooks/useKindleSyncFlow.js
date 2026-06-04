@@ -68,7 +68,7 @@ export function useKindleSyncFlow() {
       })
       listeners.push(closeListener)
 
-      await InAppBrowser.openWebView({ url: 'https://read.amazon.com/kp/notebook' })
+      await InAppBrowser.openWebView({ url: 'https://read.amazon.com/notebook' })
     } catch (e) {
       toast.error('Sync failed. Try again.')
       try { await InAppBrowser.close() } catch {}

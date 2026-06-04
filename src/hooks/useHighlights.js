@@ -400,6 +400,7 @@ export function useKindleSync() {
     },
     onSuccess: ({ totalHighlights, unmatched }) => {
       localStorage.setItem('kindle_last_sync', new Date().toISOString())
+      localStorage.removeItem('kindle_sync_reminder_sent_at')
       qc.invalidateQueries({ queryKey: ['highlights'] })
       qc.invalidateQueries({ queryKey: ['highlight_count'] })
       qc.invalidateQueries({ queryKey: ['highlights_unmatched'] })
