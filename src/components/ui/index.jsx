@@ -70,14 +70,28 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
             className="fixed inset-0 bg-ink-900/50 backdrop-blur-sm z-[250]"
             onClick={onClose}
           />
+          <div
+            style={{
+              position: 'fixed',
+              top: 'calc(env(safe-area-inset-top, 0px) + 56px)',
+              bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)',
+              left: '1rem',
+              right: '1rem',
+              zIndex: 260,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'none',
+            }}
+          >
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: 'spring', duration: 0.3 }}
-            style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top, 0px) + 56px)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)', left: '1rem', right: '1rem', zIndex: 260 }}
+            style={{ maxHeight: '100%', pointerEvents: 'auto' }}
             className={clsx(
-              'bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col',
+              'bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col w-full',
               {
                 'max-w-md mx-auto': size === 'md',
                 'max-w-xl mx-auto': size === 'lg',
@@ -107,6 +121,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
               )}
             </div>
           </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
