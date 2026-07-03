@@ -84,14 +84,24 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
               pointerEvents: 'none',
             }}
           >
+          {/*
+            The scrollable card is the SAME element that carries maxHeight — not a
+            flex-grow child of an auto-height flex container. Nesting `flex-1 min-h-0`
+            inside a `max-height`-clamped (not `height`-clamped) flex item never actually
+            bounds the child's height in any browser: the child just sizes to its full
+            content and the overflow gets visually clipped instead of scrolling. Keeping
+            overflow-y-auto directly on this element is what makes it actually scroll.
+          */}
           <motion.div
+            ref={scrollRef}
+            onScroll={checkScroll}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: 'spring', duration: 0.3 }}
-            style={{ maxHeight: '100%', pointerEvents: 'auto' }}
+            style={{ maxHeight: '100%', pointerEvents: 'auto', WebkitOverflowScrolling: 'touch' }}
             className={clsx(
-              'bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden flex flex-col w-full',
+              'relative bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-y-auto overflow-x-hidden w-full',
               {
                 'max-w-md mx-auto': size === 'md',
                 'max-w-xl mx-auto': size === 'lg',
@@ -100,7 +110,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
             )}
           >
             {title && (
-              <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-paper-200 dark:border-ink-700">
+              <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-paper-200 dark:border-ink-700 bg-white/95 dark:bg-ink-800/95 backdrop-blur-sm">
                 <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50">{title}</h2>
                 <button onClick={onClose} className="p-1 rounded-lg hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-500 transition-colors">
                   <X size={18} />
@@ -108,18 +118,16 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
               </div>
             )}
             {!title && (
-              <button onClick={onClose} className="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-white/80 dark:bg-ink-800/80 hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-400 transition-colors">
-                <X size={16} />
-              </button>
-            )}
-            <div className="relative flex-1 min-h-0">
-              <div ref={scrollRef} onScroll={checkScroll} className="overflow-y-auto h-full">
-                {children}
+              <div className="sticky top-2 z-10 h-0 flex justify-end pr-2 pointer-events-none">
+                <button onClick={onClose} className="pointer-events-auto p-1.5 rounded-lg bg-white/80 dark:bg-ink-800/80 hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-400 transition-colors">
+                  <X size={16} />
+                </button>
               </div>
-              {showFade && (
-                <div className="absolute bottom-0 left-0 right-0 h-10 pointer-events-none rounded-b-2xl bg-gradient-to-t from-white dark:from-ink-800 to-transparent" />
-              )}
-            </div>
+            )}
+            {children}
+            {showFade && (
+              <div className="sticky bottom-0 left-0 right-0 h-10 -mt-10 pointer-events-none rounded-b-2xl bg-gradient-to-t from-white dark:from-ink-800 to-transparent" />
+            )}
           </motion.div>
           </div>
         </>
