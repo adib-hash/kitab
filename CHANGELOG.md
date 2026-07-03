@@ -1,3 +1,8 @@
+## v2.5.5 — 2026-07-03
+
+### Fixed
+- **Discover book preview unscrollable on iOS**: The "center modal card vertically" change nested a `flex-1 min-h-0` scroll region inside a `max-height`-clamped (not `height`-clamped) flex item — a combination that never actually bounds the child's height in any browser, so tall content (like a book with a long description) just got visually clipped at the bottom instead of scrolling, leaving "Add to TBR" unreachable. Fixed by making the card itself the scrollable element (`overflow-y-auto` directly on the sized element) instead of relying on a nested flex-grow child. Header, close button, and the bottom scroll-fade now use `position: sticky` so they stay pinned correctly while scrolling. Applies to all modals (Discover preview, Add/Edit Book, Review, Book Search), not just Discover.
+
 ## v2.5.4 — 2026-06-04
 
 ### Fixed
