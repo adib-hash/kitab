@@ -7,6 +7,12 @@ import { QuickActionsSheet } from '../ui/QuickActionsSheet'
 import { BookForm } from './BookForm'
 import { useLongPress } from '../../hooks/useLongPress'
 
+const STATUS_DOT = {
+  reading: 'bg-teal-500',
+  tbr: 'bg-blue-400',
+  dnf: 'bg-rose-400',
+}
+
 export const BookCard = memo(function BookCard({ book }) {
   const navigate = useNavigate()
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -25,6 +31,10 @@ export const BookCard = memo(function BookCard({ book }) {
       >
         <div className="relative overflow-hidden rounded-lg shadow-book group-hover:shadow-book-hover transition-all duration-200 group-hover:-translate-y-1">
           <BookCover book={book} size="full" className="w-full" />
+          {/* Always-visible status dot for reading/tbr/dnf */}
+          {STATUS_DOT[book.status] && (
+            <div className={`absolute top-1.5 left-1.5 w-2.5 h-2.5 rounded-full border border-white/60 ${STATUS_DOT[book.status]}`} />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-ink-900/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-2.5">
             <StatusBadge status={book.status} />
           </div>

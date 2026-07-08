@@ -20,12 +20,19 @@ const STATUS_OPTIONS = [
   { value: 'dnf', label: 'Did Not Finish' },
 ]
 
+const RATING_OPTIONS = [
+  { label: 'Any', value: null },
+  { label: '3+', value: 3 },
+  { label: '4+', value: 4 },
+  { label: '4.5+', value: 4.5 },
+]
+
 export function LibraryFilters() {
   const { librarySort, libraryFilters, librarySearch, setLibrarySort, setLibraryFilters, setLibrarySearch, clearLibraryFilters } = useUIStore()
   const { data: tags = [] } = useTags()
   const [tagsOpen, setTagsOpen] = useState(false)
 
-  const hasActiveFilters = libraryFilters.status.length > 0 || libraryFilters.tags.length > 0
+  const hasActiveFilters = libraryFilters.status.length > 0 || libraryFilters.tags.length > 0 || libraryFilters.ratingMin !== null
   const activeTagCount = libraryFilters.tags.length
 
   function toggleStatus(status) {
@@ -82,6 +89,27 @@ export function LibraryFilters() {
               className={clsx(
                 'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
                 libraryFilters.status.includes(opt.value)
+                  ? 'bg-teal-700 text-white border-teal-700'
+                  : 'bg-white dark:bg-ink-800 border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-400 hover:border-teal-400'
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Minimum rating filter */}
+      <div>
+        <label className="section-label block mb-1.5">Minimum rating</label>
+        <div className="flex flex-wrap gap-1.5">
+          {RATING_OPTIONS.map(opt => (
+            <button
+              key={opt.label}
+              onClick={() => setLibraryFilters({ ratingMin: opt.value })}
+              className={clsx(
+                'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
+                libraryFilters.ratingMin === opt.value
                   ? 'bg-teal-700 text-white border-teal-700'
                   : 'bg-white dark:bg-ink-800 border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-400 hover:border-teal-400'
               )}

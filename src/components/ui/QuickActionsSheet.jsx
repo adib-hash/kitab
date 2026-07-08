@@ -3,6 +3,7 @@ import { X, BookOpen, BookMarked, Star, Tag, FileText, CheckCircle, Clock, XCirc
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUpdateBook } from '../../hooks/useLibrary'
 import { useUIStore } from '../../store/uiStore'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 import { StarRating } from '../books/StarRating'
 import { BookForm } from '../books/BookForm'
 import { ReviewModal } from '../books/ReviewModal'
@@ -29,34 +30,17 @@ export function QuickActionsSheet({ book, open, onClose }) {
   const [finishMonth, setFinishMonth] = useState(String(now.getMonth() + 1))
   const [finishYear, setFinishYear]   = useState(String(now.getFullYear()))
 
-  // Haptic feedback when sheet opens
+  useBodyScrollLock(open)
+
   useEffect(() => {
     if (open) impactMedium()
   }, [open])
 
-  // Lock body scroll when sheet is open; reset date picker state on close
   useEffect(() => {
-    if (open) {
-      const scrollY = window.scrollY
-      document.body.style.position = 'fixed'
-      document.body.style.top = `-${scrollY}px`
-      document.body.style.width = '100%'
-    } else {
-      const scrollY = Math.abs(parseInt(document.body.style.top || '0'))
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      window.scrollTo(0, scrollY)
+    if (!open) {
       setDatePicking(false)
       setFinishMonth(String(new Date().getMonth() + 1))
       setFinishYear(String(new Date().getFullYear()))
-    }
-    return () => {
-      const scrollY = Math.abs(parseInt(document.body.style.top || '0'))
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      if (scrollY) window.scrollTo(0, scrollY)
     }
   }, [open])
 
@@ -129,26 +113,22 @@ export function QuickActionsSheet({ book, open, onClose }) {
       <AnimatePresence>
         {open && (
           <>
-            {/* Backdrop */}
             <motion.div
               className="fixed inset-0 z-[300] bg-black/50"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={onClose}
             />
 
-            {/* Sheet */}
             <motion.div
               className="fixed bottom-0 left-0 right-0 z-[310] bg-white dark:bg-ink-900 rounded-t-2xl shadow-2xl"
               style={{ maxHeight: '90vh', overflowY: 'auto' }}
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             >
-              {/* Handle */}
               <div className="flex justify-center pt-3 pb-1">
                 <div className="w-10 h-1 rounded-full bg-paper-300 dark:bg-ink-600" />
               </div>
 
-              {/* Book header */}
               <div className="flex items-center gap-3 px-5 py-3 border-b border-paper-100 dark:border-ink-700">
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm text-ink-900 dark:text-paper-50 truncate">{book.title}</p>
@@ -164,7 +144,6 @@ export function QuickActionsSheet({ book, open, onClose }) {
 
               <div className="px-2 py-2">
 
-                {/* ── Date picker (shown after selecting Finished) ──────────── */}
                 {datePicking && (
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-3">
                     <p className="text-sm font-semibold text-ink-800 dark:text-paper-100 mb-1">When did you finish?</p>
@@ -198,7 +177,6 @@ export function QuickActionsSheet({ book, open, onClose }) {
                   </motion.div>
                 )}
 
-                {/* ── Status + actions (hidden while date picker is active) ──── */}
                 {!datePicking && (
                   <>
                     <button
@@ -217,7 +195,6 @@ export function QuickActionsSheet({ book, open, onClose }) {
                       }
                     </button>
 
-                    {/* Status options */}
                     <AnimatePresence>
                       {statusOpen && (
                         <motion.div
@@ -257,7 +234,6 @@ export function QuickActionsSheet({ book, open, onClose }) {
                       )}
                     </AnimatePresence>
 
-                    {/* ── Tags ──────────────────────────────────────────────────── */}
                     <button
                       onClick={openForm}
                       className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-paper-50 dark:hover:bg-ink-800 transition-colors active:bg-paper-100 dark:active:bg-ink-700"
@@ -268,7 +244,6 @@ export function QuickActionsSheet({ book, open, onClose }) {
                       </span>
                     </button>
 
-                    {/* ── Review ────────────────────────────────────────────────── */}
                     <button
                       onClick={openReview}
                       className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-paper-50 dark:hover:bg-ink-800 transition-colors active:bg-paper-100 dark:active:bg-ink-700"
@@ -279,7 +254,6 @@ export function QuickActionsSheet({ book, open, onClose }) {
                       </span>
                     </button>
 
-                    {/* ── Rate ──────────────────────────────────────────────────── */}
                     <button
                       onClick={() => { setRatingOpen(r => !r); setStatusOpen(false) }}
                       className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-paper-50 dark:hover:bg-ink-800 transition-colors active:bg-paper-100 dark:active:bg-ink-700"
@@ -307,7 +281,6 @@ export function QuickActionsSheet({ book, open, onClose }) {
 
               </div>
 
-              {/* iOS safe area — extra lift when date picker is active */}
               <div style={{ paddingBottom: datePicking ? 'max(env(safe-area-inset-bottom), 80px)' : 'max(env(safe-area-inset-bottom), 16px)' }} />
             </motion.div>
           </>

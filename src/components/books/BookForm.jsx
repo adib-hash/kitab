@@ -58,7 +58,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
   const [form, setForm] = useState({
     title: '', author: '', cover_url: '', published_year: '',
     page_count: '', isbn: '', status: DEFAULT_STATUS, rating: null,
-    review: '', review_spoiler: false,
+    review: '', review_spoiler: false, tbr_note: '',
     current_page: '', genres: [], description: '', google_books_id: '',
   })
   const [tagIds, setTagIds] = useState([])
@@ -83,6 +83,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
         genres: initialBook.genres || [],
         description: initialBook.description || '',
         google_books_id: initialBook.google_books_id || '',
+        tbr_note: initialBook.tbr_note || '',
       })
     }
     if (editingTags) setTagIds(editingTags.map(t => t.id))
@@ -94,6 +95,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
   async function handleSubmit(e) {
     e.preventDefault()
     // Destructure out UI-only fields so they don't get sent to Supabase
+    // tbr_note is included in formFields and passed through
     const { month_finished, year_finished, ...formFields } = form
     const payload = {
       ...formFields,
@@ -222,6 +224,20 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
                   <label className="section-label block mb-1">Tags</label>
                   <TagInput selectedTagIds={tagIds} onChange={setTagIds} />
                 </div>
+                {form.status === 'tbr' && (
+                  <div>
+                    <label className="section-label block mb-1">Why this book? <span className="text-ink-400">(optional)</span></label>
+                    <textarea
+                      value={form.tbr_note}
+                      onChange={e => set('tbr_note', e.target.value.slice(0, 120))}
+                      placeholder="What drew you to it?"
+                      rows={2}
+                      className={inp + ' resize-none'}
+                      style={inpStyle}
+                    />
+                    <p className="text-xs text-ink-400 text-right mt-0.5">{form.tbr_note.length}/120</p>
+                  </div>
+                )}
                 {resolvedEditingId && onOpenReview && (
                   <button
                     type="button"

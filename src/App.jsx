@@ -32,6 +32,7 @@ import { Stats } from './pages/Stats'
 import { Rank } from './pages/Rank'
 import { Settings } from './pages/Settings'
 import { Discover } from './pages/Discover'
+import { Highlights } from './pages/Highlights'
 import { Modal, Button } from './components/ui/index.jsx'
 import { ReviewModal } from './components/books/ReviewModal'
 import { BookSearchModal } from './components/books/BookSearch'
@@ -244,6 +245,7 @@ export default function App() {
           <Route path="/tbr" element={<ProtectedRoute session={session}><TBR /></ProtectedRoute>} />
           <Route path="/stats" element={<ProtectedRoute session={session}><Stats /></ProtectedRoute>} />
           <Route path="/rank" element={<ProtectedRoute session={session}><Rank /></ProtectedRoute>} />
+          <Route path="/highlights" element={<ProtectedRoute session={session}><Highlights /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute session={session}><Settings /></ProtectedRoute>} />
           <Route path="/discover" element={<ProtectedRoute session={session}><Discover /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />

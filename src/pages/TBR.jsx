@@ -200,6 +200,9 @@ function SortableBook({ book }) {
                 {book.title}
               </p>
               <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
+              {book.tbr_note && (
+                <p className="text-[11px] italic text-ink-400 dark:text-ink-500 truncate mt-0.5">{book.tbr_note}</p>
+              )}
             </div>
           </Link>
         </div>
@@ -254,7 +257,10 @@ function ShufflePickModal({ book, onClose, onShuffleAgain }) {
           <BookCover book={book} size="lg" />
         </div>
         <p className="font-serif font-semibold text-lg text-ink-900 dark:text-paper-50 leading-snug">{book.title}</p>
-        <p className="text-sm text-ink-500 dark:text-ink-400 mt-1 mb-5">{book.author}</p>
+        <p className="text-sm text-ink-500 dark:text-ink-400 mt-1 mb-1">{book.author}</p>
+        {book.tbr_note && (
+          <p className="text-xs italic text-ink-400 dark:text-ink-500 mb-4">{book.tbr_note}</p>
+        )}
         <Link
           to={`/library/${book.id}`}
           className="text-sm text-teal-600 dark:text-teal-400 hover:underline font-medium flex items-center justify-center gap-1"

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, BookOpen, ArrowRight, Target, Settings, Star, FileText, Bookmark, CheckCircle, Moon, Sun, RefreshCw, Zap, AlertCircle, Loader2 } from 'lucide-react'
+import { Plus, BookOpen, ArrowRight, Target, Settings, Star, FileText, Bookmark, CheckCircle, Moon, Sun, RefreshCw, Zap, AlertCircle, Loader2, CalendarHeart } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Capacitor } from '@capacitor/core'
 import { useLibrary } from '../hooks/useLibrary'
@@ -29,22 +29,11 @@ export function Dashboard() {
   const [highlightIdx, setHighlightIdx] = useState(0)
   const [highlightExpanded, setHighlightExpanded] = useState(false)
 
-  // Reactive dark mode detection (needed for highlight card inline styles)
-  const [isDark, setIsDark] = useState(
-    document.documentElement.classList.contains('dark')
-  )
-  useEffect(() => {
-    const obs = new MutationObserver(() =>
-      setIsDark(document.documentElement.classList.contains('dark'))
-    )
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-    return () => obs.disconnect()
-  }, [])
-
-  // Pick a fresh random highlight when the data first loads
+  // Date-seeded highlight — same highlight all day, changes each day
   useEffect(() => {
     if (allHighlights.length > 0) {
-      setHighlightIdx(Math.floor(Math.random() * allHighlights.length))
+      const seed = [...new Date().toISOString().slice(0, 10)].reduce((a, c) => a + c.charCodeAt(0), 0)
+      setHighlightIdx(seed % allHighlights.length)
     }
   }, [allHighlights.length])
 
@@ -94,6 +83,17 @@ export function Dashboard() {
   )
   const yearStats = useMemo(() => computeStats(yearBooks), [yearBooks])
   const booksThisYear = yearStats.totalRead
+
+  // Anniversary books — finished on the same MM-DD in a prior year
+  const anniversaryBooks = useMemo(() => {
+    const todayMMDD = new Date().toISOString().slice(5, 10)
+    return books.filter(b =>
+      b.status === 'read' &&
+      b.date_finished &&
+      b.date_finished.slice(5, 10) === todayMMDD &&
+      parseInt(b.date_finished.slice(0, 4)) < thisYear
+    )
+  }, [books, thisYear])
 
   function handleSearchSelect(book) {
     setSelectedBook(book)
@@ -158,18 +158,16 @@ export function Dashboard() {
         >
           {/* Decorative quote mark */}
           <div
-            className="absolute -top-3 left-3 font-serif leading-none select-none pointer-events-none"
-            style={{ fontSize: '6rem', color: isDark ? 'rgba(20,184,166,0.07)' : 'rgba(20,184,166,0.10)' }}
+            className="absolute -top-3 left-3 font-serif leading-none select-none pointer-events-none text-teal-500 opacity-10"
+            style={{ fontSize: '6rem' }}
           >&ldquo;</div>
 
           <div className="relative space-y-4">
             <div>
               <p
-                className="font-serif leading-relaxed"
+                className="font-serif leading-relaxed italic text-ink-800 dark:text-paper-100"
                 style={{
                   fontSize: '0.9375rem',
-                  fontStyle: 'italic',
-                  color: isDark ? '#e2e8f0' : '#292524',
                   lineHeight: '1.7',
                   ...(!highlightExpanded ? {
                     display: '-webkit-box',
@@ -184,39 +182,36 @@ export function Dashboard() {
               {highlight.text && highlight.text.length > 150 && (
                 <button
                   onClick={() => setHighlightExpanded(e => !e)}
-                  className="text-xs font-medium mt-2 transition-colors"
-                  style={{ color: isDark ? '#5eead4' : '#0f766e' }}
+                  className="text-xs font-medium mt-2 transition-colors text-teal-700 dark:text-teal-500"
                 >
                   {highlightExpanded ? 'Show less' : 'Read more'}
                 </button>
               )}
             </div>
 
-            <div className="flex items-end justify-between gap-3 pt-1 border-t"
-                 style={{ borderColor: isDark ? '#1e293b' : '#f0ede8' }}>
-              <Link
-                to={`/library/${highlight.book_id}`}
-                className="min-w-0 group"
-              >
+            <div className="flex items-end justify-between gap-3 pt-1 border-t border-paper-100 dark:border-ink-700">
+              <Link to={`/library/${highlight.book_id}`} className="min-w-0 group">
                 <p className="text-sm font-semibold text-teal-700 dark:text-teal-400 group-hover:underline truncate">
                   {highlight.books?.title}
                 </p>
                 {highlight.books?.author && (
-                  <p className="text-xs mt-0.5" style={{ color: isDark ? '#64748b' : '#a8a29e' }}>
+                  <p className="text-xs mt-0.5 text-ink-400 dark:text-ink-500">
                     {highlight.books.author}
                   </p>
                 )}
               </Link>
-              <button
-                onClick={shuffleHighlight}
-                title="Show another highlight"
-                className="p-2 rounded-xl transition-colors flex-shrink-0"
-                style={{ color: isDark ? '#475569' : '#c4bdb8' }}
-                onMouseEnter={e => e.currentTarget.style.color = '#14b8a6'}
-                onMouseLeave={e => e.currentTarget.style.color = isDark ? '#475569' : '#c4bdb8'}
-              >
-                <RefreshCw size={14} />
-              </button>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <Link to="/highlights" className="text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium px-1">
+                  View all
+                </Link>
+                <button
+                  onClick={shuffleHighlight}
+                  title="Show another highlight"
+                  className="p-2 rounded-xl transition-colors text-ink-300 dark:text-ink-600 hover:text-teal-500"
+                >
+                  <RefreshCw size={14} />
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -281,6 +276,28 @@ export function Dashboard() {
         </section>
       )}
 
+      {/* Anniversary card */}
+      {anniversaryBooks.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="card p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <CalendarHeart size={16} className="text-rose-400 flex-shrink-0" />
+            <h2 className="font-serif text-base font-semibold text-ink-900 dark:text-paper-50">On this day</h2>
+          </div>
+          <div className="space-y-2">
+            {anniversaryBooks.map(b => (
+              <Link key={b.id} to={`/library/${b.id}`} className="flex items-center gap-3 group">
+                <p className="text-sm text-ink-800 dark:text-ink-300 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors truncate flex-1">
+                  {b.title}
+                </p>
+                <span className="text-xs text-ink-400 dark:text-ink-500 flex-shrink-0">
+                  {thisYear - parseInt(b.date_finished.slice(0, 4))}y ago
+                </span>
+              </Link>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       {/* Recently Read */}
       {recentlyRead.length > 0 && (
         <section>
@@ -310,24 +327,17 @@ export function Dashboard() {
         />
       )}
 
-      {/* Kindle Highlights sync — iOS only, always visible at bottom */}
+      {/* Kindle Highlights sync — iOS only */}
       {isNative && (
         <section className="space-y-3 pb-2">
           <h2 className="font-serif text-lg md:text-xl font-semibold text-ink-900 dark:text-paper-50">
             Kindle Highlights
           </h2>
 
-          {/* 7-day reminder banner */}
           {showSyncReminder && (
-            <div
-              className="flex items-start gap-3 p-4 rounded-xl border"
-              style={{
-                background: isDark ? 'rgba(120,53,15,0.15)' : '#fffbeb',
-                borderColor: isDark ? 'rgba(120,53,15,0.4)' : '#fde68a',
-              }}
-            >
+            <div className="flex items-start gap-3 p-4 rounded-xl border bg-amber-50 dark:bg-amber-800/15 border-amber-100 dark:border-amber-800/40">
               <AlertCircle size={15} className="text-amber-500 flex-shrink-0 mt-0.5" />
-              <p className="text-sm" style={{ color: isDark ? '#fcd34d' : '#92400e' }}>
+              <p className="text-sm text-amber-800 dark:text-amber-400">
                 {daysSinceSync === null
                   ? "You haven't synced your Kindle highlights yet."
                   : "It's been a week since your last Kindle sync. Sync now?"}
@@ -337,7 +347,7 @@ export function Dashboard() {
 
           <div className="card p-4 space-y-3">
             {lastSyncRaw && !showSyncReminder && (
-              <p className="text-xs" style={{ color: isDark ? '#475569' : '#a8a29e' }}>
+              <p className="text-xs text-ink-400 dark:text-ink-600">
                 Last synced {daysSinceSync === 0 ? 'today' : daysSinceSync === 1 ? 'yesterday' : `${daysSinceSync} days ago`}
               </p>
             )}

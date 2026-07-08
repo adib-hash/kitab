@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Trophy, Swords, StopCircle, RotateCcw, BookOpen, Loader2, ChevronLeft, CheckCircle } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
+import { useTags } from '../hooks/useTags'
 import { supabase } from '../lib/supabase'
 import { BookCover } from '../components/books/BookCover'
 import { Link } from 'react-router-dom'
@@ -160,6 +161,9 @@ export function Rank() {
   const [winner, setWinner] = useState(null)
   const [resetting, setResetting] = useState(false)
 
+  const { data: tags = [] } = useTags()
+  const [selectedTag, setSelectedTag] = useState(null)
+
   const readBooks = books.filter(b => b.status === 'read')
 
   // Books with ELO defaults if null
@@ -170,13 +174,16 @@ export function Rank() {
     elo_losses: b.elo_losses ?? 0,
   }))
 
-  const rankedBooks = [...booksWithElo].sort((a, b) => b.elo - a.elo)
+  const tagFilteredBooks = selectedTag
+    ? booksWithElo.filter(b => b.tags?.some(t => t.id === selectedTag))
+    : booksWithElo
+  const rankedBooks = [...(selectedTag ? tagFilteredBooks : booksWithElo)].sort((a, b) => b.elo - a.elo)
   const matchCount = booksWithElo.reduce((s, b) => s + (b.elo_wins ?? 0), 0)
 
   function startRanking() {
-    if (booksWithElo.length < 2) return
+    if (tagFilteredBooks.length < 2) return
     const newSeen = new Set(seen)
-    const nextPair = pickPair(booksWithElo, newSeen)
+    const nextPair = pickPair(tagFilteredBooks, newSeen)
     setSeen(newSeen)
     setPair(nextPair)
     setWinner(null)
@@ -205,13 +212,16 @@ export function Rank() {
     }
 
     setTimeout(() => {
-      const updatedBooks = booksWithElo.map(b => {
+      const updatedBooksWithElo = booksWithElo.map(b => {
         if (b.id === chosenBook.id) return { ...b, elo: winnerNew, elo_wins: (b.elo_wins ?? 0) + 1 }
         if (b.id === otherBook.id) return { ...b, elo: loserNew, elo_losses: (b.elo_losses ?? 0) + 1 }
         return b
       })
+      const updatedFiltered = selectedTag
+        ? updatedBooksWithElo.filter(b => b.tags?.some(t => t.id === selectedTag))
+        : updatedBooksWithElo
       const newSeen = new Set(seen)
-      const nextPair = pickPair(updatedBooks, newSeen)
+      const nextPair = pickPair(updatedFiltered, newSeen)
       setSeen(newSeen)
       setPair(nextPair)
       setWinner(null)
@@ -279,6 +289,31 @@ export function Rank() {
       <AnimatePresence mode="wait">
         {view === 'home' && (
           <motion.div key="home" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-5">
+            {/* Tag filter chips */}
+          {tags.length > 0 && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+              <button
+                onClick={() => { setSelectedTag(null); setSeen(new Set()) }}
+                className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
+                  !selectedTag ? 'bg-teal-700 text-white border-teal-700' : 'bg-white dark:bg-ink-800 border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-400 hover:border-teal-400'
+                }`}
+              >
+                All
+              </button>
+              {tags.filter(tag => readBooks.some(b => b.tags?.some(t => t.id === tag.id))).map(tag => (
+                <button
+                  key={tag.id}
+                  onClick={() => { setSelectedTag(tag.id); setSeen(new Set()) }}
+                  className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
+                    selectedTag === tag.id ? 'bg-teal-700 text-white border-teal-700' : 'bg-white dark:bg-ink-800 border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-400 hover:border-teal-400'
+                  }`}
+                >
+                  {tag.name}
+                </button>
+              ))}
+            </div>
+          )}
+
             <div className="card p-6 text-center space-y-4">
               <Swords size={48} className="text-teal-600 mx-auto" />
               <div>

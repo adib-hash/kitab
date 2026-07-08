@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { X, BookOpen } from 'lucide-react'
 import { clsx } from 'clsx'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 
 // ── Button ──────────────────────────────────────────────────────────────
 export function Button({ variant = 'primary', size = 'md', className, children, ...props }) {
@@ -36,27 +37,10 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
     setShowFade(canScroll && !atBottom)
   }, [])
 
+  useBodyScrollLock(open)
+
   useEffect(() => {
-    if (open) {
-      // iOS Safari fix: overflow:hidden alone doesn't prevent scroll.
-      // position:fixed locks the page; we save/restore scrollY so it
-      // doesn't jump to the top when the modal closes.
-      const scrollY = window.scrollY
-      document.body.style.position = 'fixed'
-      document.body.style.top = `-${scrollY}px`
-      document.body.style.width = '100%'
-      document.body.style.overflow = 'hidden'
-      // Check if content is scrollable after mount
-      requestAnimationFrame(checkScroll)
-      return () => {
-        const y = Math.abs(parseInt(document.body.style.top || '0'))
-        document.body.style.position = ''
-        document.body.style.top = ''
-        document.body.style.width = ''
-        document.body.style.overflow = ''
-        window.scrollTo(0, y)
-      }
-    }
+    if (open) requestAnimationFrame(checkScroll)
   }, [open, checkScroll])
 
   return (
@@ -106,6 +90,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
                 'max-w-md mx-auto': size === 'md',
                 'max-w-xl mx-auto': size === 'lg',
                 'max-w-3xl mx-auto': size === 'xl',
+                'max-w-sm mx-auto': size === 'sm',
               }
             )}
           >

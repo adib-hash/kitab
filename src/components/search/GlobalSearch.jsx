@@ -7,6 +7,7 @@ import { BookCover } from '../books/BookCover'
 import { StatusBadge } from '../books/StatusBadge'
 import { BookSearchModal } from '../books/BookSearch'
 import { BookForm } from '../books/BookForm'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 
 export function GlobalSearch({ open, onClose }) {
   const [query, setQuery] = useState('')
@@ -18,27 +19,13 @@ export function GlobalSearch({ open, onClose }) {
   const navigate = useNavigate()
   const { data: books = [] } = useLibrary()
 
+  useBodyScrollLock(open)
+
   useEffect(() => {
     if (open) {
-      const scrollY = window.scrollY
-      document.body.style.position = 'fixed'
-      document.body.style.top = `-${scrollY}px`
-      document.body.style.width = '100%'
       setTimeout(() => inputRef.current?.focus(), 80)
     } else {
-      const scrollY = Math.abs(parseInt(document.body.style.top || '0'))
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      if (scrollY) window.scrollTo(0, scrollY)
       setQuery('')
-    }
-    return () => {
-      const scrollY = Math.abs(parseInt(document.body.style.top || '0'))
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      if (scrollY) window.scrollTo(0, scrollY)
     }
   }, [open])
 
@@ -78,83 +65,72 @@ export function GlobalSearch({ open, onClose }) {
         {open && (
           <>
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-ink-900/60 backdrop-blur-sm z-[500]"
+              className="fixed inset-0 z-[400] bg-ink-900/60 backdrop-blur-sm"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={onClose}
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.97, y: -8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.97, y: -8 }}
-              transition={{ type: 'spring', duration: 0.25 }}
-              className="fixed inset-x-4 max-w-lg z-[510] md:left-1/2 md:-translate-x-1/2 md:inset-x-auto md:w-full md:px-4"
-              style={{ top: 'calc(env(safe-area-inset-top) + 72px)' }}
+              className="fixed top-0 left-0 right-0 z-[410] bg-white dark:bg-ink-900 shadow-2xl"
+              style={{ paddingTop: 'env(safe-area-inset-top)' }}
+              initial={{ y: -40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -40, opacity: 0 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 380 }}
             >
-              <div className="bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-hidden">
-                <div className="flex items-center gap-3 px-4 py-3 border-b border-paper-100 dark:border-ink-700">
-                  <Search size={18} className="text-ink-400 flex-shrink-0" />
-                  <input
-                    ref={inputRef}
-                    value={query}
-                    onChange={e => setQuery(e.target.value)}
-                    placeholder="Search books, authors, tags..."
-                    className="flex-1 bg-transparent text-ink-900 dark:text-paper-50 placeholder:text-ink-400 outline-none"
-                    style={{ fontSize: '16px' }}
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck="false"
-                  />
-                  {query && (
-                    <button onClick={() => setQuery('')} className="text-ink-400 hover:text-ink-600 dark:hover:text-ink-300">
-                      <X size={16} />
-                    </button>
-                  )}
-                  <kbd className="hidden sm:flex items-center text-[10px] text-ink-400 border border-paper-200 dark:border-ink-600 rounded px-1.5 py-0.5 font-mono">
-                    esc
-                  </kbd>
-                </div>
-
-                {results.length > 0 ? (
-                  <div className="max-h-[60vh] overflow-y-auto py-1">
-                    {results.map(book => (
-                      <button
-                        key={book.id}
-                        onClick={() => handleSelect(book)}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-paper-50 dark:hover:bg-ink-700 transition-colors text-left"
-                      >
-                        <BookCover book={book} size="sm" className="flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-ink-900 dark:text-paper-50 truncate">{book.title}</p>
-                          <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
-                        </div>
-                        <StatusBadge status={book.status} />
-                      </button>
-                    ))}
-                  </div>
-                ) : q.length > 0 ? (
-                  <div className="flex flex-col items-center py-10 text-ink-400 gap-4">
-                    <div className="flex flex-col items-center gap-2">
-                      <BookOpen size={32} className="opacity-40" />
-                      <p className="text-sm">"{query}" isn't in your library.</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleAddBook}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium transition-colors"
-                    >
-                      <Plus size={15} />
-                      Add it to your library
-                    </button>
-                  </div>
-                ) : (
-                  <div className="px-4 py-6 text-center text-ink-400 text-sm">
-                    Start typing to search your library
-                  </div>
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-paper-200 dark:border-ink-700">
+                <Search size={18} className="text-ink-400 flex-shrink-0" />
+                <input
+                  ref={inputRef}
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  placeholder="Search your library..."
+                  className="flex-1 bg-transparent text-ink-900 dark:text-paper-50 placeholder-ink-400 text-base outline-none"
+                  style={{ fontSize: '16px' }}
+                />
+                {query && (
+                  <button onClick={() => setQuery('')} className="text-ink-400 hover:text-ink-600 dark:hover:text-ink-300">
+                    <X size={16} />
+                  </button>
                 )}
+                <button onClick={onClose} className="text-xs text-ink-500 hover:text-ink-700 dark:hover:text-ink-300 px-2 py-1 rounded-md border border-paper-200 dark:border-ink-600">
+                  Esc
+                </button>
               </div>
+
+              {results.length > 0 && (
+                <div className="max-h-80 overflow-y-auto divide-y divide-paper-100 dark:divide-ink-700">
+                  {results.map(book => (
+                    <button
+                      key={book.id}
+                      onClick={() => handleSelect(book)}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-paper-50 dark:hover:bg-ink-800 transition-colors text-left"
+                    >
+                      <BookCover book={book} size="sm" className="flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-ink-900 dark:text-paper-50 truncate">{book.title}</p>
+                        <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
+                      </div>
+                      <StatusBadge status={book.status} />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {q.length > 0 && results.length === 0 && (
+                <div className="px-4 py-4 space-y-3">
+                  <p className="text-sm text-ink-500 dark:text-ink-400">No matches in your library.</p>
+                  <button
+                    onClick={handleAddBook}
+                    className="flex items-center gap-2 text-sm text-teal-700 dark:text-teal-400 hover:underline font-medium"
+                  >
+                    <Plus size={14} /> Add "{query}" to your library
+                  </button>
+                </div>
+              )}
+
+              {q.length === 0 && (
+                <div className="px-4 py-4 text-sm text-ink-400 dark:text-ink-500">
+                  Type to search by title, author, or tag.
+                </div>
+              )}
             </motion.div>
           </>
         )}

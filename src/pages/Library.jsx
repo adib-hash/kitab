@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { LayoutGrid, List, Plus, SlidersHorizontal } from 'lucide-react'
+import { LayoutGrid, List, Plus, SlidersHorizontal, SearchX } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLibrary } from '../hooks/useLibrary'
 import { useUIStore } from '../store/uiStore'
@@ -24,26 +24,37 @@ function applySort(books, sortKey) {
   }
 }
 
+const SORT_LABELS = {
+  date_finished_desc: 'Recent',
+  date_finished_asc: 'Oldest',
+  created_at_desc: 'Added',
+  title_asc: 'A–Z',
+  author_asc: 'Author',
+  rating_desc: 'Rating',
+  page_count_desc: 'Length',
+}
+
 export function Library() {
   const { data: books = [], isLoading } = useLibrary()
-  const { libraryView, setLibraryView, librarySort, libraryFilters, librarySearch } = useUIStore()
+  const { libraryView, setLibraryView, librarySort, setLibrarySort, libraryFilters, librarySearch } = useUIStore()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
   const [selectedBook, setSelectedBook] = useState(null)
 
   const filtered = useMemo(() => {
-    let result = books.filter(b => b.status !== "tbr")
+    let result = books.filter(b => b.status !== 'tbr')
     if (librarySearch.trim()) {
       const q = librarySearch.toLowerCase()
       result = result.filter(b => b.title.toLowerCase().includes(q) || (b.author || '').toLowerCase().includes(q))
     }
     if (libraryFilters.status.length > 0) result = result.filter(b => libraryFilters.status.includes(b.status))
     if (libraryFilters.tags.length > 0) result = result.filter(b => libraryFilters.tags.every(tagId => b.tags?.some(t => t.id === tagId)))
+    if (libraryFilters.ratingMin) result = result.filter(b => (b.rating || 0) >= libraryFilters.ratingMin)
     return applySort(result, librarySort)
   }, [books, librarySearch, libraryFilters, librarySort])
 
-  const activeFilterCount = libraryFilters.status.length + libraryFilters.tags.length
+  const activeFilterCount = libraryFilters.status.length + libraryFilters.tags.length + (libraryFilters.ratingMin ? 1 : 0)
 
   function handleSearchSelect(book) { setSelectedBook(book); setFormOpen(true) }
 
@@ -70,6 +81,17 @@ export function Library() {
               </span>
             )}
           </button>
+          {/* Sort select */}
+          <select
+            value={librarySort}
+            onChange={e => setLibrarySort(e.target.value)}
+            className="text-xs border border-paper-200 dark:border-ink-600 rounded-lg px-2 h-8 bg-white dark:bg-ink-800 text-ink-600 dark:text-ink-400"
+            style={{ fontSize: '13px' }}
+          >
+            {Object.entries(SORT_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
           {/* View toggle */}
           <div className="flex items-center border border-paper-200 dark:border-ink-600 rounded-lg overflow-hidden">
             <button onClick={() => setLibraryView('grid')}
@@ -114,13 +136,13 @@ export function Library() {
           </button>
         </div>
       ) : filtered.length === 0 ? (
-        <EmptyState icon="🔍" title="No books found" description="Try adjusting your filters or add books to your library." />
+        <EmptyState icon={<SearchX size={48} />} title="No books found" description="Try adjusting your filters or add books to your library." />
       ) : libraryView === 'grid' ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 pb-6">
           {filtered.map((book, i) => <BookCard key={book.id} book={book} index={i} />)}
         </div>
       ) : (
-        <div className="card overflow-hidden divide-y divide-paper-100 dark:divide-ink-700">
+        <div className="card overflow-hidden divide-y divide-paper-100 dark:divide-ink-700 pb-6">
           {filtered.map(book => <BookRow key={book.id} book={book} />)}
         </div>
       )}
