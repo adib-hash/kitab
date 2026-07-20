@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion'
 import { useAddBook } from '../../hooks/useLibrary'
 import { TagInput } from '../books/TagInput'
 import { useUIStore } from '../../store/uiStore'
+import { sizeCoverUrl } from '../../lib/covers'
 import { Modal } from '../ui/index'
 
 export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
@@ -54,7 +55,7 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
           <div className="flex gap-4">
             <div className="flex-shrink-0 w-20">
               {book.cover_url ? (
-                <img src={book.cover_url} alt={book.title} className="w-full rounded-lg shadow-book object-cover book-cover" />
+                <img src={sizeCoverUrl(book.cover_url, 'lg')} alt={book.title} loading="lazy" decoding="async" className="w-full rounded-lg shadow-book object-cover book-cover" />
               ) : (
                 <div
                   className="w-full book-cover rounded-lg flex items-center justify-center text-lg font-serif font-bold text-white"

@@ -3,6 +3,7 @@ import { X, BookmarkPlus, Check, ChevronDown, ChevronUp, Loader2, BookOpen, Cale
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAddBook } from '../../hooks/useLibrary'
 import { searchBooks } from '../../lib/googleBooks'
+import { sizeCoverUrl } from '../../lib/covers'
 
 export function BookPreviewModal({ book, open, onClose }) {
   const [descOpen, setDescOpen] = useState(false)
@@ -108,8 +109,10 @@ export function BookPreviewModal({ book, open, onClose }) {
                   <div className="flex-shrink-0 w-24">
                     {display.cover_url ? (
                       <img
-                        src={display.cover_url}
+                        src={sizeCoverUrl(display.cover_url, 'lg')}
                         alt={display.title}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full rounded-lg shadow-book object-cover book-cover"
                       />
                     ) : (

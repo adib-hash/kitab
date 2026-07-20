@@ -9,6 +9,7 @@ import { useUIStore } from '../store/uiStore'
 import { buildGoodreadsCSV } from '../lib/utils'
 import { searchBooks } from '../lib/googleBooks'
 import { findCoverUrl } from '../lib/openLibrary'
+import { sizeCoverUrl } from '../lib/covers'
 import { BookCover } from '../components/books/BookCover'
 import Papa from 'papaparse'
 import { useAddBook } from '../hooks/useLibrary'
@@ -199,7 +200,7 @@ function EnrichLibrary({ books }) {
                     className="flex-shrink-0 w-4 h-4 accent-teal-600 disabled:opacity-30 cursor-pointer disabled:cursor-default"
                   />
                   {coverToShow ? (
-                    <img src={coverToShow} alt="" className="w-8 h-12 object-cover rounded flex-shrink-0" />
+                    <img src={sizeCoverUrl(coverToShow, 'sm')} alt="" loading="lazy" decoding="async" className="w-8 h-12 object-cover rounded flex-shrink-0" />
                   ) : (
                     <div className="w-8 h-12 bg-paper-200 dark:bg-ink-700 rounded flex-shrink-0" />
                   )}
@@ -520,7 +521,7 @@ export function Settings() {
         </button>
         <div>
           <h1 className="page-title">Settings</h1>
-          <p className="text-xs text-ink-400 dark:text-ink-600 mt-0.5">Kitab · v2.8.1</p>
+          <p className="text-xs text-ink-400 dark:text-ink-600 mt-0.5">Kitab · v2.9.0</p>
         </div>
       </div>
 

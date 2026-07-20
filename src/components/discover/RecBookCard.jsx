@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { BookmarkPlus, Check, Loader2, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAddBook } from '../../hooks/useLibrary'
+import { sizeCoverUrl } from '../../lib/covers'
 
 export function RecBookCard({ book, index = 0, inLibrary = false, onClick, onDelete }) {
   const addBook = useAddBook()
@@ -39,7 +40,7 @@ export function RecBookCard({ book, index = 0, inLibrary = false, onClick, onDel
       {/* Cover */}
       <div className="flex-shrink-0 w-12 relative">
         {book.cover_url ? (
-          <img src={book.cover_url} alt={book.title} className="w-full rounded-md shadow-sm object-cover book-cover" />
+          <img src={sizeCoverUrl(book.cover_url, 'md')} alt={book.title} loading="lazy" decoding="async" className="w-full rounded-md shadow-sm object-cover book-cover" />
         ) : (
           <div
             className="w-full book-cover rounded-md flex items-center justify-center text-sm font-serif font-bold text-white"

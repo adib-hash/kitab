@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { BookmarkPlus, Check, Star, Loader2 } from 'lucide-react'
 import { useAddBook } from '../../hooks/useLibrary'
 import { motion } from 'framer-motion'
+import { sizeCoverUrl } from '../../lib/covers'
 
 export function RecommendationCard({ book, index = 0, inLibrary = false, onClick }) {
   const addBook = useAddBook()
@@ -41,8 +42,10 @@ export function RecommendationCard({ book, index = 0, inLibrary = false, onClick
       <div className="relative overflow-hidden rounded-lg shadow-book group-hover:shadow-book-hover transition-all duration-200 group-hover:-translate-y-0.5">
         {book.cover_url ? (
           <img
-            src={book.cover_url}
+            src={sizeCoverUrl(book.cover_url, 'md')}
             alt={book.title}
+            loading="lazy"
+            decoding="async"
             className="w-full object-cover book-cover"
             onError={e => {
               e.target.style.display = 'none'

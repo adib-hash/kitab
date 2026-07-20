@@ -1,13 +1,14 @@
 import { useState, useEffect, memo } from 'react'
 import { getCoverFallback } from '../../lib/utils'
 import { getCachedCoverUrl } from '../../lib/coverCache'
+import { sizeCoverUrl } from '../../lib/covers'
 import { clsx } from 'clsx'
 
 export const BookCover = memo(function BookCover({ book, className, size = 'md' }) {
   const [error, setError] = useState(false)
   // Start with the remote URL immediately — no blank flash.
   // On native, the cache hook upgrades this to a local data URI in the background.
-  const [displayUrl, setDisplayUrl] = useState(book.cover_url || null)
+  const [displayUrl, setDisplayUrl] = useState(sizeCoverUrl(book.cover_url, size) || null)
   const fallback = getCoverFallback(book.title, book.author)
 
   const sizeClasses = {
@@ -22,14 +23,15 @@ export const BookCover = memo(function BookCover({ book, className, size = 'md' 
   // On web: getCachedCoverUrl returns the same URL synchronously-ish — no state change needed.
   useEffect(() => {
     if (!book.cover_url) { setDisplayUrl(null); setError(false); return }
-    setDisplayUrl(book.cover_url)
+    const remote = sizeCoverUrl(book.cover_url, size)
+    setDisplayUrl(remote)
     setError(false)
     let cancelled = false
-    getCachedCoverUrl(book.cover_url).then(url => {
-      if (!cancelled && url !== book.cover_url) setDisplayUrl(url)
+    getCachedCoverUrl(remote).then(url => {
+      if (!cancelled && url !== remote) setDisplayUrl(url)
     })
     return () => { cancelled = true }
-  }, [book.cover_url])
+  }, [book.cover_url, size])
 
   if (!displayUrl || error) {
     return (

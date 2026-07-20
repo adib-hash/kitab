@@ -8,6 +8,7 @@ import { useRecommendations, useSaveRecommendation, useDeleteRecommendation, use
 import { QueryFlow, generateRecommendations } from '../components/discover/QueryFlow'
 import { RecDetailModal } from '../components/discover/RecDetailModal'
 import { timeAgo } from '../lib/utils'
+import { sizeCoverUrl } from '../lib/covers'
 
 // ── CoverThumb — small cover thumbnail for the horizontal strip ─────────────
 function CoverThumb({ book, inLibrary, onClick }) {
@@ -21,8 +22,10 @@ function CoverThumb({ book, inLibrary, onClick }) {
     >
       {book.cover_url && !imgError ? (
         <img
-          src={book.cover_url}
+          src={sizeCoverUrl(book.cover_url, 'md')}
           alt={book.title}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover"
           onError={() => setImgError(true)}
         />

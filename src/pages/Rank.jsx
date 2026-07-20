@@ -6,6 +6,7 @@ import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
 import { useTags } from '../hooks/useTags'
 import { supabase } from '../lib/supabase'
 import { BookCover } from '../components/books/BookCover'
+import { sizeCoverUrl } from '../lib/covers'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
@@ -61,7 +62,7 @@ function BattleCard({ book, onClick, disabled, isWinner, isLoser }) {
         style={{ height: '52vw', maxHeight: 300 }}
       >
         {book.cover_url ? (
-          <img src={book.cover_url} alt={book.title} className="h-full w-full object-cover" />
+          <img src={sizeCoverUrl(book.cover_url, 'xl')} alt={book.title} loading="lazy" decoding="async" className="h-full w-full object-cover" />
         ) : (
           <div className="h-full w-full flex items-center justify-center font-serif font-bold text-white text-4xl bg-teal-700">
             {book.title.slice(0, 2).toUpperCase()}

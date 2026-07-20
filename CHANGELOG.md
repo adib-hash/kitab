@@ -1,3 +1,8 @@
+## v2.9.0 — 2026-07-20
+
+### Performance
+- **Faster, lighter book covers.** Covers are now right-sized to their display slot at render time instead of always downloading Google's full-resolution image, so a small list thumbnail no longer pulls a ~575px file. This applies to every cover already in your library — no re-import needed. Alongside it: the cover render sites that were loading eagerly now lazy-load and decode off the main thread, the app preconnects to the cover image hosts, and a service-worker cache keeps covers instant on repeat views and across sessions. Grounded in a measured bake-off of Google Books vs Open Library vs Hardcover, which found Open Library covers ~5× lighter than Google's at the same display size.
+
 ## v2.8.1 — 2026-07-19
 
 ### Changed
