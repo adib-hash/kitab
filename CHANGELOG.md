@@ -3,15 +3,44 @@
 ### Changed
 - **Discovery recommendations now run on Gemini 3.5 Flash**: The `/api/recommend` endpoint that powers "Find my next read" was switched from Claude Haiku 4.5 to Google's Gemini 3.5 Flash (free tier). In a same-prompt bakeoff against the live library, Haiku was the weakest of four models tested — it misattributed authors, fabricated a title, and recommended books already on the shelf or previously suggested. Gemini returned zero of those errors, ran ~2× faster (~3s vs ~6s), and costs nothing. The prompt, Google Books verification, and dedup pipeline are unchanged; only the upstream model changed. Haiku remains a built-in fallback that engages automatically if `GEMINI_API_KEY` is ever unset, so the feature can't go dark during an env-var rollout.
 
+## v2.8.0 — 2026-07-07
+
+### Added
+- **Highlights page**: New `/highlights` page with search, a per-book filter, and a grouped-by-book view for browsing all saved Kindle highlights in one place. Reachable from a new Quote icon in the sidebar and a "View all →" link on the Dashboard's daily highlight card.
+- **Rank tag/genre filters**: Filter chips on the Rank page now scope both the battle pool and the leaderboard to a chosen tag or genre.
+
+## v2.7.0 — 2026-07-07
+
+### Added
+- **Stats year selector**: A dynamic pill row on Stats switches between individual years and an "All time" mode.
+- **New stat cards**: Average days to finish a book, and top author.
+- **TBR notes**: A `tbr_note` field in the book form, surfaced in the TBR list and the Shuffle modal.
+- **Anniversary card**: An "On this day" card on the Dashboard surfacing books finished on this date in prior years.
+- **Inline Library sort**: The sort selector moved into the Library header.
+
+### Changed
+- **Wikipedia caching**: Book Detail now caches `wiki_url` after the first Wikipedia lookup, so repeat visits skip the API call.
+
+### Database
+- Supabase migration: added `tbr_note TEXT` and `wiki_url TEXT` columns to `books`.
+
+## v2.6.0 — 2026-07-07
+
+### Added
+- **Rating filter pills**: Any / 3+ / 4+ / 4.5+ pills wired into the Library filter logic.
+- **BookCard status dot**: A small status indicator on cards for reading / TBR / DNF books.
+- **Date-seeded Dashboard highlight**: The featured quote now stays the same for the whole day.
+
+### Changed
+- Extracted a reusable `useBodyScrollLock` hook, applied to Modal, QuickActionsSheet, and GlobalSearch.
+- Replaced the `window.confirm` delete prompt in Book Detail with a styled confirmation modal.
+- Dropped the `isDark`/MutationObserver dark-mode plumbing from Book Detail and Dashboard in favor of Tailwind `dark:` classes.
+- Rewrote CLAUDE.md to reflect the actual v2.8.0 codebase.
+
 ## v2.5.5 — 2026-07-03
 
 ### Fixed
 - **Discover book preview unscrollable on iOS**: The "center modal card vertically" change nested a `flex-1 min-h-0` scroll region inside a `max-height`-clamped (not `height`-clamped) flex item — a combination that never actually bounds the child's height in any browser, so tall content (like a book with a long description) just got visually clipped at the bottom instead of scrolling, leaving "Add to TBR" unreachable. Fixed by making the card itself the scrollable element (`overflow-y-auto` directly on the sized element) instead of relying on a nested flex-grow child. Header, close button, and the bottom scroll-fade now use `position: sticky` so they stay pinned correctly while scrolling. Applies to all modals (Discover preview, Add/Edit Book, Review, Book Search), not just Discover.
-## v2.5.5 — 2026-07-03
-
-### Fixed
-- **Discover book preview unscrollable on iOS**: The "center modal card vertically" change nested a `flex-1 min-h-0` scroll region inside a `max-height`-clamped (not `height`-clamped) flex item — a combination that never actually bounds the child's height in any browser, so tall content (like a book with a long description) just got visually clipped at the bottom instead of scrolling, leaving "Add to TBR" unreachable. Fixed by making the card itself the scrollable element (`overflow-y-auto` directly on the sized element) instead of relying on a nested flex-grow child. Header, close button, and the bottom scroll-fade now use `position: sticky` so they stay pinned correctly while scrolling. Applies to all modals (Discover preview, Add/Edit Book, Review, Book Search), not just Discover.
-
 
 ## v2.5.4 — 2026-06-04
 
