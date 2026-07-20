@@ -1,3 +1,8 @@
+## v2.10.1 — 2026-07-20
+
+### Fixed
+- **Discovery recommendations no longer break during a Gemini demand spike.** The `/api/recommend` endpoint now falls back to Claude Haiku whenever Gemini errors at runtime (e.g. an upstream "this model is experiencing high demand" response), not only when `GEMINI_API_KEY` is unset. Previously a Gemini overload made "Find my next read" fail outright instead of quietly using the fallback model.
+
 ## v2.10.0 — 2026-07-20
 
 ### Changed

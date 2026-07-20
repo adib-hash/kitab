@@ -27,9 +27,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    const text = process.env.GEMINI_API_KEY
-      ? await callGemini(prompt, process.env.GEMINI_API_KEY)
-      : await callHaiku(prompt, process.env.ANTHROPIC_API_KEY)
+    let text
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        text = await callGemini(prompt, process.env.GEMINI_API_KEY)
+      } catch (gemErr) {
+        // Gemini overloaded/errored at runtime (e.g. "high demand") — fall back to
+        // Claude Haiku so recommendations don't break during a Gemini spike.
+        // Previously we only fell back when GEMINI_API_KEY was entirely unset.
+        if (!process.env.ANTHROPIC_API_KEY) throw gemErr
+        text = await callHaiku(prompt, process.env.ANTHROPIC_API_KEY)
+      }
+    } else {
+      text = await callHaiku(prompt, process.env.ANTHROPIC_API_KEY)
+    }
 
     return res.status(200).json({ content: [{ type: 'text', text }] })
   } catch (err) {
