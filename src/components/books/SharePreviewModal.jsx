@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { ExternalLink, Search } from 'lucide-react'
 import { BookCover } from './BookCover'
 import { useAddBook } from '../../hooks/useLibrary'
-import { searchBooks, searchByISBN } from '../../lib/googleBooks'
+import { searchCatalog as searchBooks, searchCatalogByISBN as searchByISBN } from '../../lib/bookSearch'
 
 // ── URL parsing ───────────────────────────────────────────────────────────────
 

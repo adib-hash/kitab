@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Search, Loader2, BookOpen, ArrowRight, ExternalLink } from 'lucide-react'
 import { Modal } from '../ui/index.jsx'
-import { searchBooks, searchByISBN } from '../../lib/googleBooks'
+import { searchCatalog as searchBooks, searchCatalogByISBN as searchByISBN } from '../../lib/bookSearch'
 import { BookCover } from './BookCover'
 import { BarcodeScannerModal } from './BarcodeScannerModal'
 import { clsx } from 'clsx'

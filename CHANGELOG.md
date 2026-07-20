@@ -1,3 +1,8 @@
+## v2.10.0 — 2026-07-20
+
+### Changed
+- **Book search now runs Hardcover-first.** Adding a book — by title, by barcode/ISBN, or from a shared link — now searches Hardcover first. In a measured bake-off across 138 of your own titles plus curated edge cases, Hardcover returned the least junk (13% of top results vs Google's 23%), the best cover coverage (96%), and clearly better results for Islamic, Arabic, and other niche titles where Google often returned a coverless or wrong item. Google Books stays an automatic fallback: if Hardcover has no result, errors, or its token is unset, search silently uses Google, so it can never go dark. Search now runs through a server-side proxy (`/api/book-search`) that keeps provider credentials off the client. The Discover feed and metadata enrichment are unchanged. Coverless results are gap-filled with a lightweight Open Library cover when an ISBN is available.
+
 ## v2.9.0 — 2026-07-20
 
 ### Performance
