@@ -1,3 +1,8 @@
+## v2.8.1 — 2026-07-19
+
+### Changed
+- **Discovery recommendations now run on Gemini 3.5 Flash**: The `/api/recommend` endpoint that powers "Find my next read" was switched from Claude Haiku 4.5 to Google's Gemini 3.5 Flash (free tier). In a same-prompt bakeoff against the live library, Haiku was the weakest of four models tested — it misattributed authors, fabricated a title, and recommended books already on the shelf or previously suggested. Gemini returned zero of those errors, ran ~2× faster (~3s vs ~6s), and costs nothing. The prompt, Google Books verification, and dedup pipeline are unchanged; only the upstream model changed. Haiku remains a built-in fallback that engages automatically if `GEMINI_API_KEY` is ever unset, so the feature can't go dark during an env-var rollout.
+
 ## v2.5.5 — 2026-07-03
 
 ### Fixed
