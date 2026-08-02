@@ -12,3 +12,4 @@ skills-lock.json
 # book-api bake-off (personal data + generated output)
 scripts/bakeoff-report.html
 scripts/bakeoff-library.json
+.vercel
