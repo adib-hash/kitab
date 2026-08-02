@@ -1,3 +1,20 @@
+## v2.11.0 — 2026-08-01
+
+### Added
+- **Kindle highlights now sync by themselves, once a day, with no browser takeover.** Previously the only way to import highlights was to tap Sync and watch a full-screen Amazon browser click through every book in your notebook for several minutes. Now a background task runs overnight while the phone is charging, scrapes your notebook in an offscreen webview, and parks the results for Kitab to import the next time you open it. If iOS skips the night — it schedules background work at its own discretion — the same scrape runs invisibly when you next open the app instead. Either way there is nothing to tap and nothing to look at. It stays quiet unless it actually imported something, or your Amazon sign-in has expired and needs a real login.
+- **Settings: an auto-sync toggle, a "Sync now" button, and a "Full re-sync" button.** Sync now is the manual override and the place to re-authenticate with Amazon. Full re-sync re-opens every book in the notebook, which is the slow path, kept available but no longer the default.
+
+### Changed
+- **The scrape is incremental.** It used to open every book on every run, at roughly six seconds per book plus two seconds per page of highlights — minutes of work to find the two highlights you added yesterday. It now opens only books it has never scraped and books marked as `reading` in your library, which is where new highlights actually appear. A normal run touches a handful of books instead of all of them. Every 30 days it does a full sweep anyway, to catch highlights added to a book that isn't marked as currently reading.
+- **The scraper moved to `public/kindle-scraper.js`.** It was a template literal inside `useHighlights.js`; the native background task needs to inject the same code with no JS app running, so both callers now read one file from the app bundle.
+
+### Technical
+- New `KindleSyncPlugin.swift`: an offscreen `WKWebView` built with a default `WKWebViewConfiguration`, which means it shares `WKWebsiteDataStore.default()` with `@capgo/inappbrowser` and inherits the Amazon session already established there. No second login, and no Amazon credentials stored anywhere.
+- Background work uses `BGProcessingTask`, not `BGAppRefreshTask` — app refresh caps out near 30 seconds, which is not enough to load Amazon and walk even a couple of books. Requires network and external power, so it lands overnight on a charger.
+- Scraped highlights go into the App Group container, not Supabase. The app drains them on launch and runs the existing upsert, so Supabase auth never has to be duplicated into Swift.
+- New `src/lib/kindleSyncState.js` tracks which books have been scraped and how many highlights each had. Mirrored into shared `UserDefaults` so the background task can build the same scraper config without a JS context.
+- `Info.plist` gains `UIBackgroundModes: processing` and a `BGTaskSchedulerPermittedIdentifiers` entry; `AppDelegate` registers the task handler before launch completes, as `BGTaskScheduler` requires.
+
 ## v2.10.1 — 2026-07-20
 
 ### Fixed

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2, BookOpen, Zap, AlertCircle, LogOut, ChevronLeft, ChevronDown } from 'lucide-react'
+import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2, BookOpen, Zap, AlertCircle, LogOut, ChevronLeft, ChevronDown, RefreshCw } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
 import { useNavigate } from 'react-router-dom'
 import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
@@ -15,6 +15,8 @@ import Papa from 'papaparse'
 import { useAddBook } from '../hooks/useLibrary'
 import { useAllUnmatched, useAssignHighlights, useDeleteUnmatched, useAllHighlights } from '../hooks/useHighlights'
 import { useKindleSyncFlow } from '../hooks/useKindleSyncFlow'
+import { getSyncState, saveSyncState } from '../lib/kindleSyncState'
+import { configureBackgroundSync, getBackgroundStatus } from '../lib/kindleAutoSync'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import { NotificationSettings } from '../components/settings/NotificationSettings'
@@ -297,10 +299,25 @@ function UnmatchedBookRow({ group, readBooks, onAssign, onRemove }) {
   )
 }
 
-// ── Kindle WKWebView sync (iOS native only) ───────────────────────────────
+// ── Kindle sync (iOS native only) ─────────────────────────────────────────
+// iOS decides when background tasks actually run, so this reports what last
+// happened rather than promising a schedule.
+function autoSyncStatusLine(status) {
+  if (!status) return 'On — runs once a day.'
+  if (status.lastStatus === 'needs_login') return 'On — waiting on Amazon sign-in.'
+  if (!status.lastRunAt) return 'On — first automatic sync is pending.'
+  const days = Math.floor((Date.now() - new Date(status.lastRunAt).getTime()) / 86400000)
+  if (Number.isNaN(days)) return 'On — runs once a day.'
+  if (days <= 0) return 'On — last ran today.'
+  if (days === 1) return 'On — last ran yesterday.'
+  return `On — last ran ${days} days ago.`
+}
+
 function KindleSyncSection() {
   const { syncing, progress, handleSync, kindleSync } = useKindleSyncFlow()
   const [showResult, setShowResult] = useState(false)
+  const [autoSync, setAutoSync] = useState(() => getSyncState().autoSyncEnabled)
+  const [bgStatus, setBgStatus] = useState(null)
   const { data: unmatched = [] } = useAllUnmatched()
   const assign = useAssignHighlights()
   const deleteUnmatched = useDeleteUnmatched()
@@ -315,6 +332,16 @@ function KindleSyncSection() {
       return () => clearTimeout(t)
     }
   }, [kindleSync.isSuccess, kindleSync.isError])
+
+  useEffect(() => { getBackgroundStatus().then(setBgStatus) }, [])
+
+  function toggleAutoSync() {
+    const next = !autoSync
+    setAutoSync(next)
+    saveSyncState({ autoSyncEnabled: next })
+    // Submits or cancels the nightly BGProcessingTask.
+    configureBackgroundSync({ books })
+  }
 
   // Group unmatched highlights by book title for the review queue
   const unmatchedGroups = Object.values(
@@ -334,23 +361,67 @@ function KindleSyncSection() {
         <Zap size={18} className="text-teal-600" /> Kindle Highlights Sync
       </h2>
       <p className="text-sm text-ink-600 dark:text-ink-400">
-        Sync all your Kindle highlights in one tap. A sign-in page opens — log in once and your session is saved for future syncs.
+        Highlights sync on their own once a day — overnight while your phone charges,
+        or quietly in the background next time you open Kitab. Nothing to tap.
       </p>
-      <p className="text-xs text-ink-500 dark:text-ink-500 flex items-center gap-1.5">
-        <AlertCircle size={12} className="flex-shrink-0" />
-        The browser closes automatically when done — you don't need to do anything after logging in.
+
+      <div className="flex items-center gap-3 py-1">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-ink-800 dark:text-ink-200">Sync automatically</p>
+          <p className="text-sm text-ink-500 dark:text-ink-400 mt-0.5">
+            {autoSync ? autoSyncStatusLine(bgStatus) : 'Turned off — sync manually below.'}
+          </p>
+        </div>
+        <div
+          role="switch"
+          aria-checked={autoSync}
+          aria-label="Sync Kindle highlights automatically"
+          onClick={toggleAutoSync}
+          className="relative flex-shrink-0 cursor-pointer"
+          style={{
+            width: 44, height: 26, borderRadius: 13,
+            backgroundColor: autoSync ? '#0d9488' : '#a8a29e',
+            transition: 'background-color 0.2s',
+          }}
+        >
+          <div style={{
+            position: 'absolute', top: 2, left: autoSync ? 20 : 2,
+            width: 22, height: 22, borderRadius: 11, backgroundColor: '#fff',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s',
+          }} />
+        </div>
+      </div>
+
+      <p className="text-sm text-ink-500 dark:text-ink-400 flex items-start gap-1.5">
+        <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
+        <span>
+          If your Amazon sign-in expires, use Sync now — it opens a sign-in page once,
+          then automatic syncing resumes.
+        </span>
       </p>
-      <button
-        onClick={handleSync}
-        disabled={syncing || kindleSync.isPending}
-        className={`btn-secondary ${(syncing || kindleSync.isPending) ? 'opacity-50' : ''}`}
-      >
-        {syncing || kindleSync.isPending
-          ? <Loader2 size={14} className="animate-spin" />
-          : <Zap size={14} />
-        }
-        {syncing ? (progress || 'Syncing…') : kindleSync.isPending ? 'Importing…' : 'Sync Kindle Highlights'}
-      </button>
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => handleSync()}
+          disabled={syncing || kindleSync.isPending}
+          className={`btn-secondary ${(syncing || kindleSync.isPending) ? 'opacity-50' : ''}`}
+        >
+          {syncing || kindleSync.isPending
+            ? <Loader2 size={14} className="animate-spin" />
+            : <Zap size={14} />
+          }
+          {syncing ? (progress || 'Syncing…') : kindleSync.isPending ? 'Importing…' : 'Sync now'}
+        </button>
+        <button
+          onClick={() => handleSync({ forceFullSweep: true })}
+          disabled={syncing || kindleSync.isPending}
+          className={`btn-secondary ${(syncing || kindleSync.isPending) ? 'opacity-50' : ''}`}
+          title="Re-check every book in your Kindle notebook. Takes a few minutes."
+        >
+          <RefreshCw size={14} />
+          Full re-sync
+        </button>
+      </div>
 
       {/* Persistent status card — visible while syncing and briefly after completion */}
       {showStatusCard && (
@@ -521,7 +592,7 @@ export function Settings() {
         </button>
         <div>
           <h1 className="page-title">Settings</h1>
-          <p className="text-xs text-ink-400 dark:text-ink-600 mt-0.5">Kitab · v2.10.1</p>
+          <p className="text-xs text-ink-400 dark:text-ink-600 mt-0.5">Kitab · v2.11.0</p>
         </div>
       </div>
 

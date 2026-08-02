@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import CapApp_SPM
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -7,7 +8,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // BGTaskScheduler requires every launch handler to be registered before
+        // this method returns — registering later raises. The nightly Kindle
+        // highlight sync is submitted separately, once the app knows whether
+        // auto-sync is switched on (KindleSyncPlugin.configureBackgroundSync).
+        KindleBackgroundSync.register()
         return true
     }
 
@@ -19,6 +24,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidEnterBackground(_ application: UIApplication) {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+
+        // Re-arm the nightly Kindle sync. A submitted request is consumed once it
+        // runs, so without this the chain stops after a single night.
+        KindleBackgroundSync.schedule()
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {

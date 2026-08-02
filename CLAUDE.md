@@ -148,6 +148,30 @@ All overlays (Modal, QuickActionsSheet, GlobalSearch) use the `useBodyScrollLock
 ### Wikipedia caching
 BookDetail resolves Wikipedia URL via API, then saves to `book.wiki_url` via `updateBook.mutate()`. On subsequent loads it skips the API call if `book.wiki_url` is populated.
 
+### Kindle sync (added v2.11.0)
+
+There is no Kindle API. Syncing works by driving a logged-in Amazon session at
+`read.amazon.com/notebook` and scraping it. That session lives only in the app's
+`WKWebsiteDataStore.default()` cookie jar, so **a server cron can never do this** —
+Vercel has no way to be the user at Amazon.
+
+Three pieces:
+
+| Piece | Where | Role |
+|---|---|---|
+| Scraper | `public/kindle-scraper.js` | The only copy. Read by the JS app via `fetch`, and by Swift from `Bundle.main/public/`. Config comes in on `window.__KITAB_SYNC_CONFIG`. |
+| Manual path | `useKindleSyncFlow.js` | Visible `@capgo/inappbrowser`. This is where you sign in to Amazon. |
+| Automatic path | `KindleSyncPlugin.swift` + `lib/kindleAutoSync.js` | Offscreen `WKWebView`, no UI. Nightly `BGProcessingTask` plus a foreground fallback when iOS skips the night. |
+
+Things that will bite you:
+
+- **The scrape is incremental.** `lib/kindleSyncState.js` remembers `{ normalizedTitle: highlightCount }`. A run only opens books that are new or marked `reading`, plus a full sweep every 30 days. `normalize()` is duplicated in three files (`kindle-scraper.js`, `useHighlights.js`, `kindleSyncState.js`) and **must stay identical** — if it drifts, every book looks new and runs go back to taking minutes.
+- **The headless webview inherits the Amazon login for free** because `@capgo/inappbrowser` builds its webview with a plain `WKWebViewConfiguration()` (default persistent data store). Don't switch either side to a non-persistent store.
+- **It's attached to the window at `alpha 0.01`, not hidden.** WebKit throttles timers in a webview it thinks is offscreen, and the scraper is almost all `setTimeout`. `hidden = true` or `alpha = 0` will stall it.
+- **Background scraping never touches Supabase.** Results are parked in the App Group; JS drains them on launch and runs the existing `upsertHighlights`. This keeps auth on one side only — don't be tempted to move the upsert into Swift.
+- `BGTaskScheduler.register()` must happen before `didFinishLaunchingWithOptions` returns, which is why it's in `AppDelegate`, not the plugin's `load()`.
+- iOS decides when `BGProcessingTask` actually runs. It is best-effort, not a guarantee — the foreground fallback in `kindleAutoSync.js` is what makes "daily" true.
+
 ### ratingMin filter
 `libraryFilters.ratingMin` is in the Zustand store. LibraryFilters.jsx shows "Any / 3+ / 4+ / 4.5+" pills. Library.jsx filters by `(b.rating || 0) >= ratingMin`.
 

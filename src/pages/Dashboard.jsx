@@ -7,6 +7,7 @@ import { useLibrary } from '../hooks/useLibrary'
 import { useReadingGoal } from '../hooks/useTags'
 import { useAllHighlights } from '../hooks/useHighlights'
 import { useKindleSyncFlow } from '../hooks/useKindleSyncFlow'
+import { useKindleAutoSync } from '../hooks/useKindleAutoSync'
 import { BookCard } from '../components/books/BookCard'
 import { ProgressBar, StatCard, EmptyState, BookCardSkeleton } from '../components/ui/index.jsx'
 import { BookSearchModal } from '../components/books/BookSearch'
@@ -62,6 +63,9 @@ export function Dashboard() {
   // iOS Kindle sync state
   const isNative = Capacitor.isNativePlatform()
   const { syncing, progress, handleSync, kindleSync } = useKindleSyncFlow()
+  // Invisible daily sync — drains anything the nightly background task scraped,
+  // and scrapes in an offscreen webview if iOS skipped the night.
+  useKindleAutoSync({ books, ready: !isLoading })
   const lastSyncRaw = localStorage.getItem('kindle_last_sync')
   const daysSinceSync = lastSyncRaw
     ? Math.floor((Date.now() - new Date(lastSyncRaw).getTime()) / (1000 * 60 * 60 * 24))
@@ -348,7 +352,7 @@ export function Dashboard() {
           <div className="card p-4 space-y-3">
             {lastSyncRaw && !showSyncReminder && (
               <p className="text-xs text-ink-400 dark:text-ink-600">
-                Last synced {daysSinceSync === 0 ? 'today' : daysSinceSync === 1 ? 'yesterday' : `${daysSinceSync} days ago`}
+                Synced automatically · last {daysSinceSync === 0 ? 'today' : daysSinceSync === 1 ? 'yesterday' : `${daysSinceSync} days ago`}
               </p>
             )}
             <button
