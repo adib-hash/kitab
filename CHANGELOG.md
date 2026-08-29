@@ -1,3 +1,8 @@
+## v2.11.1 — 2026-08-28
+
+### Removed
+- **A second, unused recommendations endpoint that was still live on the internet.** `api/recommendations.js` and the `src/pages/Recommendations.jsx` page it served were left over from the original build and had been unreachable from the app since the Discover rewrite — no route, no import, no link anywhere in the UI. Because Vercel publishes every file in `api/` as a public route, the endpoint stayed deployed regardless, and would spend `ANTHROPIC_API_KEY` on any unauthenticated POST: no auth check, no rate limit, no origin restriction. It called `claude-sonnet-4-6` and had not been touched since the initial commit. Discovery is unaffected — it runs through `/api/recommend`, a different file.
+
 ## v2.11.0 — 2026-08-01
 
 ### Added
