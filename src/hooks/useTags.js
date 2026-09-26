@@ -56,6 +56,10 @@ export function useUpdateTag() {
       qc.invalidateQueries({ queryKey: ['tags'] })
       qc.invalidateQueries({ queryKey: ['books'] })
     },
+    onError: (err) => {
+      if (err.code === '23505') toast.error('A tag with that name already exists')
+      else toast.error(`Failed to update tag: ${err.message}`)
+    },
   })
 }
 
@@ -71,6 +75,7 @@ export function useDeleteTag() {
       qc.invalidateQueries({ queryKey: ['books'] })
       toast.success('Tag deleted')
     },
+    onError: (err) => toast.error(`Failed to delete tag: ${err.message}`),
   })
 }
 
@@ -80,12 +85,13 @@ export function useReadingGoal(year) {
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return null
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('reading_goals')
         .select('*')
         .eq('user_id', user.id)
         .eq('year', year)
         .maybeSingle()
+      if (error) throw error // a failed read should not look like "no goal set"
       return data
     },
   })
@@ -108,5 +114,6 @@ export function useSetReadingGoal() {
       qc.invalidateQueries({ queryKey: ['reading_goal', data.year] })
       toast.success('Reading goal saved')
     },
+    onError: (err) => toast.error(`Failed to save goal: ${err.message}`),
   })
 }

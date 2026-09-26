@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { BookOpen, BarChart2, Swords, Settings, Moon, Sun, ChevronLeft, BookMarked, Home, Search, Compass, Quote } from 'lucide-react'
 import { useUIStore } from '../../store/uiStore'
 import { useShallow } from 'zustand/react/shallow'
@@ -55,6 +55,7 @@ export function Sidebar({ onSearch }) {
     sidebarOpen: s.sidebarOpen, toggleSidebar: s.toggleSidebar, darkMode: s.darkMode, toggleDarkMode: s.toggleDarkMode, setLibraryFilters: s.setLibraryFilters,
   })))
   const { data: tags = [] } = useTags()
+  const navigate = useNavigate()
   const collapsed = !sidebarOpen
 
   return (
@@ -113,7 +114,7 @@ export function Sidebar({ onSearch }) {
               {tags.slice(0, 12).map(tag => (
                 <button
                   key={tag.id}
-                  onClick={() => setLibraryFilters({ tags: [tag.id] })}
+                  onClick={() => { setLibraryFilters({ tags: [tag.id] }); navigate('/library') }}
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-ink-600 dark:text-ink-400 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors text-left"
                 >
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: tag.color || '#0F766E' }} />

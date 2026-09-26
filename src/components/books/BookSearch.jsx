@@ -55,11 +55,14 @@ export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '
 
   useEffect(() => {
     if (!debounced.trim()) { setResults([]); return }
+    let stale = false // a slower response for an earlier query must not overwrite a newer one
     setLoading(true)
     searchBooks(debounced).then(r => {
+      if (stale) return
       setResults(r)
       setLoading(false)
     })
+    return () => { stale = true }
   }, [debounced])
 
   function handleSelect(book) {

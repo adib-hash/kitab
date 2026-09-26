@@ -117,7 +117,7 @@ function ResultsView({ rankedBooks, matchCount, onContinue, onReset, resetting, 
             key={book.id}
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.06, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ delay: Math.min(i, 12) * 0.06, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           >
           <Link
             to={`/library/${book.id}`}

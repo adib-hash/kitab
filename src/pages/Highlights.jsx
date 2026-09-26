@@ -19,8 +19,8 @@ export function Highlights() {
 
   // Books that have highlights
   const booksWithHighlights = useMemo(() => {
-    const bookIds = [...new Set(highlights.map(h => h.book_id).filter(Boolean))]
-    return books.filter(b => bookIds.includes(b.id))
+    const bookIds = new Set(highlights.map(h => h.book_id).filter(Boolean))
+    return books.filter(b => bookIds.has(b.id))
   }, [highlights, books])
 
   const filtered = useMemo(() => {
@@ -121,8 +121,8 @@ export function Highlights() {
         />
       ) : (
         <div className="space-y-6">
-          {grouped.map((group, gi) => (
-            <div key={gi}>
+          {grouped.map(group => (
+            <div key={group.book?.id ?? 'unmatched'}>
               {/* Group header */}
               {group.book && (
                 <Link

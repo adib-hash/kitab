@@ -12,6 +12,14 @@ A cleanup release: no new features, but a long list of small fixes, performance 
 - **Reordering your TBR now reports failures, and a book added after a drag shows up.** The reorder ignored per-row errors (Supabase returns them rather than throwing) and kept a private copy of the order that was never refreshed, so a book added to TBR after any drag didn't appear until you left the page. Also fixed the Shuffle button passing its click event as the book to exclude.
 - **Rank could overwrite a saved score with a stale one.** The next matchup was built from the ELO values captured when you tapped, not the latest saved ones, so ranking quickly could clobber a book's score from a pick or two earlier. The next pair now reads from the up-to-date cache.
 - **Highlights search is actually debounced now.** The page's homegrown debounce used `useState` where it meant `useEffect`, so it never debounced and leaked a timer per keystroke. It now shares the working hook from Add Book.
+- **Highlight notes and locations now show on the Highlights page, and are searchable.** The page rendered and searched `note` and `location`, but its query never fetched those columns.
+- **Deleting or linking a highlight now updates the Highlights page and the daily highlight immediately** instead of after the fifteen-minute cache window.
+- **Goodreads import stores dates correctly, skips books you already have, and reports failures.** Goodreads exports dates as `YYYY/MM/DD`; they were saved verbatim, breaking every year-based stat for those books. Re-importing the same file doubled the library. Per-row failures were swallowed and the toast still said "Imported N". A malformed file left the button stuck on "Importing…". All four fixed; CSV export also escapes spreadsheet formulas.
+- **Renaming or deleting a tag, or saving a reading goal, now shows an error if it fails.** Those three mutations had no error handler, so a failure was silent and the UI carried on as if it had worked.
+- **Book search can no longer show results for a query you've already replaced.** A slow response for "harry" could arrive after "harry potter" and overwrite it.
+- **Closing a share-sheet preview mid-lookup no longer pops the search modal open afterwards**, and the modal now shares the app's scroll-lock hook instead of its own copy.
+- **Sidebar tag shortcuts now take you to the Library.** They set the filter but didn't navigate, so clicking one from another page did nothing visible.
+- **"On this day" is now "This month in past years", and works.** Finish dates are stored to the month, so the day-of-month match only ever fired on the 1st (and in UTC, so a day early in US time zones). It now matches the month in local time, the same way notifications already did.
 
 ### Performance
 - **The offline cache is written at most once a second instead of on every change.** React Query's persister was serialising the entire cache (every book with its description and review, every highlight, every recommendation session) to localStorage on every cache event, which on a page load is dozens of main-thread writes. Writes now coalesce into one per second, with a flush when the app goes to the background.
@@ -22,6 +30,7 @@ A cleanup release: no new features, but a long list of small fixes, performance 
 
 ### Removed
 - **Dead code and unused dependencies.** An unreachable earlier Discover feed implementation (`useDiscover.js`, `DiscoverSection`, `RecommendationCard`, `RecBookCard`, `BookPreviewModal`), a 1,348-line stylesheet that nothing imported (`src/styles/index.css`), the unused Open Library subject-search and award-winner helpers, an unused Google Books `fetchBookById`, an offline write queue that nothing ever wrote to, a v1.6.8 one-off deploy script, and three npm packages with zero imports (`@uiw/react-md-editor`, `@resvg/resvg-js`, `idb-keyval`). Fifteen unused imports and two stray `console.log` calls also went.
+- **The "Avg Days to Finish" stat.** Finish dates are stored to the month and nothing in the app ever records a start date, so the number was meaningless (often 0 or clamped from a negative).
 
 ### Technical
 - **Docs match the code again.** `CLAUDE.md`, `README.md`, and `.env.example` now describe the real API routes (`book-search`, `recommend`, `resolve-url`), the Gemini-first recommendation model, the Hardcover-first book search, and the server-side env vars (`GEMINI_API_KEY`, `HARDCOVER_API_TOKEN`, `GOOGLE_BOOKS_API_KEY`). Stale references to Readwise and to files that no longer exist were removed.
@@ -29,6 +38,7 @@ A cleanup release: no new features, but a long list of small fixes, performance 
 - `API_BASE` is exported from `src/lib/bookSearch.js` and shared by book search, recommendations, and share-link resolution instead of being duplicated per file. `/api/book-search` caps the query at 200 characters.
 - In-memory cache lifetime (`gcTime`) now matches the persisted cache lifetime (7 days). It was 24 h, which the persister docs warn silently caps the on-disk cache at 24 h for anything not on screen.
 - Dashboard's widget/notification sync effect fired on every render while highlights were loading (a fresh `[]` default each time); it now runs once the library has loaded and only when the data changes.
+- Stats keeps a valid year pill active when the current year has no finished books (e.g. every January). "Add manually" after a prefilled search starts with a clean form. Discover strips, Highlights groups and Rank results use stable keys; Rank's reveal stagger is capped so long lists don't take twelve seconds to appear. A rejected `getSession()` at startup resolves to signed-out immediately instead of waiting out the 5-second fallback.
 
 
 ## v2.11.1 — 2026-08-28

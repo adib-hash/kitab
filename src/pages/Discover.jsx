@@ -102,7 +102,7 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
       <div className="px-4 pb-4">
         <div className="flex gap-3 overflow-x-auto scrollbar-hide">
           {books.map((book, i) => (
-            <div key={i} className="flex-shrink-0 w-24">
+            <div key={`${book.title}|${book.author}|${i}`} className="flex-shrink-0 w-24">
               <CoverThumb
                 book={book}
                 inLibrary={libraryTitles.has(book.title?.toLowerCase().trim())}

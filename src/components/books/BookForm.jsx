@@ -50,21 +50,29 @@ function makeCoverSvg(title, author, bg, textColor) {
 }
 
 const DEFAULT_STATUS = 'tbr'
+const EMPTY_FORM = {
+  title: '', author: '', cover_url: '', published_year: '',
+  page_count: '', isbn: '', status: DEFAULT_STATUS, rating: null,
+  review: '', review_spoiler: false, tbr_note: '',
+  current_page: '', genres: [], description: '', google_books_id: '',
+  month_finished: '', year_finished: '',
+}
 
 export function BookForm({ open, onClose, initialBook, editingId, editingTags, defaultTab, onOpenReview }) {
   const addBook = useAddBook()
   const updateBook = useUpdateBook()
 
-  const [form, setForm] = useState({
-    title: '', author: '', cover_url: '', published_year: '',
-    page_count: '', isbn: '', status: DEFAULT_STATUS, rating: null,
-    review: '', review_spoiler: false, tbr_note: '',
-    current_page: '', genres: [], description: '', google_books_id: '',
-  })
+  const [form, setForm] = useState(EMPTY_FORM)
   const [tagIds, setTagIds] = useState([])
   const [tab, setTab] = useState(defaultTab || 'details')
 
   useEffect(() => {
+    if (!initialBook) {
+      // "Add manually" after a search-prefilled or edited book: start clean
+      // instead of carrying the previous book's fields over.
+      setForm(EMPTY_FORM)
+      setTagIds([])
+    }
     if (initialBook) {
       setForm({
         title: initialBook.title || '',

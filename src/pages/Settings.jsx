@@ -506,7 +506,7 @@ export function Settings() {
   async function exportCSV() {
     const Papa = (await import('papaparse')).default
     const rows = buildGoodreadsCSV(books, tags)
-    const csv = Papa.unparse(rows)
+    const csv = Papa.unparse(rows, { escapeFormulae: true })
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -528,14 +528,29 @@ export function Settings() {
   async function handleImport(e) {
     const file = e.target.files[0]
     if (!file) return
+    e.target.value = '' // so picking the same file again re-triggers onChange
     setImporting(true)
     const Papa = (await import('papaparse')).default
+    // Goodreads exports "Date Read" as YYYY/MM/DD; Kitab stores YYYY-MM-01.
+    const toMonthDate = (s) => {
+      const m = (s || '').match(/^(\d{4})[\/-](\d{2})/)
+      return m ? `${m[1]}-${m[2]}-01` : null
+    }
+    const key = (title, author) => `${title || ''}|${author || ''}`.trim().toLowerCase()
+    const existing = new Set(books.map(b => key(b.title, b.author)))
+
     Papa.parse(file, {
       header: true,
+      skipEmptyLines: true,
+      error: (err) => {
+        toast.error(`Could not read that CSV: ${err.message}`)
+        setImporting(false)
+      },
       complete: async (results) => {
         const rows = results.data.filter(r => r.Title)
-        let added = 0
+        let added = 0, skipped = 0, failed = 0
         for (const row of rows) {
+          if (existing.has(key(row.Title, row.Author))) { skipped++; continue }
           try {
             const status = row['Exclusive Shelf'] === 'read' ? 'read'
               : row['Exclusive Shelf'] === 'to-read' ? 'tbr'
@@ -548,17 +563,23 @@ export function Settings() {
                 isbn: row.ISBN?.replace(/[="]/g, '') || null,
                 rating: parseFloat(row['My Rating']) || null,
                 review: row['My Review'] || null,
-                date_finished: row['Date Read'] || null,
+                date_finished: toMonthDate(row['Date Read']),
                 status,
-                published_year: parseInt(row['Year Published']) || null,
-                page_count: parseInt(row['Number of Pages']) || null,
+                published_year: parseInt(row['Year Published'], 10) || null,
+                page_count: parseInt(row['Number of Pages'], 10) || null,
               },
               tagIds: []
             })
+            existing.add(key(row.Title, row.Author))
             added++
-          } catch {}
+          } catch {
+            failed++ // useAddBook already toasted the reason
+          }
         }
-        toast.success(`Imported ${added} books from Goodreads!`)
+        const parts = [`Imported ${added} book${added === 1 ? '' : 's'}`]
+        if (skipped) parts.push(`${skipped} already in your library`)
+        toast.success(parts.join(' · '), { duration: 5000 })
+        if (failed) toast.error(`${failed} book${failed === 1 ? '' : 's'} could not be imported`)
         setImporting(false)
       }
     })
@@ -567,9 +588,13 @@ export function Settings() {
   function startEditTag(tag) { setEditingTag(tag); setEditName(tag.name) }
   async function saveTag() {
     if (!editName.trim()) return
-    await updateTag.mutateAsync({ id: editingTag.id, name: editName })
-    setEditingTag(null); setEditName('')
-    toast.success('Tag updated')
+    try {
+      await updateTag.mutateAsync({ id: editingTag.id, name: editName })
+      setEditingTag(null); setEditName('')
+      toast.success('Tag updated')
+    } catch {
+      // useUpdateTag shows the error; keep the editor open.
+    }
   }
   async function handleDeleteTag(id) {
     const tag = tags.find(t => t.id === id)
@@ -579,7 +604,7 @@ export function Settings() {
       ? `Delete "${tag.name}"? This will remove it from ${bookText}.`
       : `Delete this tag? This will remove it from ${bookText}.`
     if (!confirm(msg)) return
-    await deleteTag.mutateAsync(id)
+    try { await deleteTag.mutateAsync(id) } catch { /* useDeleteTag toasts */ }
   }
 
   return (

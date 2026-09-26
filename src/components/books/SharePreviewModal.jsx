@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { ExternalLink, Search } from 'lucide-react'
 import { BookCover } from './BookCover'
 import { useAddBook } from '../../hooks/useLibrary'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 import { searchCatalog as searchBooks, searchCatalogByISBN as searchByISBN, API_BASE } from '../../lib/bookSearch'
 
 // ── URL parsing ───────────────────────────────────────────────────────────────
@@ -161,38 +162,35 @@ export function SharePreviewModal({ open, sharedUrl, onClose, onEditDetails, onF
   const [status, setStatus] = useState('tbr')
   const addBook = useAddBook()
 
-  // Scroll lock
-  useEffect(() => {
-    if (!open) return
-    const scrollY = window.scrollY
-    document.body.style.position = 'fixed'
-    document.body.style.top = `-${scrollY}px`
-    document.body.style.width = '100%'
-    return () => {
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      window.scrollTo(0, scrollY)
-    }
-  }, [open])
+  useBodyScrollLock(open)
 
-  // Auto-lookup on open
+  // Auto-lookup on open. Cancelled if the modal closes mid-lookup, so a late
+  // result can't repopulate it or pop the search modal open after dismissal.
   useEffect(() => {
     if (!open || !sharedUrl) return
+    let cancelled = false
+    let fallbackTimer = null
     setFoundBook(null)
     setNotFound(false)
     setStatus('tbr')
     setLoading(true)
     lookupFromSharedUrl(sharedUrl).then(book => {
+      if (cancelled) return
       setLoading(false)
       if (book) {
         setFoundBook(book)
       } else {
         setNotFound(true)
         // Auto-fallback to search modal after brief delay
-        setTimeout(() => onFallback(), 800)
+        fallbackTimer = setTimeout(() => onFallback(), 800)
       }
+    }).catch(() => {
+      if (cancelled) return
+      setLoading(false)
+      setNotFound(true)
+      fallbackTimer = setTimeout(() => onFallback(), 800)
     })
+    return () => { cancelled = true; if (fallbackTimer) clearTimeout(fallbackTimer) }
   }, [open, sharedUrl])
 
   if (!open) return null

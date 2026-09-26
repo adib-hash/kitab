@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Target, BookOpen, FileText, Star, Bookmark, Maximize2, Minimize2, BookMarked, XCircle, BarChart2, CheckCircle, Clock, Users } from 'lucide-react'
+import { Target, BookOpen, FileText, Star, Bookmark, Maximize2, Minimize2, BookMarked, XCircle, BarChart2, CheckCircle, Users } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { useLibrary } from '../hooks/useLibrary'
 import { useReadingGoal, useSetReadingGoal } from '../hooks/useTags'
@@ -27,7 +27,13 @@ export function Stats() {
     return ys
   }, [books])
 
-  const [selectedYear, setSelectedYear] = useState(thisYear)
+  const [pickedYear, setPickedYear] = useState(thisYear)
+  // If nothing was finished in the picked year (e.g. January), fall back to the
+  // most recent year with data so a pill is always active and the page isn't empty.
+  const selectedYear = pickedYear === 'all' || years.includes(pickedYear)
+    ? pickedYear
+    : (years[0] ?? 'all')
+  const setSelectedYear = setPickedYear
 
   const scopedBooks = useMemo(() => {
     const readBooks = books.filter(b => b.status === 'read' && b.date_finished)
@@ -37,18 +43,6 @@ export function Stats() {
 
   const stats = useMemo(() => computeStats(scopedBooks), [scopedBooks])
   const tbrCount = books.filter(b => b.status === 'tbr').length
-
-  // Avg days to finish (date_started → date_finished)
-  const avgDaysToFinish = useMemo(() => {
-    const withBoth = scopedBooks.filter(b => b.date_started && b.date_finished)
-    if (!withBoth.length) return null
-    const total = withBoth.reduce((acc, b) => {
-      const start = new Date(b.date_started)
-      const end = new Date(b.date_finished)
-      return acc + Math.max(0, Math.round((end - start) / (1000 * 60 * 60 * 24)))
-    }, 0)
-    return Math.round(total / withBoth.length)
-  }, [scopedBooks])
 
   // Top author by book count
   const topAuthor = useMemo(() => {
@@ -68,11 +62,15 @@ export function Stats() {
   )
 
   async function saveGoal() {
-    const t = parseInt(goalInput)
+    const t = parseInt(goalInput, 10)
     if (!t || t < 1) return
-    await setGoal.mutateAsync({ year: thisYear, target: t })
-    setEditingGoal(false)
-    setGoalInput('')
+    try {
+      await setGoal.mutateAsync({ year: thisYear, target: t })
+      setEditingGoal(false)
+      setGoalInput('')
+    } catch {
+      // useSetReadingGoal shows the error toast; keep the editor open.
+    }
   }
 
   const yearLabel = selectedYear === 'all' ? 'All time' : String(selectedYear)
@@ -133,9 +131,6 @@ export function Stats() {
               icon={<Minimize2 size={18} />}
               sub={stats.shortest?.page_count ? `${stats.shortest.page_count} pages` : null}
             />
-            {avgDaysToFinish !== null && (
-              <StatCard label="Avg Days to Finish" value={`${avgDaysToFinish}d`} icon={<Clock size={18} />} sub="per book" />
-            )}
             {topAuthor && topAuthor.count > 1 && (
               <StatCard
                 label="Top Author"

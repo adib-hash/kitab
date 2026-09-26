@@ -178,10 +178,9 @@ export default function App() {
     const timeout = setTimeout(() => {
       setSession(prev => prev === undefined ? null : prev)
     }, 5000)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      clearTimeout(timeout)
-      setSession(session)
-    })
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => { clearTimeout(timeout); setSession(session) })
+      .catch(() => { clearTimeout(timeout); setSession(null) })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         // Query keys aren't scoped per user, so without this the next account to

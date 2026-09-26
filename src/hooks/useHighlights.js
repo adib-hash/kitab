@@ -82,6 +82,7 @@ export function useDeleteHighlight() {
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ['highlights'] })
       qc.invalidateQueries({ queryKey: ['highlight_count'] })
+      qc.setQueryData(['all_highlights'], old => (old ? old.filter(h => h.id !== id) : old))
       toast.success('Highlight deleted')
     },
     onError: (err) => toast.error(`Failed: ${err.message}`),
@@ -94,7 +95,7 @@ export function useAllHighlights() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('highlights')
-        .select('id, text, book_id, books(id, title, author, cover_url)')
+        .select('id, text, note, location, book_id, books(id, title, author, cover_url)')
         .not('book_id', 'is', null)
       if (error) throw error
       return data || []
@@ -141,6 +142,7 @@ export function useAssignHighlights() {
       qc.invalidateQueries({ queryKey: ['highlights'] })
       qc.invalidateQueries({ queryKey: ['highlights_unmatched'] })
       qc.invalidateQueries({ queryKey: ['highlight_count'] })
+      qc.invalidateQueries({ queryKey: ['all_highlights'] })
       toast.success('Highlights linked!')
     },
     onError: (err) => toast.error(`Failed to link: ${err.message}`),
@@ -252,8 +254,9 @@ export function useKindleSync() {
     mutationFn: async ({ highlights }) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not logged in')
-      const { data: kitabBooks } = await supabase
+      const { data: kitabBooks, error } = await supabase
         .from('books').select('id, title, author').eq('user_id', user.id)
+      if (error) throw error // otherwise every highlight would import as "unmatched"
       return upsertHighlights(user, kitabBooks, highlights)
     },
     onSuccess: ({ totalHighlights, unmatched, failedTitles = [] }) => {

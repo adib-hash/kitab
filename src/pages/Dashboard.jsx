@@ -94,14 +94,17 @@ export function Dashboard() {
   const yearStats = useMemo(() => computeStats(yearBooks), [yearBooks])
   const booksThisYear = yearStats.totalRead
 
-  // Anniversary books — finished on the same MM-DD in a prior year
+  // Anniversary books — finished this calendar month in a prior year.
+  // date_finished is stored as YYYY-MM-01 (month granularity), so comparing on
+  // MM-DD only ever matched on the 1st — and in UTC, so it flipped a day early
+  // in US time zones. Match on the month, in local time, like notifications.js.
   const anniversaryBooks = useMemo(() => {
-    const todayMMDD = new Date().toISOString().slice(5, 10)
+    const thisMonth = new Date().getMonth() + 1
     return books.filter(b =>
       b.status === 'read' &&
       b.date_finished &&
-      b.date_finished.slice(5, 10) === todayMMDD &&
-      parseInt(b.date_finished.slice(0, 4)) < thisYear
+      parseInt(b.date_finished.slice(5, 7), 10) === thisMonth &&
+      parseInt(b.date_finished.slice(0, 4), 10) < thisYear
     )
   }, [books, thisYear])
 
@@ -291,7 +294,7 @@ export function Dashboard() {
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="card p-4">
           <div className="flex items-center gap-2 mb-3">
             <CalendarHeart size={16} className="text-rose-400 flex-shrink-0" />
-            <h2 className="font-serif text-base font-semibold text-ink-900 dark:text-paper-50">On this day</h2>
+            <h2 className="font-serif text-base font-semibold text-ink-900 dark:text-paper-50">This month in past years</h2>
           </div>
           <div className="space-y-2">
             {anniversaryBooks.map(b => (
