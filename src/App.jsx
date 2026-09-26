@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import { Loader2 } from 'lucide-react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
@@ -55,14 +56,18 @@ if (typeof document !== 'undefined') {
 import { Layout } from './components/layout/Layout'
 import { Auth } from './pages/Auth'
 import { Dashboard } from './pages/Dashboard'
-import { Library } from './pages/Library'
-import { BookDetail } from './pages/BookDetail'
-import { TBR } from './pages/TBR'
-import { Stats } from './pages/Stats'
-import { Rank } from './pages/Rank'
-import { Settings } from './pages/Settings'
-import { Discover } from './pages/Discover'
-import { Highlights } from './pages/Highlights'
+// Every other page is loaded on first visit. Dashboard stays eager because it
+// is the landing route; the rest each pull in something heavy (recharts,
+// react-markdown, dnd-kit, papaparse) that the landing page doesn't need.
+// Pages are named exports, hence the .then() mapping.
+const Library    = lazy(() => import('./pages/Library').then(m => ({ default: m.Library })))
+const BookDetail = lazy(() => import('./pages/BookDetail').then(m => ({ default: m.BookDetail })))
+const TBR        = lazy(() => import('./pages/TBR').then(m => ({ default: m.TBR })))
+const Stats      = lazy(() => import('./pages/Stats').then(m => ({ default: m.Stats })))
+const Rank       = lazy(() => import('./pages/Rank').then(m => ({ default: m.Rank })))
+const Settings   = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })))
+const Discover   = lazy(() => import('./pages/Discover').then(m => ({ default: m.Discover })))
+const Highlights = lazy(() => import('./pages/Highlights').then(m => ({ default: m.Highlights })))
 import { Modal, Button } from './components/ui/index.jsx'
 import { ReviewModal } from './components/books/ReviewModal'
 import { BookSearchModal } from './components/books/BookSearch'
@@ -93,9 +98,23 @@ const queryClient = new QueryClient({
 
 startQueueReplay(queryClient)
 
+function RouteFallback() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <Loader2 size={20} className="animate-spin text-ink-400" />
+    </div>
+  )
+}
+
+// The Suspense boundary sits inside Layout so the sidebar / bottom nav stay
+// put while a page chunk loads; only the content area shows the spinner.
 function ProtectedRoute({ session, children }) {
   if (!session) return <Navigate to="/login" replace />
-  return <Layout>{children}</Layout>
+  return (
+    <Layout>
+      <Suspense fallback={<RouteFallback />}>{children}</Suspense>
+    </Layout>
+  )
 }
 
 function ReviewPrompt() {

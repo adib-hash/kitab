@@ -10,7 +10,6 @@ import { buildGoodreadsCSV } from '../lib/utils'
 import { searchBooks } from '../lib/googleBooks'
 import { findCoverUrl } from '../lib/openLibrary'
 import { sizeCoverUrl } from '../lib/covers'
-import Papa from 'papaparse'
 import { useAddBook } from '../hooks/useLibrary'
 import { useAllUnmatched, useAssignHighlights, useDeleteUnmatched, useAllHighlights } from '../hooks/useHighlights'
 import { useKindleSyncFlow } from '../hooks/useKindleSyncFlow'
@@ -503,7 +502,8 @@ export function Settings() {
     await supabase.auth.signOut()
   }
 
-  function exportCSV() {
+  async function exportCSV() {
+    const Papa = (await import('papaparse')).default
     const rows = buildGoodreadsCSV(books, tags)
     const csv = Papa.unparse(rows)
     const blob = new Blob([csv], { type: 'text/csv' })
@@ -524,10 +524,11 @@ export function Settings() {
     toast.success('Library exported as JSON!')
   }
 
-  function handleImport(e) {
+  async function handleImport(e) {
     const file = e.target.files[0]
     if (!file) return
     setImporting(true)
+    const Papa = (await import('papaparse')).default
     Papa.parse(file, {
       header: true,
       complete: async (results) => {

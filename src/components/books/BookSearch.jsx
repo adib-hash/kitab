@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { Search, Loader2, BookOpen, ArrowRight, ExternalLink } from 'lucide-react'
 import { Modal } from '../ui/index.jsx'
 import { searchCatalog as searchBooks, searchCatalogByISBN as searchByISBN } from '../../lib/bookSearch'
 import { BookCover } from './BookCover'
-import { BarcodeScannerModal } from './BarcodeScannerModal'
+
+// @zxing is only needed once someone taps the barcode icon; keep it out of the
+// main bundle (BookSearch is reachable from the always-mounted GlobalSearch).
+const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal').then(m => ({ default: m.BarcodeScannerModal })))
 
 function useDebounce(value, delay) {
   const [deb, setDeb] = useState(value)
@@ -180,11 +183,15 @@ export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '
         </div>
       </Modal>
 
-      <BarcodeScannerModal
-        open={scannerOpen}
-        onClose={() => setScannerOpen(false)}
-        onDetect={isbn => { setScannerOpen(false); handleBarcodeScan(isbn) }}
-      />
+      {scannerOpen && (
+        <Suspense fallback={null}>
+          <BarcodeScannerModal
+            open
+            onClose={() => setScannerOpen(false)}
+            onDetect={isbn => { setScannerOpen(false); handleBarcodeScan(isbn) }}
+          />
+        </Suspense>
+      )}
     </>
   )
 }
