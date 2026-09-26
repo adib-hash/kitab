@@ -7,20 +7,50 @@ import { useUIStore } from './store/uiStore'
 import { useNetworkStatus } from './hooks/useNetworkStatus'
 import { startQueueReplay } from './lib/offlineQueue'
 
-// localStorage-based persister — survives app restarts, works on both web and native
+// localStorage-based persister — survives app restarts, works on both web and native.
+//
+// PersistQueryClientProvider calls persistClient on EVERY query-cache event
+// (fetch start, success, new observer…), which on a page load is dozens of
+// synchronous JSON.stringify + localStorage.setItem calls of the whole library.
+// Writes are throttled to the trailing edge of a 1 s window; the latest
+// snapshot always wins. A pending write is flushed when the tab is hidden,
+// since iOS can background the app without giving us the 1 s.
+const RQ_CACHE_KEY = 'kitab-rq-cache'
+const PERSIST_THROTTLE_MS = 1000
+let persistTimer = null
+let pendingClient = null
+
+function flushPersist() {
+  if (persistTimer) { clearTimeout(persistTimer); persistTimer = null }
+  if (!pendingClient) return
+  try { localStorage.setItem(RQ_CACHE_KEY, JSON.stringify(pendingClient)) } catch {}
+  pendingClient = null
+}
+
 const localStoragePersister = {
   persistClient: async (client) => {
-    try { localStorage.setItem('kitab-rq-cache', JSON.stringify(client)) } catch {}
+    pendingClient = client
+    if (!persistTimer) persistTimer = setTimeout(flushPersist, PERSIST_THROTTLE_MS)
   },
   restoreClient: async () => {
     try {
-      const data = localStorage.getItem('kitab-rq-cache')
+      const data = localStorage.getItem(RQ_CACHE_KEY)
       return data ? JSON.parse(data) : undefined
     } catch { return undefined }
   },
   removeClient: async () => {
-    try { localStorage.removeItem('kitab-rq-cache') } catch {}
+    // Cancel any queued write too, or a snapshot of the previous user's cache
+    // could land after sign-out.
+    if (persistTimer) { clearTimeout(persistTimer); persistTimer = null }
+    pendingClient = null
+    try { localStorage.removeItem(RQ_CACHE_KEY) } catch {}
   },
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flushPersist()
+  })
 }
 import { Layout } from './components/layout/Layout'
 import { Auth } from './pages/Auth'
@@ -40,13 +70,19 @@ import { BookForm } from './components/books/BookForm'
 import { SharePreviewModal } from './components/books/SharePreviewModal'
 import { App as CapacitorApp } from '@capacitor/app'
 
+// How long the persisted cache is kept, on disk and in memory. TanStack's
+// persister requires gcTime >= maxAge: entries garbage-collected from memory
+// are dropped from the next persisted snapshot, so a shorter gcTime silently
+// capped the on-disk cache at 24 h for anything not currently on screen.
+const CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       networkMode: 'offlineFirst', // serve cache immediately when offline, don't pause
       retry: 1,
       staleTime: 1000 * 60 * 10,
-      gcTime: 1000 * 60 * 60 * 24,
+      gcTime: CACHE_TTL_MS,
       refetchOnWindowFocus: false,
     },
     mutations: {
@@ -126,7 +162,14 @@ export default function App() {
       clearTimeout(timeout)
       setSession(session)
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        // Query keys aren't scoped per user, so without this the next account to
+        // sign in on the same device would see the previous account's library
+        // (in memory and from the persisted cache) until it went stale.
+        queryClient.clear()
+        localStoragePersister.removeClient()
+      }
       setSession(session)
     })
     return () => { subscription.unsubscribe(); clearTimeout(timeout) }
@@ -233,7 +276,7 @@ export default function App() {
   return (
     <PersistQueryClientProvider
       client={queryClient}
-      persistOptions={{ persister: localStoragePersister, maxAge: 1000 * 60 * 60 * 24 * 7 }}
+      persistOptions={{ persister: localStoragePersister, maxAge: CACHE_TTL_MS }}
     >
       <BrowserRouter>
         <OfflineBanner />
