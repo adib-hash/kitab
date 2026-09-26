@@ -158,7 +158,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
                 />
               ))}
             </div>
-            <p className="text-xs text-ink-400 text-center leading-tight">Cover style</p>
+            <p className="text-sm text-ink-400 text-center leading-tight">Cover style</p>
             <input
               value={form.cover_url?.startsWith('data:') ? '' : (form.cover_url || '')}
               onChange={e => set('cover_url', e.target.value)}
@@ -243,7 +243,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
                       className={inp + ' resize-none'}
                       style={inpStyle}
                     />
-                    <p className="text-xs text-ink-400 text-right mt-0.5">{form.tbr_note.length}/120</p>
+                    <p className="text-sm text-ink-400 text-right mt-0.5">{form.tbr_note.length}/120</p>
                   </div>
                 )}
                 {resolvedEditingId && onOpenReview && (

@@ -85,7 +85,7 @@ function BattleCard({ book, onClick, disabled, isWinner, isLoser }) {
       </div>
       <div className="w-full px-3 py-3 text-center" style={{ minHeight: 64 }}>
         <p className="font-serif font-semibold text-ink-900 dark:text-paper-50 text-sm leading-snug line-clamp-2">{book.title}</p>
-        <p className="text-xs text-ink-400 dark:text-ink-500 mt-0.5 truncate">{book.author}</p>
+        <p className="text-sm text-ink-400 dark:text-ink-500 mt-0.5 truncate">{book.author}</p>
       </div>
     </motion.button>
   )
@@ -98,7 +98,7 @@ function ResultsView({ rankedBooks, matchCount, onContinue, onReset, resetting, 
       <div className="flex items-center justify-between mb-1">
         <button
           onClick={onBack}
-          className="flex items-center gap-1 text-xs text-ink-400 hover:text-ink-700 dark:hover:text-ink-300 transition-colors"
+          className="flex items-center gap-1 text-sm text-ink-400 hover:text-ink-700 dark:hover:text-ink-300 transition-colors"
         >
           <ChevronLeft size={14} /> Back
         </button>
@@ -108,7 +108,7 @@ function ResultsView({ rankedBooks, matchCount, onContinue, onReset, resetting, 
           <Trophy size={20} className="text-amber-500" />
           <h2 className="font-serif text-xl font-semibold text-ink-900 dark:text-paper-50">Your Rankings</h2>
         </div>
-        <p className="text-xs text-ink-500 dark:text-ink-400">{matchCount} matchups completed</p>
+        <p className="text-sm text-ink-500 dark:text-ink-400">{matchCount} matchups completed</p>
       </div>
 
       <div className="space-y-2">
@@ -123,7 +123,7 @@ function ResultsView({ rankedBooks, matchCount, onContinue, onReset, resetting, 
             to={`/library/${book.id}`}
             className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-ink-800 border border-paper-200 dark:border-ink-700 hover:border-teal-400 transition-colors"
           >
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
               i === 0 ? 'bg-amber-400 text-amber-900' :
               i === 1 ? 'bg-slate-300 text-slate-700' :
               i === 2 ? 'bg-amber-700 text-amber-100' :
@@ -132,11 +132,11 @@ function ResultsView({ rankedBooks, matchCount, onContinue, onReset, resetting, 
             <BookCover book={book} size="sm" className="flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-ink-900 dark:text-paper-50 truncate">{book.title}</p>
-              <p className="text-xs text-ink-400 truncate">{book.author}</p>
+              <p className="text-sm text-ink-400 truncate">{book.author}</p>
             </div>
             <div className="text-right flex-shrink-0">
-              <p className="text-xs font-mono text-ink-400">{book.elo}</p>
-              <p className="text-xs text-ink-500 dark:text-ink-400">{book.elo_wins}W / {book.elo_losses}L</p>
+              <p className="text-sm font-mono text-ink-400">{book.elo}</p>
+              <p className="text-sm text-ink-500 dark:text-ink-400">{book.elo_wins}W / {book.elo_losses}L</p>
             </div>
           </Link>
           </motion.div>
@@ -297,7 +297,7 @@ export function Rank() {
             <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1">
               <button
                 onClick={() => { setSelectedTag(null); setSeen(new Set()) }}
-                className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
+                className={`flex-shrink-0 px-3 py-1 rounded-full text-sm font-medium transition-colors border ${
                   !selectedTag ? 'bg-teal-700 text-white border-teal-700' : 'bg-white dark:bg-ink-800 border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-400 hover:border-teal-400'
                 }`}
               >
@@ -307,7 +307,7 @@ export function Rank() {
                 <button
                   key={tag.id}
                   onClick={() => { setSelectedTag(tag.id); setSeen(new Set()) }}
-                  className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
+                  className={`flex-shrink-0 px-3 py-1 rounded-full text-sm font-medium transition-colors border ${
                     selectedTag === tag.id ? 'bg-teal-700 text-white border-teal-700' : 'bg-white dark:bg-ink-800 border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-400 hover:border-teal-400'
                   }`}
                 >
@@ -326,11 +326,11 @@ export function Rank() {
               <div className="flex items-center justify-center gap-6 text-sm text-ink-500">
                 <div className="text-center">
                   <p className="font-semibold text-ink-900 dark:text-paper-50 text-lg">{readBooks.length}</p>
-                  <p className="text-xs">books to rank</p>
+                  <p className="text-sm">books to rank</p>
                 </div>
                 <div className="text-center">
                   <p className="font-semibold text-ink-900 dark:text-paper-50 text-lg">{matchCount}</p>
-                  <p className="text-xs">matchups done</p>
+                  <p className="text-sm">matchups done</p>
                 </div>
               </div>
               <div className="flex gap-3 justify-center flex-wrap">
@@ -344,7 +344,7 @@ export function Rank() {
                 )}
               </div>
               {matchCount > 0 && (
-                <button onClick={handleReset} disabled={resetting} className="text-xs text-ink-400 hover:text-ink-600 transition-colors">
+                <button onClick={handleReset} disabled={resetting} className="text-sm text-ink-400 hover:text-ink-600 transition-colors">
                   Reset all rankings
                 </button>
               )}
@@ -352,10 +352,10 @@ export function Rank() {
 
             {matchCount > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-widest text-ink-400">Current Top 3</p>
+                <p className="text-sm font-semibold uppercase tracking-widest text-ink-400">Current Top 3</p>
                 {rankedBooks.slice(0, 3).map((book, i) => (
                   <div key={book.id} className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-ink-800 border border-paper-200 dark:border-ink-700">
-                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold flex-shrink-0 ${
+                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-bold flex-shrink-0 ${
                       i === 0 ? 'bg-amber-400 text-amber-900' :
                       i === 1 ? 'bg-slate-300 text-slate-700' :
                       'bg-amber-700 text-amber-100'
@@ -363,7 +363,7 @@ export function Rank() {
                     <BookCover book={book} size="sm" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-ink-900 dark:text-paper-50 truncate">{book.title}</p>
-                      <p className="text-xs text-ink-400 truncate">{book.author}</p>
+                      <p className="text-sm text-ink-400 truncate">{book.author}</p>
                     </div>
                   </div>
                 ))}
@@ -374,7 +374,7 @@ export function Rank() {
 
         {view === 'battle' && pair && (
           <motion.div key="battle" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-            <p className="text-center text-xs font-semibold uppercase tracking-widest text-ink-400">Which book is better?</p>
+            <p className="text-center text-sm font-semibold uppercase tracking-widest text-ink-400">Which book is better?</p>
             <div className="flex gap-2 items-stretch">
               {pair.map((book, i) => (
                 <BattleCard
@@ -389,10 +389,10 @@ export function Rank() {
             </div>
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-paper-200 dark:bg-ink-700" />
-              <span className="text-xs font-bold text-ink-500 dark:text-ink-400 uppercase tracking-widest">VS</span>
+              <span className="text-sm font-bold text-ink-500 dark:text-ink-400 uppercase tracking-widest">VS</span>
               <div className="flex-1 h-px bg-paper-200 dark:bg-ink-700" />
             </div>
-            <p className="text-center text-xs text-ink-400">{matchCount} matchups completed · Tap a book to choose</p>
+            <p className="text-center text-sm text-ink-400">{matchCount} matchups completed · Tap a book to choose</p>
           </motion.div>
         )}
 

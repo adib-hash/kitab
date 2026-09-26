@@ -151,7 +151,7 @@ export function Stats() {
                   <Target size={18} className="text-amber-600" />
                   <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50">{thisYear} Reading Goal</h2>
                 </div>
-                <button onClick={() => setEditingGoal(!editingGoal)} className="btn-ghost text-xs">
+                <button onClick={() => setEditingGoal(!editingGoal)} className="btn-ghost text-sm">
                   {goal ? 'Edit goal' : 'Set goal'}
                 </button>
               </div>
@@ -198,10 +198,10 @@ export function Stats() {
               </h2>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={stats.booksPerMonth} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
-                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#78716C' }} />
-                  <YAxis tick={{ fontSize: 11, fill: '#78716C' }} allowDecimals={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 14, fill: '#78716C' }} />
+                  <YAxis tick={{ fontSize: 14, fill: '#78716C' }} allowDecimals={false} />
                   <Tooltip
-                    contentStyle={{ background: '#1C1917', border: '1px solid #44403C', borderRadius: 8, fontSize: 12, color: '#FAF7F2' }}
+                    contentStyle={{ background: '#1C1917', border: '1px solid #44403C', borderRadius: 8, fontSize: 14, color: '#FAF7F2' }}
                     formatter={(v) => [`${v} book${v > 1 ? 's' : ''}`, '']}
                   />
                   <Bar dataKey="count" fill="#0F766E" radius={[4,4,0,0]} />
@@ -225,7 +225,7 @@ export function Stats() {
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ background: '#1C1917', border: '1px solid #44403C', borderRadius: 8, fontSize: 12, color: '#FAF7F2' }}
+                      contentStyle={{ background: '#1C1917', border: '1px solid #44403C', borderRadius: 8, fontSize: 14, color: '#FAF7F2' }}
                       itemStyle={{ color: '#FAF7F2' }}
                       labelStyle={{ color: '#FAF7F2' }}
                       formatter={(value, name) => [`${value} book${value !== 1 ? 's' : ''}`, name]}

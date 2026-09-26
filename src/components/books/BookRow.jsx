@@ -16,7 +16,7 @@ export const BookRow = memo(function BookRow({ book }) {
         <p className="font-medium text-sm text-ink-900 dark:text-paper-50 truncate group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
           {book.title}
         </p>
-        <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
+        <p className="text-sm text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
         {/* Tags on mobile */}
         {book.tags?.length > 0 && (
           <div className="flex gap-1 mt-1 sm:hidden">

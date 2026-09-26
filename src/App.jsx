@@ -155,7 +155,7 @@ function OfflineBanner() {
   if (isOnline) return null
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[9990] flex items-center justify-center py-1.5 text-xs font-medium text-white"
+      className="fixed top-0 left-0 right-0 z-[9990] flex items-center justify-center py-1.5 text-sm font-medium text-white"
       style={{ background: '#78716C', paddingTop: 'calc(env(safe-area-inset-top) + 0.375rem)' }}
     >
       Offline — viewing cached data
@@ -255,7 +255,7 @@ export default function App() {
             </span>
             <span style={{
               fontFamily: "'DM Sans', system-ui, sans-serif",
-              fontSize: 11,
+              fontSize: 14,
               letterSpacing: '0.18em',
               textTransform: 'uppercase',
               color: '#78716C',

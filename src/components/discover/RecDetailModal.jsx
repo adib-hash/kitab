@@ -73,7 +73,7 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
           {/* Why recommended */}
           {book.why && (
             <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800 rounded-xl px-3.5 py-3">
-              <p className="text-xs font-semibold text-teal-700 dark:text-teal-400 uppercase tracking-wide mb-1">Why you'll love it</p>
+              <p className="text-sm font-semibold text-teal-700 dark:text-teal-400 uppercase tracking-wide mb-1">Why you'll love it</p>
               <p className="text-sm text-teal-900 dark:text-teal-200 leading-relaxed">{book.why}</p>
             </div>
           )}
@@ -83,14 +83,14 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
             <div className="bg-paper-50 dark:bg-ink-700/50 rounded-xl p-3">
               <div className="flex items-center gap-1.5 mb-1">
                 <Calendar size={11} className="text-ink-400" />
-                <p className="text-xs font-semibold uppercase tracking-widest text-ink-400">Published</p>
+                <p className="text-sm font-semibold uppercase tracking-widest text-ink-400">Published</p>
               </div>
               <p className="text-sm font-medium text-ink-900 dark:text-ink-300">{book.published_year || '\u2014'}</p>
             </div>
             <div className="bg-paper-50 dark:bg-ink-700/50 rounded-xl p-3">
               <div className="flex items-center gap-1.5 mb-1">
                 <FileText size={11} className="text-ink-400" />
-                <p className="text-xs font-semibold uppercase tracking-widest text-ink-400">Pages</p>
+                <p className="text-sm font-semibold uppercase tracking-widest text-ink-400">Pages</p>
               </div>
               <p className="text-sm font-medium text-ink-900 dark:text-ink-300">
                 {book.page_count ? `${book.page_count}` : '\u2014'}
@@ -107,7 +107,7 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
               >
                 <div className="flex items-center gap-1.5">
                   <BookOpen size={12} className="text-ink-400" />
-                  <p className="text-xs font-semibold uppercase tracking-widest text-ink-400">About this book</p>
+                  <p className="text-sm font-semibold uppercase tracking-widest text-ink-400">About this book</p>
                 </div>
                 <span className="text-ink-400 group-hover:text-ink-600 dark:group-hover:text-ink-300 transition-colors">
                   {descOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
@@ -117,7 +117,7 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
                 {book.description}
               </p>
               {!descOpen && book.description.length > 160 && (
-                <button onClick={() => setDescOpen(true)} className="mt-1.5 text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium">
+                <button onClick={() => setDescOpen(true)} className="mt-1.5 text-sm text-teal-600 dark:text-teal-400 hover:underline font-medium">
                   Show more
                 </button>
               )}
@@ -127,7 +127,7 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
           {/* Tags */}
           {!added && (
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-ink-400 mb-2">Add tags when saving</p>
+              <p className="text-sm font-semibold uppercase tracking-widest text-ink-400 mb-2">Add tags when saving</p>
               <TagInput selectedTagIds={tagIds} onChange={setTagIds} />
             </div>
           )}
@@ -137,12 +137,12 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
             <a
               href={`https://www.goodreads.com/search?q=${encodeURIComponent(`${book.title} ${book.author}`)}`}
               target="_blank" rel="noopener noreferrer"
-              className="btn-ghost text-xs"
+              className="btn-ghost text-sm"
             >
               <ExternalLink size={11} /> Goodreads
             </a>
             {libbyUrl && (
-              <a href={libbyUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost text-xs">
+              <a href={libbyUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost text-sm">
                 <ExternalLink size={11} /> Check Libby
               </a>
             )}

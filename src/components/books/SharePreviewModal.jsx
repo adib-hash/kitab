@@ -138,7 +138,7 @@ function LoadingSkeleton({ hostname }) {
       {/* Source badge */}
       <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-paper-100 dark:bg-ink-800">
         <ExternalLink size={12} className="text-ink-400" />
-        <span className="text-xs text-ink-500 dark:text-ink-400">from {hostname}</span>
+        <span className="text-sm text-ink-500 dark:text-ink-400">from {hostname}</span>
       </div>
       {/* Cover placeholder */}
       <div className="w-28 rounded-md bg-paper-200 dark:bg-ink-700" style={{ aspectRatio: '2/3' }} />
@@ -148,7 +148,7 @@ function LoadingSkeleton({ hostname }) {
         <div className="h-4 rounded bg-paper-200 dark:bg-ink-700 w-3/5 mx-auto" />
         <div className="h-3 rounded bg-paper-200 dark:bg-ink-700 w-2/5 mx-auto" />
       </div>
-      <p className="text-xs text-ink-400 dark:text-ink-500">Finding book…</p>
+      <p className="text-sm text-ink-400 dark:text-ink-500">Finding book…</p>
     </div>
   )
 }
@@ -225,7 +225,7 @@ export function SharePreviewModal({ open, sharedUrl, onClose, onEditDetails, onF
             <div className="flex flex-col items-center gap-3 py-8 text-ink-400">
               <Search size={32} className="opacity-40" />
               <p className="text-sm">Couldn't identify this book automatically.</p>
-              <p className="text-xs text-ink-400">Opening search…</p>
+              <p className="text-sm text-ink-400">Opening search…</p>
             </div>
           )}
 
@@ -234,7 +234,7 @@ export function SharePreviewModal({ open, sharedUrl, onClose, onEditDetails, onF
               {/* Source badge */}
               <div className="flex items-center justify-center gap-1.5 mb-4">
                 <ExternalLink size={12} className="text-ink-400" />
-                <span className="text-xs text-ink-500 dark:text-ink-400">from {hostname}</span>
+                <span className="text-sm text-ink-500 dark:text-ink-400">from {hostname}</span>
               </div>
 
               {/* Cover */}
@@ -255,7 +255,7 @@ export function SharePreviewModal({ open, sharedUrl, onClose, onEditDetails, onF
                 {foundBook.author}
               </p>
               {meta && (
-                <p className="text-center text-xs text-ink-400 dark:text-ink-500 mb-3">
+                <p className="text-center text-sm text-ink-400 dark:text-ink-500 mb-3">
                   {meta}
                 </p>
               )}
@@ -263,7 +263,7 @@ export function SharePreviewModal({ open, sharedUrl, onClose, onEditDetails, onF
               {/* Description */}
               {foundBook.description && (
                 <p
-                  className="text-xs text-ink-500 dark:text-ink-400 mb-4 text-center leading-relaxed"
+                  className="text-sm text-ink-500 dark:text-ink-400 mb-4 text-center leading-relaxed"
                   style={{
                     display: '-webkit-box',
                     WebkitLineClamp: 3,
@@ -282,7 +282,7 @@ export function SharePreviewModal({ open, sharedUrl, onClose, onEditDetails, onF
                     key={opt.value}
                     type="button"
                     onClick={() => setStatus(opt.value)}
-                    className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+                    className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
                     style={status === opt.value ? {
                       backgroundColor: '#0F766E',
                       color: '#fff',
@@ -320,7 +320,7 @@ export function SharePreviewModal({ open, sharedUrl, onClose, onEditDetails, onF
                 <button
                   type="button"
                   onClick={onFallback}
-                  className="text-xs text-ink-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors underline underline-offset-2"
+                  className="text-sm text-ink-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors underline underline-offset-2"
                 >
                   Not the right book? Search instead
                 </button>

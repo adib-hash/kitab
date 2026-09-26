@@ -121,7 +121,7 @@ export function Dashboard() {
           <h1 className="font-serif text-2xl md:text-3xl font-semibold text-ink-900 dark:text-paper-50">
             Your Library
           </h1>
-          <p className="text-ink-500 dark:text-ink-400 text-xs md:text-sm mt-0.5">
+          <p className="text-ink-500 dark:text-ink-400 text-sm mt-0.5">
             {books.length > 0
               ? `${pluralize(books.filter(b=>b.status==='read').length, 'book')} read · ${pluralize(books.filter(b=>b.status==='tbr').length, 'book')} on shelf`
               : 'Start building your reading life'}
@@ -153,7 +153,7 @@ export function Dashboard() {
             </p>
           </div>
           <ProgressBar value={booksThisYear} max={goal.target} className="h-2" gradient />
-          <p className="text-xs text-ink-500 dark:text-ink-400 mt-2">
+          <p className="text-sm text-ink-500 dark:text-ink-400 mt-2">
             {booksThisYear >= goal.target
               ? <span className="flex items-center gap-1"><CheckCircle size={13} className="text-teal-600" /> Goal achieved!</span>
               : `${goal.target - booksThisYear} more to go`}
@@ -195,7 +195,7 @@ export function Dashboard() {
               {highlight.text && highlight.text.length > 150 && (
                 <button
                   onClick={() => setHighlightExpanded(e => !e)}
-                  className="text-xs font-medium mt-2 transition-colors text-teal-700 dark:text-teal-500"
+                  className="text-sm font-medium mt-2 transition-colors text-teal-700 dark:text-teal-500"
                 >
                   {highlightExpanded ? 'Show less' : 'Read more'}
                 </button>
@@ -208,13 +208,13 @@ export function Dashboard() {
                   {highlight.books?.title}
                 </p>
                 {highlight.books?.author && (
-                  <p className="text-xs mt-0.5 text-ink-400 dark:text-ink-500">
+                  <p className="text-sm mt-0.5 text-ink-400 dark:text-ink-500">
                     {highlight.books.author}
                   </p>
                 )}
               </Link>
               <div className="flex items-center gap-1 flex-shrink-0">
-                <Link to="/highlights" className="text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium px-1">
+                <Link to="/highlights" className="text-sm text-teal-600 dark:text-teal-400 hover:underline font-medium px-1">
                   View all
                 </Link>
                 <button
@@ -260,7 +260,7 @@ export function Dashboard() {
                 {book.page_count && book.current_page && (
                   <div>
                     <ProgressBar value={book.current_page} max={book.page_count} className="h-1" />
-                    <p className="text-[10px] text-ink-400 dark:text-ink-500 mt-1">p.{book.current_page}/{book.page_count}</p>
+                    <p className="text-sm text-ink-400 dark:text-ink-500 mt-1">p.{book.current_page}/{book.page_count}</p>
                   </div>
                 )}
               </div>
@@ -275,7 +275,7 @@ export function Dashboard() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <h2 className="font-serif text-lg md:text-xl font-semibold text-ink-900 dark:text-paper-50">At a Glance</h2>
-              <span className="text-xs font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-0.5 rounded-full">{thisYear}</span>
+              <span className="text-sm font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-0.5 rounded-full">{thisYear}</span>
             </div>
             <Link to="/stats" className="text-sm text-teal-700 dark:text-teal-400 hover:underline flex items-center gap-1">
               Full stats <ArrowRight size={14} />
@@ -303,7 +303,7 @@ export function Dashboard() {
                 <p className="text-sm text-ink-800 dark:text-ink-300 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors truncate flex-1">
                   {b.title}
                 </p>
-                <span className="text-xs text-ink-400 dark:text-ink-500 flex-shrink-0">
+                <span className="text-sm text-ink-400 dark:text-ink-500 flex-shrink-0">
                   {thisYear - parseInt(b.date_finished.slice(0, 4))}y ago
                 </span>
               </Link>
@@ -361,7 +361,7 @@ export function Dashboard() {
 
           <div className="card p-4 space-y-3">
             {lastSyncRaw && !showSyncReminder && (
-              <p className="text-xs text-ink-400 dark:text-ink-400">
+              <p className="text-sm text-ink-400 dark:text-ink-400">
                 Synced automatically · last {daysSinceSync === 0 ? 'today' : daysSinceSync === 1 ? 'yesterday' : `${daysSinceSync} days ago`}
               </p>
             )}
@@ -381,7 +381,7 @@ export function Dashboard() {
                 : 'Sync Kindle Highlights'}
             </button>
             {kindleSync.isSuccess && (
-              <p className="text-xs text-teal-600 dark:text-teal-400 text-center">
+              <p className="text-sm text-teal-600 dark:text-teal-400 text-center">
                 {kindleSync.data?.totalHighlights ?? 0} new highlight{kindleSync.data?.totalHighlights !== 1 ? 's' : ''} imported
               </p>
             )}

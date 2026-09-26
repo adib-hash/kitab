@@ -90,7 +90,7 @@ export function GlobalSearch({ open, onClose }) {
                     <X size={16} />
                   </button>
                 )}
-                <button onClick={onClose} className="text-xs text-ink-500 hover:text-ink-700 dark:hover:text-ink-300 px-2 py-1 rounded-md border border-paper-200 dark:border-ink-600">
+                <button onClick={onClose} className="text-sm text-ink-500 hover:text-ink-700 dark:hover:text-ink-300 px-2 py-1 rounded-md border border-paper-200 dark:border-ink-600">
                   Esc
                 </button>
               </div>
@@ -106,7 +106,7 @@ export function GlobalSearch({ open, onClose }) {
                       <BookCover book={book} size="sm" className="flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-ink-900 dark:text-paper-50 truncate">{book.title}</p>
-                        <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
+                        <p className="text-sm text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
                       </div>
                       <StatusBadge status={book.status} />
                     </button>

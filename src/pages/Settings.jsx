@@ -151,7 +151,7 @@ function EnrichLibrary({ books }) {
           <div className="w-full bg-paper-200 dark:bg-ink-700 rounded-full h-2">
             <div className="bg-teal-600 h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
           </div>
-          <p className="text-xs text-ink-400 dark:text-ink-500">{progress}% complete</p>
+          <p className="text-sm text-ink-400 dark:text-ink-500">{progress}% complete</p>
         </div>
       )}
 
@@ -166,7 +166,7 @@ function EnrichLibrary({ books }) {
                 {results.filter(r => r.hasUpdates).length > 0 && (
                   <button
                     onClick={toggleAll}
-                    className="text-xs text-teal-600 dark:text-teal-400 hover:underline"
+                    className="text-sm text-teal-600 dark:text-teal-400 hover:underline"
                   >
                     {results.filter(r => r.hasUpdates).every(r => r.selected) ? 'Deselect all' : 'Select all'}
                   </button>
@@ -207,14 +207,14 @@ function EnrichLibrary({ books }) {
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-ink-900 dark:text-paper-50 truncate">{book.title}</p>
-                    <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
+                    <p className="text-sm text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
                     {hasUpdates && (
-                      <p className="text-xs text-teal-600 dark:text-teal-400 mt-0.5">
+                      <p className="text-sm text-teal-600 dark:text-teal-400 mt-0.5">
                         Adding: {Object.keys(updates).join(', ').replace(/_/g, ' ')}
                       </p>
                     )}
                     {!hasUpdates && (
-                      <p className="text-xs text-ink-400 dark:text-ink-500 mt-0.5">No data found</p>
+                      <p className="text-sm text-ink-400 dark:text-ink-500 mt-0.5">No data found</p>
                     )}
                   </div>
                   {hasUpdates ? (
@@ -250,7 +250,7 @@ function UnmatchedBookRow({ group, readBooks, onAssign, onRemove }) {
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="font-medium text-ink-900 dark:text-paper-100 text-sm">{group.title}</p>
-          {group.author && <p className="text-xs text-ink-500 dark:text-ink-400">{group.author}</p>}
+          {group.author && <p className="text-sm text-ink-500 dark:text-ink-400">{group.author}</p>}
         </div>
         <button
           onClick={() => onRemove(group.title)}
@@ -260,7 +260,7 @@ function UnmatchedBookRow({ group, readBooks, onAssign, onRemove }) {
           <Trash2 size={14} />
         </button>
       </div>
-      <p className="text-xs text-ink-400 mt-0.5">
+      <p className="text-sm text-ink-400 mt-0.5">
         {group.highlights.length} highlight{group.highlights.length !== 1 ? 's' : ''}
         {firstHighlight && <span className="italic"> · "{firstHighlight}…"</span>}
       </p>
@@ -288,7 +288,7 @@ function UnmatchedBookRow({ group, readBooks, onAssign, onRemove }) {
                 }}
               >
                 <span className="font-medium text-ink-900 dark:text-paper-100">{b.title}</span>
-                {b.author && <span className="text-ink-400 text-xs block mt-0.5">{b.author}</span>}
+                {b.author && <span className="text-ink-400 text-sm block mt-0.5">{b.author}</span>}
               </button>
             ))}
           </div>
@@ -447,7 +447,7 @@ function KindleSyncSection() {
             </span>
           </div>
           {kindleSync.isSuccess && (kindleSync.data?.unmatched ?? 0) > 0 && (
-            <p className="text-xs text-teal-600 dark:text-teal-400 pl-6">
+            <p className="text-sm text-teal-600 dark:text-teal-400 pl-6">
               {kindleSync.data.unmatched} book{kindleSync.data.unmatched !== 1 ? 's' : ''} couldn't be matched — link them below.
             </p>
           )}
@@ -619,7 +619,7 @@ export function Settings() {
         </button>
         <div>
           <h1 className="page-title">Settings</h1>
-          <p className="text-xs text-ink-400 dark:text-ink-400 mt-0.5">Kitab · v2.12.0</p>
+          <p className="text-sm text-ink-400 dark:text-ink-400 mt-0.5">Kitab · v2.12.0</p>
         </div>
       </div>
 
@@ -630,7 +630,7 @@ export function Settings() {
         </h2>
         <p className="text-sm text-ink-600 dark:text-ink-400">
           Enter your library's OverDrive subdomain to enable "Check Libby" links on every book.
-          Find it in your library's Libby URL — e.g. <span className="font-mono text-xs bg-paper-100 dark:bg-ink-700 px-1.5 py-0.5 rounded">sfpl.overdrive.com</span> and enter <span className="font-mono text-xs bg-paper-100 dark:bg-ink-700 px-1.5 py-0.5 rounded">sfpl</span>.
+          Find it in your library's Libby URL — e.g. <span className="font-mono text-sm bg-paper-100 dark:bg-ink-700 px-1.5 py-0.5 rounded">sfpl.overdrive.com</span> and enter <span className="font-mono text-sm bg-paper-100 dark:bg-ink-700 px-1.5 py-0.5 rounded">sfpl</span>.
         </p>
         <div className="flex gap-2">
           <input
@@ -649,7 +649,7 @@ export function Settings() {
           </Button>
         </div>
         {librarySlug && (
-          <p className="text-xs text-ink-400">
+          <p className="text-sm text-ink-400">
             Links will open: <span className="font-mono">libbyapp.com/search/{librarySlug}/search/query-…</span>
           </p>
         )}

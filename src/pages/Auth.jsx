@@ -128,7 +128,7 @@ export function Auth({ session }) {
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-paper-200 dark:bg-ink-700" />
-            <span className="text-xs text-ink-400">or</span>
+            <span className="text-sm text-ink-400">or</span>
             <div className="flex-1 h-px bg-paper-200 dark:bg-ink-700" />
           </div>
 
@@ -160,8 +160,8 @@ export function Auth({ session }) {
               </div>
             )}
 
-            {error && <p className="text-xs text-rose-600">{error}</p>}
-            {message && <p className="text-xs text-teal-700">{message}</p>}
+            {error && <p className="text-sm text-rose-600">{error}</p>}
+            {message && <p className="text-sm text-teal-700">{message}</p>}
 
             <button
               type="submit"
@@ -175,7 +175,7 @@ export function Auth({ session }) {
             </button>
           </form>
 
-          <div className="flex items-center justify-between text-xs text-ink-500">
+          <div className="flex items-center justify-between text-sm text-ink-500">
             <button onClick={() => setMode(mode === 'login' ? 'signup' : 'login')} className="hover:text-teal-700 transition-colors">
               {mode === 'login' ? 'Create account' : 'Sign in instead'}
             </button>

@@ -130,11 +130,11 @@ export function ReviewModal({ open, onClose, book }) {
             </label>
             <div className="flex items-center gap-3">
               {draftSavedMsg && (
-                <span className="flex items-center gap-1 text-xs text-teal-600 dark:text-teal-400 animate-pulse">
+                <span className="flex items-center gap-1 text-sm text-teal-600 dark:text-teal-400 animate-pulse">
                   <CheckCircle size={12} /> Draft saved
                 </span>
               )}
-              <span className="text-xs text-ink-400">{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
+              <span className="text-sm text-ink-400">{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
             </div>
           </div>
         </div>

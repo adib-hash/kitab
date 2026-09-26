@@ -89,7 +89,7 @@ export function StarRating({ value, onChange, size = 'md', readOnly = false }) {
         )
       })}
       {value != null && (
-        <span className="ml-1 text-xs text-ink-500 font-medium tabular-nums">{value}</span>
+        <span className="ml-1 text-sm text-ink-500 font-medium tabular-nums">{value}</span>
       )}
     </div>
   )

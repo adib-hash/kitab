@@ -97,7 +97,7 @@ export function Highlights() {
 
       {/* Count */}
       {!isLoading && (
-        <p className="text-xs text-ink-500 dark:text-ink-400">
+        <p className="text-sm text-ink-500 dark:text-ink-400">
           {filtered.length} {filtered.length === 1 ? 'highlight' : 'highlights'}
         </p>
       )}
@@ -136,16 +136,16 @@ export function Highlights() {
                       {group.book.title}
                     </p>
                     {group.book.author && (
-                      <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{group.book.author}</p>
+                      <p className="text-sm text-ink-500 dark:text-ink-400 truncate">{group.book.author}</p>
                     )}
                   </div>
-                  <span className="ml-auto flex-shrink-0 text-xs text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-0.5 rounded-full">
+                  <span className="ml-auto flex-shrink-0 text-sm text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-0.5 rounded-full">
                     {group.highlights.length}
                   </span>
                 </Link>
               )}
               {!group.book && (
-                <p className="text-xs font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wide mb-3">
+                <p className="text-sm font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wide mb-3">
                   Unmatched highlights
                 </p>
               )}
@@ -158,12 +158,12 @@ export function Highlights() {
                       "{h.text}"
                     </p>
                     {h.note && (
-                      <p className="text-xs text-ink-500 dark:text-ink-400 mt-2 pt-2 border-t border-paper-200 dark:border-ink-700">
+                      <p className="text-sm text-ink-500 dark:text-ink-400 mt-2 pt-2 border-t border-paper-200 dark:border-ink-700">
                         {h.note}
                       </p>
                     )}
                     {h.location && (
-                      <p className="text-xs text-ink-400 mt-1">Loc. {h.location}</p>
+                      <p className="text-sm text-ink-400 mt-1">Loc. {h.location}</p>
                     )}
 
                     {/* Actions */}

@@ -45,7 +45,7 @@ export const BookCard = memo(function BookCard({ book }) {
           <p className="font-serif text-sm font-semibold text-ink-900 dark:text-paper-50 leading-snug line-clamp-2 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
             {book.title}
           </p>
-          <p className="text-xs text-ink-500 dark:text-ink-400 truncate mt-0.5">{book.author}</p>
+          <p className="text-sm text-ink-500 dark:text-ink-400 truncate mt-0.5">{book.author}</p>
           {book.rating && (
             <div className="mt-1">
               <StarRating value={book.rating} readOnly size="sm" />

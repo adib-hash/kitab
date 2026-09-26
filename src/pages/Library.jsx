@@ -68,7 +68,7 @@ export function Library() {
       <div className="flex items-center justify-between gap-2">
         <div>
           <h1 className="page-title">Library</h1>
-          <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">
+          <p className="text-sm text-ink-500 dark:text-ink-400 mt-0.5">
             {isLoading ? '...' : `${filtered.length} ${filtered.length === 1 ? 'book' : 'books'}`}
           </p>
         </div>
@@ -82,7 +82,7 @@ export function Library() {
           >
             <SlidersHorizontal size={16} />
             {activeFilterCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-teal-600 text-white text-[10px] rounded-full flex items-center justify-center">
+              <span className="absolute -top-2 -right-2 min-w-5 h-5 px-1 bg-teal-600 text-white text-sm leading-none rounded-full flex items-center justify-center">
                 {activeFilterCount}
               </span>
             )}

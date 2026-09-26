@@ -80,7 +80,7 @@ export function LibraryFilters() {
         <div className="flex items-center justify-between mb-1.5">
           <label className="section-label">Status</label>
           {hasActiveFilters && (
-            <button onClick={clearLibraryFilters} className="text-xs text-teal-600 hover:text-teal-800 font-medium">
+            <button onClick={clearLibraryFilters} className="text-sm text-teal-600 hover:text-teal-800 font-medium">
               Clear all
             </button>
           )}
@@ -91,7 +91,7 @@ export function LibraryFilters() {
               key={opt.value}
               onClick={() => toggleStatus(opt.value)}
               className={clsx(
-                'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
+                'px-2.5 py-1 rounded-full text-sm font-medium transition-colors border',
                 libraryFilters.status.includes(opt.value)
                   ? 'bg-teal-700 text-white border-teal-700'
                   : 'bg-white dark:bg-ink-800 border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-400 hover:border-teal-400'
@@ -112,7 +112,7 @@ export function LibraryFilters() {
               key={opt.label}
               onClick={() => setLibraryFilters({ ratingMin: opt.value })}
               className={clsx(
-                'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
+                'px-2.5 py-1 rounded-full text-sm font-medium transition-colors border',
                 libraryFilters.ratingMin === opt.value
                   ? 'bg-teal-700 text-white border-teal-700'
                   : 'bg-white dark:bg-ink-800 border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-400 hover:border-teal-400'
@@ -134,7 +134,7 @@ export function LibraryFilters() {
           >
             <span className="section-label">
               Tags{activeTagCount > 0 && (
-                <span className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-teal-600 text-white text-[10px] font-bold">
+                <span className="ml-1.5 inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-teal-600 text-white text-sm font-bold leading-none">
                   {activeTagCount}
                 </span>
               )}
@@ -155,7 +155,7 @@ export function LibraryFilters() {
                   key={tag.id}
                   onClick={() => toggleTag(tag.id)}
                   className={clsx(
-                    'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
+                    'px-2.5 py-1 rounded-full text-sm font-medium transition-colors border',
                     libraryFilters.tags.includes(tag.id)
                       ? 'bg-teal-700 text-white border-teal-700'
                       : 'bg-white dark:bg-ink-800 border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-400 hover:border-teal-400'

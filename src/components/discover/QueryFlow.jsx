@@ -219,7 +219,7 @@ export function QueryFlow({ library, sessions, tags, onComplete }) {
             <Loader2 size={28} className="animate-spin text-teal-600" />
             <div>
               <p className="font-medium text-ink-800 dark:text-ink-200">Finding your next read...</p>
-              <p className="text-xs text-ink-400 mt-1">Consulting your library and thinking carefully</p>
+              <p className="text-sm text-ink-400 mt-1">Consulting your library and thinking carefully</p>
             </div>
           </motion.div>
         ) : (
@@ -252,7 +252,7 @@ export function QueryFlow({ library, sessions, tags, onComplete }) {
                 <button
                   key={s}
                   onClick={() => handleChipClick(s)}
-                  className="text-xs px-3 py-1.5 rounded-full border border-paper-200 dark:border-ink-600
+                  className="text-sm px-3 py-1.5 rounded-full border border-paper-200 dark:border-ink-600
                              text-ink-600 dark:text-ink-400 hover:bg-teal-50 dark:hover:bg-teal-900/20
                              hover:border-teal-300 dark:hover:border-teal-700 hover:text-teal-700 dark:hover:text-teal-400
                              transition-colors"
@@ -263,7 +263,7 @@ export function QueryFlow({ library, sessions, tags, onComplete }) {
             </div>
 
             {error && (
-              <p className="text-xs text-rose-500">{error}</p>
+              <p className="text-sm text-rose-500">{error}</p>
             )}
 
             <button

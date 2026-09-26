@@ -5,6 +5,7 @@ A cleanup release: no new features, but a long list of small fixes, performance 
 ### Changed
 - **The web app now installs properly.** The PWA manifest was the build tool's default: named "kitab" in lowercase, a green theme colour from a Vue template, and no icons at all, so "Add to Home Screen" gave a blank tile. It now has the Kitab name, the dark ink theme colour, and 192/512/180 px icons generated from the same teal lettermark the iOS app uses. The browser favicon is that lettermark too, replacing an emoji.
 - **No more emoji or arrow glyphs in the interface.** The sign-in page's book emoji is a Lucide icon; the "→" in Settings help text and the "★" after average ratings are words ("4.2 / 5").
+- **Every label is at least 14px.** 143 `text-xs` (12px) sites and 11 arbitrary 9–11px sizes across 31 files, plus the shared section-label, tag-pill, status-pill, small-button and stat-caption styles, the bottom-nav labels, chart axis labels and the splash tagline, are now 14px or larger. Empty-state descriptions are 16px. Count badges grew to fit.
 
 ### Fixed
 - **Recommendations now require you to be signed in.** `/api/recommend` spends Gemini and Anthropic credit on every call and, like every file in `api/`, is a public URL. It now checks the caller's Supabase session (the app sends its access token) and rejects anything else with 401. It also refuses prompts over 20,000 characters. This is the same class of exposure v2.11.1 closed for the old endpoint, applied to the live one.

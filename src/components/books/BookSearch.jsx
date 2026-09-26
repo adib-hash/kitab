@@ -92,7 +92,7 @@ export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '
           {sharedUrl && (
             <div className="mb-3 px-3 py-2 rounded-lg bg-paper-100 dark:bg-ink-800 flex items-start gap-2">
               <ExternalLink size={13} className="text-ink-400 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-ink-500 dark:text-ink-400 truncate">
+              <p className="text-sm text-ink-500 dark:text-ink-400 truncate">
                 Shared from: <span className="font-mono">{(() => { try { return new URL(sharedUrl).hostname } catch { return sharedUrl } })()}</span>
               </p>
             </div>
@@ -155,8 +155,8 @@ export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '
                   <p className="font-medium text-sm text-ink-900 dark:text-paper-50 truncate group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
                     {book.title}
                   </p>
-                  <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
-                  <p className="text-xs text-ink-400 dark:text-ink-500">
+                  <p className="text-sm text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
+                  <p className="text-sm text-ink-400 dark:text-ink-500">
                     {[book.published_year, book.page_count && `${book.page_count} pages`].filter(Boolean).join(' · ')}
                   </p>
                 </div>
@@ -169,7 +169,7 @@ export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '
               <button
                 type="button"
                 onClick={() => { onClose(); setQuery(''); setResults([]); onManual(); }}
-                className="text-xs text-ink-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors underline underline-offset-2 inline-flex items-center gap-1"
+                className="text-sm text-ink-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors underline underline-offset-2 inline-flex items-center gap-1"
               >
                 Can't find it? Add manually <ArrowRight size={12} />
               </button>
