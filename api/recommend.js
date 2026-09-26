@@ -117,3 +117,26 @@ async function callHaiku(prompt, apiKey) {
   if (!text.trim()) throw new Error('Empty response from Anthropic')
   return text
 }
+
+// --- Caller verification ---
+// Asks Supabase Auth who the bearer token belongs to. Any failure (no token,
+// missing env, network error, expired session) returns null → 401. The anon key
+// is the same public key the frontend ships with; it only identifies the project.
+async function verifySupabaseUser(req) {
+  const auth = req.headers.authorization || ''
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+  const anon = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+  if (!token || !url || !anon) return null
+  try {
+    const r = await fetch(`${url}/auth/v1/user`, {
+      headers: { apikey: anon, Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(5000),
+    })
+    if (!r.ok) return null
+    const u = await r.json()
+    return u?.id ? u : null
+  } catch {
+    return null
+  }
+}

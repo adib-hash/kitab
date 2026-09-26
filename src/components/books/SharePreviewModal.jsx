@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { ExternalLink, Search } from 'lucide-react'
 import { BookCover } from './BookCover'
 import { useAddBook } from '../../hooks/useLibrary'
-import { searchCatalog as searchBooks, searchCatalogByISBN as searchByISBN } from '../../lib/bookSearch'
+import { searchCatalog as searchBooks, searchCatalogByISBN as searchByISBN, API_BASE } from '../../lib/bookSearch'
 
 // ── URL parsing ───────────────────────────────────────────────────────────────
 
@@ -41,7 +41,7 @@ function parseSharedUrl(url) {
 // Resolve a URL server-side (follows redirects, extracts og:title)
 async function resolveUrl(url) {
   try {
-    const res = await fetch(`/api/resolve-url?url=${encodeURIComponent(url)}`)
+    const res = await fetch(`${API_BASE}/api/resolve-url?url=${encodeURIComponent(url)}`)
     if (!res.ok) return null
     return await res.json() // { resolvedUrl, ogTitle, pageTitle }
   } catch {

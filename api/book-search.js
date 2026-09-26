@@ -25,6 +25,7 @@ export default async function handler(req, res) {
   const q = (req.query?.q || '').toString().trim()
   const max = Math.min(parseInt(req.query?.max) || 15, 20)
   if (!q) return res.status(400).json({ error: 'Missing q', books: [] })
+  if (q.length > 200) return res.status(400).json({ error: 'Query too long', books: [] })
 
   const googleKey = process.env.VITE_GOOGLE_BOOKS_API_KEY || process.env.GOOGLE_BOOKS_API_KEY
   const hcToken = process.env.HARDCOVER_API_TOKEN

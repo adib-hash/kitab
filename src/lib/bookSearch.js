@@ -8,7 +8,9 @@ import { Capacitor } from '@capacitor/core'
 // The Discover feed and metadata enrichment still use src/lib/googleBooks.js
 // directly, because they rely on Google's query operators (inauthor:/insubject:/
 // intitle:) and pagination, which the catalog proxy does not model.
-const API_BASE = Capacitor.isNativePlatform() ? 'https://kitab.ihsan.build' : ''
+// On native iOS, relative /api/ URLs resolve against capacitor://localhost, which
+// has no server behind it — so every client of api/ must go through this base.
+export const API_BASE = Capacitor.isNativePlatform() ? 'https://kitab.ihsan.build' : ''
 
 export async function searchCatalog(query, maxResults = 15) {
   if (!query?.trim()) return []

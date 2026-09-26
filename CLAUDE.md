@@ -202,8 +202,8 @@ All secrets in Vercel environment variables — never hardcoded.
 
 | Variable | Used in | Purpose |
 |---|---|---|
-| `VITE_SUPABASE_URL` | Frontend | Supabase client |
-| `VITE_SUPABASE_ANON_KEY` | Frontend | Supabase client |
+| `VITE_SUPABASE_URL` | Frontend + `api/recommend.js` | Supabase client; server-side caller verification |
+| `VITE_SUPABASE_ANON_KEY` | Frontend + `api/recommend.js` | Supabase client; server-side caller verification |
 | `VITE_GOOGLE_BOOKS_API_KEY` | Frontend (`src/lib/googleBooks.js`) | Discover enrichment + Enrich Library |
 | `GEMINI_API_KEY` | `api/recommend.js` | Discovery recommendations — primary model (Gemini 3.5 Flash) |
 | `ANTHROPIC_API_KEY` | `api/recommend.js` | Claude Haiku fallback when Gemini is unset or errors |

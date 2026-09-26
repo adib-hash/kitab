@@ -1,11 +1,9 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Loader2, Sparkles } from 'lucide-react'
-import { Capacitor } from '@capacitor/core'
 import { searchBooks } from '../../lib/googleBooks'
-
-// On native iOS, relative /api/ URLs resolve against capacitor://localhost which doesn't work.
-const API_BASE = Capacitor.isNativePlatform() ? 'https://kitab.ihsan.build' : ''
+import { API_BASE } from '../../lib/bookSearch'
+import { supabase } from '../../lib/supabase'
 
 const SUGGESTIONS = [
   'Surprise me',
@@ -124,9 +122,17 @@ export async function generateRecommendations(userText, libraryBooks, sessions, 
 
   const prompt = buildPrompt(userText, libraryBooks, pastRecTitles, tagNames)
 
+  // /api/recommend verifies this token server-side before spending model credit.
+  // getSession() refreshes an expired access token itself.
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.access_token) throw new Error('Please sign in again to get recommendations')
+
   const response = await fetch(`${API_BASE}/api/recommend`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
     body: JSON.stringify({ prompt }),
   })
 

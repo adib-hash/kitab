@@ -2,12 +2,19 @@
 
 A cleanup release: no new features, but a long list of small fixes, performance work, and dead-code removal across the app. Grouped by kind below.
 
+### Fixed
+- **Recommendations now require you to be signed in.** `/api/recommend` spends Gemini and Anthropic credit on every call and, like every file in `api/`, is a public URL. It now checks the caller's Supabase session (the app sends its access token) and rejects anything else with 401. It also refuses prompts over 20,000 characters. This is the same class of exposure v2.11.1 closed for the old endpoint, applied to the live one.
+- **The share-link resolver is no longer an open proxy.** `/api/resolve-url` would fetch any URL it was given, with no timeout and no size limit. It now accepts only Amazon short links, Amazon store domains, and Goodreads (checked again after redirects), gives up after 8 seconds, and reads at most 500 KB of the page.
+- **Sharing an Amazon short link or a Goodreads ID link to Kitab on iOS now finds the book.** The share preview called `/api/resolve-url` with a relative path, which on iOS resolves against `capacitor://localhost` and 404s, so every `a.co` / `amzn.to` share fell through to manual search. It now uses the same `https://kitab.ihsan.build` base as the rest of the API calls.
+
 ### Removed
 - **Dead code and unused dependencies.** An unreachable earlier Discover feed implementation (`useDiscover.js`, `DiscoverSection`, `RecommendationCard`, `RecBookCard`, `BookPreviewModal`), a 1,348-line stylesheet that nothing imported (`src/styles/index.css`), the unused Open Library subject-search and award-winner helpers, an unused Google Books `fetchBookById`, an offline write queue that nothing ever wrote to, a v1.6.8 one-off deploy script, and three npm packages with zero imports (`@uiw/react-md-editor`, `@resvg/resvg-js`, `idb-keyval`). Fifteen unused imports and two stray `console.log` calls also went.
 
 ### Technical
 - **Docs match the code again.** `CLAUDE.md`, `README.md`, and `.env.example` now describe the real API routes (`book-search`, `recommend`, `resolve-url`), the Gemini-first recommendation model, the Hardcover-first book search, and the server-side env vars (`GEMINI_API_KEY`, `HARDCOVER_API_TOKEN`, `GOOGLE_BOOKS_API_KEY`). Stale references to Readwise and to files that no longer exist were removed.
 - The three copies of the Kindle title `normalize()` function now handle `null` identically (the scraper's copy already did).
+- `API_BASE` is exported from `src/lib/bookSearch.js` and shared by book search, recommendations, and share-link resolution instead of being duplicated per file. `/api/book-search` caps the query at 200 characters.
+
 
 ## v2.11.1 — 2026-08-28
 
