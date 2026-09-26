@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, X, BookOpen, Plus } from 'lucide-react'
+import { Search, X, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLibrary } from '../../hooks/useLibrary'
 import { BookCover } from '../books/BookCover'

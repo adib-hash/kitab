@@ -1,3 +1,14 @@
+## v2.12.0 — 2026-09-25
+
+A cleanup release: no new features, but a long list of small fixes, performance work, and dead-code removal across the app. Grouped by kind below.
+
+### Removed
+- **Dead code and unused dependencies.** An unreachable earlier Discover feed implementation (`useDiscover.js`, `DiscoverSection`, `RecommendationCard`, `RecBookCard`, `BookPreviewModal`), a 1,348-line stylesheet that nothing imported (`src/styles/index.css`), the unused Open Library subject-search and award-winner helpers, an unused Google Books `fetchBookById`, an offline write queue that nothing ever wrote to, a v1.6.8 one-off deploy script, and three npm packages with zero imports (`@uiw/react-md-editor`, `@resvg/resvg-js`, `idb-keyval`). Fifteen unused imports and two stray `console.log` calls also went.
+
+### Technical
+- **Docs match the code again.** `CLAUDE.md`, `README.md`, and `.env.example` now describe the real API routes (`book-search`, `recommend`, `resolve-url`), the Gemini-first recommendation model, the Hardcover-first book search, and the server-side env vars (`GEMINI_API_KEY`, `HARDCOVER_API_TOKEN`, `GOOGLE_BOOKS_API_KEY`). Stale references to Readwise and to files that no longer exist were removed.
+- The three copies of the Kindle title `normalize()` function now handle `null` identically (the scraper's copy already did).
+
 ## v2.11.1 — 2026-08-28
 
 ### Removed

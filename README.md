@@ -2,7 +2,7 @@
 
 Your personal reading life, beautifully organized. Track books you've read, manage your TBR pile, rate and review, sync Kindle highlights, rank your favorites, and discover what to read next -- available as a web app and native iOS app at [kitab.ihsan.build](https://kitab.ihsan.build).
 
-**Current version:** v2.4.0
+**Current version:** v2.12.0
 
 ---
 
@@ -12,8 +12,8 @@ Your personal reading life, beautifully organized. Track books you've read, mana
 - **State**: Zustand + TanStack React Query (with offline cache persistence)
 - **Backend**: Supabase (PostgreSQL + Auth + Storage + Row Level Security)
 - **Hosting**: Vercel (web) + Capacitor (iOS native)
-- **Book Data**: Google Books API + Open Library (fallback covers)
-- **Recommendations**: Anthropic Claude API (via Vercel serverless function)
+- **Book Data**: Hardcover (primary) + Google Books (fallback) via a Vercel serverless proxy; Open Library for fallback covers
+- **Recommendations**: Google Gemini 3.5 Flash via a Vercel serverless function, with Claude Haiku as an automatic fallback
 - **Icons**: Lucide React (all SVG, no emoji)
 - **Charts**: Recharts
 - **Barcode Scanning**: @zxing/browser
@@ -142,8 +142,8 @@ The iOS app includes native haptic feedback, cover caching to the filesystem, Ki
 ```
 kitab/
 ├── api/
-│   ├── recommend.js          # Vercel serverless: proxies Claude API for recommendations
-│   ├── recommendations.js    # Vercel serverless: recommendation endpoint
+│   ├── book-search.js        # Vercel serverless: Hardcover-first book search, Google Books fallback
+│   ├── recommend.js          # Vercel serverless: Gemini recommendations (Claude Haiku fallback)
 │   └── resolve-url.js        # Vercel serverless: URL resolution for Share Extension
 ├── ios/                      # Capacitor iOS native project (Xcode)
 ├── src/
@@ -154,19 +154,15 @@ kitab/
 │   │   │   ├── BookCover.jsx      # Cover image with native cache + fallback spine
 │   │   │   ├── BookForm.jsx       # Add/edit modal
 │   │   │   ├── BookRow.jsx        # List row (React.memo optimized)
-│   │   │   ├── BookSearch.jsx     # Google Books search modal
+│   │   │   ├── BookSearch.jsx     # Add-a-book search modal (Hardcover + Google via /api/book-search)
 │   │   │   ├── ReviewModal.jsx    # Full-screen review editor with auto-save drafts
 │   │   │   ├── SharePreviewModal.jsx  # Share Extension book preview
 │   │   │   ├── StarRating.jsx     # Half-star rating input
 │   │   │   ├── StatusBadge.jsx    # CSS-styled status indicators
 │   │   │   └── TagInput.jsx       # Tag autocomplete + create
 │   │   ├── discover/
-│   │   │   ├── BookPreviewModal.jsx
-│   │   │   ├── DiscoverSection.jsx
-│   │   │   ├── QueryFlow.jsx
-│   │   │   ├── RecBookCard.jsx
-│   │   │   ├── RecDetailModal.jsx
-│   │   │   └── RecommendationCard.jsx
+│   │   │   ├── QueryFlow.jsx      # Prompt input + recommendation generation
+│   │   │   └── RecDetailModal.jsx # Recommendation detail + add to TBR
 │   │   ├── layout/
 │   │   │   ├── BottomNav.jsx      # Mobile bottom nav
 │   │   │   ├── Layout.jsx         # App shell with safe area support
@@ -179,20 +175,24 @@ kitab/
 │   │       ├── index.jsx          # Button, StatCard, ProgressBar, EmptyState, Divider
 │   │       └── QuickActionsSheet.jsx  # Long-press context menu
 │   ├── hooks/
-│   │   ├── useDiscover.js         # Discover page data
 │   │   ├── useHighlights.js       # Kindle highlights queries + upsert
-│   │   ├── useKindleSyncFlow.js   # Shared Kindle sync logic (Settings + Home)
+│   │   ├── useKindleAutoSync.js   # Invisible daily Kindle sync
+│   │   ├── useKindleSyncFlow.js   # Manual Kindle sync (Settings + Home)
 │   │   ├── useLibrary.js          # CRUD for books table
 │   │   ├── useLongPress.js        # Long-press gesture detection
 │   │   ├── useNetworkStatus.js    # Online/offline detection
-│   │   ├── useRecommendations.js  # LLM recommendation fetching
+│   │   ├── useRecommendations.js  # Discover session storage
 │   │   └── useTags.js             # Tags CRUD + reading goal
 │   ├── lib/
+│   │   ├── bookSearch.js          # Client for /api/book-search
 │   │   ├── coverCache.js          # Native filesystem cover caching (iOS)
-│   │   ├── googleBooks.js         # Google Books API search
+│   │   ├── covers.js              # Right-sized cover URLs per display slot
+│   │   ├── googleBooks.js         # Google Books API (Discover enrichment, Enrich Library)
 │   │   ├── haptics.js             # Native haptic feedback (no-op on web)
-│   │   ├── offlineQueue.js        # Offline mutation queue
-│   │   ├── openLibrary.js         # Open Library API (covers + enrichment)
+│   │   ├── kindleAutoSync.js      # Automatic daily Kindle sync
+│   │   ├── kindleSyncState.js     # Kindle sync bookkeeping
+│   │   ├── offlineQueue.js        # Reconnect listener (refreshes queries)
+│   │   ├── openLibrary.js         # Open Library cover fallback
 │   │   ├── supabase.js            # Supabase client
 │   │   └── utils.js               # computeStats(), formatDate(), CSV builders
 │   ├── pages/
@@ -202,7 +202,6 @@ kitab/
 │   │   ├── Discover.jsx           # AI-powered book discovery
 │   │   ├── Library.jsx            # Grid/list view with filters
 │   │   ├── Rank.jsx               # ELO pairwise ranking
-│   │   ├── Recommendations.jsx    # Recommendation results
 │   │   ├── Settings.jsx           # Version, tags, Kindle sync, import/export
 │   │   ├── Stats.jsx              # Year-scoped reading statistics
 │   │   └── TBR.jsx                # Drag-to-reorder TBR list
@@ -220,11 +219,11 @@ kitab/
 
 ## Recommendations API
 
-The AI recommendations feature calls Claude via a Vercel serverless function (`/api/recommend.js`). This keeps your `ANTHROPIC_API_KEY` server-side and never exposes it to the browser.
+The AI recommendations feature calls Google Gemini 3.5 Flash via a Vercel serverless function (`/api/recommend.js`), falling back to Claude Haiku if Gemini is unset or errors. API keys stay server-side and are never exposed to the browser.
 
-The prompt includes the user's top-rated books (title, author, rating), review excerpts from 4-star+ books, and up to 12 Kindle highlights -- giving Claude rich context for personalized recommendations.
+The prompt includes the user's top-rated books (title, author, rating, tags, review snippets), the full list of titles already in the library, and recent past recommendations, so picks are personal and never repeat what's on the shelf.
 
-You must set `ANTHROPIC_API_KEY` as an **environment variable in Vercel** (not in `.env.local`).
+Set `GEMINI_API_KEY` (and optionally `ANTHROPIC_API_KEY`) as **environment variables in Vercel** (not in `.env.local`).
 
 ---
 
@@ -268,5 +267,8 @@ All tables have Row Level Security enabled so only authenticated users can acces
 |---|---|---|
 | `VITE_SUPABASE_URL` | Frontend (.env.local) | Supabase client |
 | `VITE_SUPABASE_ANON_KEY` | Frontend (.env.local) | Supabase client |
-| `VITE_GOOGLE_BOOKS_API_KEY` | Frontend (.env.local) | Google Books search |
-| `ANTHROPIC_API_KEY` | Vercel only (server-side) | Claude recommendations |
+| `VITE_GOOGLE_BOOKS_API_KEY` | Frontend (.env.local) | Google Books (Discover enrichment, Enrich Library) |
+| `GEMINI_API_KEY` | Vercel only (server-side) | Recommendations (primary model) |
+| `ANTHROPIC_API_KEY` | Vercel only (server-side) | Recommendations fallback (Claude Haiku) |
+| `HARDCOVER_API_TOKEN` | Vercel only (server-side) | Book search (primary) |
+| `GOOGLE_BOOKS_API_KEY` | Vercel only (server-side) | Book search fallback |

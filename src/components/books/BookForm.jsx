@@ -7,7 +7,7 @@ import { TagInput } from './TagInput'
 import { STATUS_LABELS } from '../../lib/utils'
 import { useAddBook } from '../../hooks/useLibrary'
 import { useUpdateBook } from '../../hooks/useLibrary'
-import { AlertTriangle, PenLine, ArrowRight } from 'lucide-react'
+import { PenLine, ArrowRight } from 'lucide-react'
 import { notifySuccess } from '../../lib/haptics'
 
 const COVER_PRESETS = [

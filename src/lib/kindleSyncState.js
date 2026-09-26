@@ -126,8 +126,8 @@ export function buildScraperConfig({ books = [], transport = 'headless', forceFu
 
 // Must stay identical to normalize() in public/kindle-scraper.js and
 // useHighlights.js, otherwise knownBooks lookups miss and nothing is skippable.
-export function normalizeTitle(str = '') {
-  return str.toLowerCase()
+export function normalizeTitle(str) {
+  return (str || '').toLowerCase()
     .replace(/^(the|a|an)\s+/i, '')
     .replace(/[^\w\s]/g, '')
     .replace(/\s+/g, ' ')

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { BookmarkPlus, Check, ChevronDown, ChevronUp, Loader2, BookOpen, Calendar, FileText, ExternalLink } from 'lucide-react'
-import { AnimatePresence } from 'framer-motion'
 import { useAddBook } from '../../hooks/useLibrary'
 import { TagInput } from '../books/TagInput'
 import { useUIStore } from '../../store/uiStore'

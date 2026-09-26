@@ -147,8 +147,8 @@ export function useAssignHighlights() {
   })
 }
 
-export function normalize(str = '') {
-  return str.toLowerCase()
+export function normalize(str) {
+  return (str || '').toLowerCase()
     .replace(/^(the|a|an)\s+/i, '')
     .replace(/[^\w\s]/g, '')
     .replace(/\s+/g, ' ')

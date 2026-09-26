@@ -1,6 +1,6 @@
 # Kitab — Claude Code Handoff Document
 
-> This document is written for Claude Code running in the terminal. Reflects the actual codebase as of v2.8.0.
+> This document is written for Claude Code running in the terminal. Reflects the actual codebase as of v2.12.0.
 
 ---
 
@@ -9,7 +9,7 @@
 Kitab (Arabic/Urdu for "book") is a personal reading tracker web app + iOS native app built by Adib. It is intentionally a personal tool — not a product for others — built iteratively with Claude as an active development partner.
 
 **Live URL:** https://kitab.ihsan.build  
-**Current version:** v2.8.0  
+**Current version:** v2.12.0  
 **Stack:** React + Vite, Supabase (auth + DB), Tailwind CSS v3, Vercel, Capacitor iOS
 
 ---
@@ -202,8 +202,12 @@ All secrets in Vercel environment variables — never hardcoded.
 
 | Variable | Used in | Purpose |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | `api/recommend.js` | Claude recommendations |
 | `VITE_SUPABASE_URL` | Frontend | Supabase client |
 | `VITE_SUPABASE_ANON_KEY` | Frontend | Supabase client |
+| `VITE_GOOGLE_BOOKS_API_KEY` | Frontend (`src/lib/googleBooks.js`) | Discover enrichment + Enrich Library |
+| `GEMINI_API_KEY` | `api/recommend.js` | Discovery recommendations — primary model (Gemini 3.5 Flash) |
+| `ANTHROPIC_API_KEY` | `api/recommend.js` | Claude Haiku fallback when Gemini is unset or errors |
+| `HARDCOVER_API_TOKEN` | `api/book-search.js` | Hardcover catalog search (primary) |
+| `GOOGLE_BOOKS_API_KEY` | `api/book-search.js` | Google Books fallback (reads `VITE_GOOGLE_BOOKS_API_KEY` too) |
 
-Readwise token: stored in `localStorage` as `rw_token` — user-provided.
+The Amazon session for Kindle sync lives only in the iOS app's `WKWebsiteDataStore` — there is no token to store.

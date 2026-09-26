@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, BookOpen, BookMarked, Star, Tag, FileText, CheckCircle, Clock, XCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, BookOpen, BookMarked, Star, Tag, FileText, CheckCircle, XCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUpdateBook } from '../../hooks/useLibrary'
 import { useUIStore } from '../../store/uiStore'

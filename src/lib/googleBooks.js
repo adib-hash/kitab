@@ -59,22 +59,6 @@ export async function searchBooks(query, maxResults = 15, startIndex = 0) {
 }
 
 /**
- * Fetch a single book by Google Books ID
- */
-export async function fetchBookById(googleBooksId) {
-  try {
-    const params = API_KEY ? `?key=${API_KEY}` : ''
-    const res = await fetch(`${GOOGLE_BOOKS_BASE}/volumes/${googleBooksId}${params}`)
-    if (!res.ok) throw new Error(`Google Books API error: ${res.status}`)
-    const data = await res.json()
-    return mapGoogleBook(data)
-  } catch (err) {
-    console.error('Book fetch failed:', err)
-    return null
-  }
-}
-
-/**
  * Search books by ISBN
  */
 export async function searchByISBN(isbn) {

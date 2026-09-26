@@ -1,16 +1,15 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Download, Upload, Trash2, Edit2, Tag, Sparkles, CheckCircle, XCircle, Loader2, BookOpen, Zap, AlertCircle, LogOut, ChevronLeft, ChevronDown, RefreshCw } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
 import { useNavigate } from 'react-router-dom'
 import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
 import { useTags, useUpdateTag, useDeleteTag, useReadingGoal } from '../hooks/useTags'
-import { Button, Divider } from '../components/ui/index.jsx'
+import { Button } from '../components/ui/index.jsx'
 import { useUIStore } from '../store/uiStore'
 import { buildGoodreadsCSV } from '../lib/utils'
 import { searchBooks } from '../lib/googleBooks'
 import { findCoverUrl } from '../lib/openLibrary'
 import { sizeCoverUrl } from '../lib/covers'
-import { BookCover } from '../components/books/BookCover'
 import Papa from 'papaparse'
 import { useAddBook } from '../hooks/useLibrary'
 import { useAllUnmatched, useAssignHighlights, useDeleteUnmatched, useAllHighlights } from '../hooks/useHighlights'
@@ -592,7 +591,7 @@ export function Settings() {
         </button>
         <div>
           <h1 className="page-title">Settings</h1>
-          <p className="text-xs text-ink-400 dark:text-ink-600 mt-0.5">Kitab · v2.11.1</p>
+          <p className="text-xs text-ink-400 dark:text-ink-600 mt-0.5">Kitab · v2.12.0</p>
         </div>
       </div>
 

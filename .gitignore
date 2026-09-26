@@ -5,6 +5,7 @@ dist/
 .DS_Store
 *.log
 .gstack/
+.gstack-audit/
 .claude/
 .agents/
 skills-lock.json

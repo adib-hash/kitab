@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Trophy, Swords, StopCircle, RotateCcw, BookOpen, Loader2, ChevronLeft, CheckCircle } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { X, Plus } from 'lucide-react'
 import { useTags, useCreateTag } from '../../hooks/useTags'
-import { clsx } from 'clsx'
 
 export function TagInput({ selectedTagIds = [], onChange }) {
   const { data: allTags = [] } = useTags()

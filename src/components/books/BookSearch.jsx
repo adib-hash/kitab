@@ -1,10 +1,9 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Loader2, BookOpen, ArrowRight, ExternalLink } from 'lucide-react'
 import { Modal } from '../ui/index.jsx'
 import { searchCatalog as searchBooks, searchCatalogByISBN as searchByISBN } from '../../lib/bookSearch'
 import { BookCover } from './BookCover'
 import { BarcodeScannerModal } from './BarcodeScannerModal'
-import { clsx } from 'clsx'
 
 function useDebounce(value, delay) {
   const [deb, setDeb] = useState(value)
