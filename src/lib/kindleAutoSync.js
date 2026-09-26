@@ -93,6 +93,10 @@ async function drainPending(books) {
     fullSweep: pending.fullSweep,
     excludeTitles: result.failedTitles,
   })
+  // Only now is it safe for the native side to drop the payload. If this throws
+  // (older native build without ackPending) the file is simply re-drained next
+  // launch, which the upsert dedupes.
+  try { await KindleSync.ackPending() } catch {}
   return { ...result, drained: true }
 }
 

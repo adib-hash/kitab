@@ -386,6 +386,7 @@ public class KindleSyncPlugin: CAPPlugin, CAPBridgedPlugin {
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "runSync", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getPending", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "ackPending", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "configureBackgroundSync", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getStatus", returnType: CAPPluginReturnPromise),
     ]
@@ -404,15 +405,25 @@ public class KindleSyncPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    /// Hand over anything the background task scraped, and clear it. The app
-    /// upserts to Supabase itself so auth never has to leave the JS side.
+    /// Hand over anything the background task scraped. The app upserts to
+    /// Supabase itself so auth never has to leave the JS side, and it calls
+    /// ackPending() once that succeeds. Clearing here (as this used to) meant
+    /// a failed import on launch lost the whole night's scrape.
     @objc public func getPending(_ call: CAPPluginCall) {
         guard let raw = KindleSyncStore.readPendingRaw() else {
             call.resolve(["payload": ""])
             return
         }
-        KindleSyncStore.clearPending()
         call.resolve(["payload": raw])
+    }
+
+    /// JS calls this after the pending payload has been written to Supabase.
+    /// Until then the file stays; a retry never double-imports because the
+    /// upsert dedupes on clipping_hash, and appendPending() merges a new
+    /// night's scrape into an un-acked file.
+    @objc public func ackPending(_ call: CAPPluginCall) {
+        KindleSyncStore.clearPending()
+        call.resolve(["success": true])
     }
 
     /// Mirror the JS-side sync state into the App Group and (re)schedule the
