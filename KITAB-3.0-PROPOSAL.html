@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kitab 3.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --paper: #FAF7F2;
+    --surface: #FFFFFF;
+    --surface-2: #F3EDE3;
+    --line: #E8DDD0;
+    --line-strong: #D4C4B0;
+    --ink: #1C1917;
+    --ink-2: #44403C;
+    --ink-3: #78716C;
+    --ink-4: #A8A29E;
+    --teal: #0F766E;
+    --teal-ink: #115E59;
+    --teal-wash: #F0FDFA;
+    --teal-line: #99F6E4;
+    --amber: #B45309;
+    --amber-wash: #FFFBEB;
+    --amber-line: #FDE68A;
+    --rose: #BE123C;
+    --rose-wash: #FFF1F2;
+    --rose-line: #FECDD3;
+    --slate: #57534E;
+    --slate-wash: #F5F0EB;
+    --shadow: 0 1px 3px rgba(28,25,23,.08), 0 1px 2px rgba(28,25,23,.06);
+    --serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper: #1C1917;
+      --surface: #292524;
+      --surface-2: #211E1B;
+      --line: #44403C;
+      --line-strong: #57534E;
+      --ink: #FAF7F2;
+      --ink-2: #E8DDD0;
+      --ink-3: #A8A29E;
+      --ink-4: #78716C;
+      --teal: #2DD4BF;
+      --teal-ink: #99F6E4;
+      --teal-wash: rgba(20,184,166,.10);
+      --teal-line: rgba(45,212,191,.35);
+      --amber: #FBBF24;
+      --amber-wash: rgba(245,158,11,.10);
+      --amber-line: rgba(251,191,36,.35);
+      --rose: #FB7185;
+      --rose-wash: rgba(244,63,94,.10);
+      --rose-line: rgba(251,113,133,.35);
+      --slate: #D6D3D1;
+      --slate-wash: rgba(214,211,209,.08);
+      --shadow: 0 1px 3px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #1C1917;
+    --surface: #292524;
+    --surface-2: #211E1B;
+    --line: #44403C;
+    --line-strong: #57534E;
+    --ink: #FAF7F2;
+    --ink-2: #E8DDD0;
+    --ink-3: #A8A29E;
+    --ink-4: #78716C;
+    --teal: #2DD4BF;
+    --teal-ink: #99F6E4;
+    --teal-wash: rgba(20,184,166,.10);
+    --teal-line: rgba(45,212,191,.35);
+    --amber: #FBBF24;
+    --amber-wash: rgba(245,158,11,.10);
+    --amber-line: rgba(251,191,36,.35);
+    --rose: #FB7185;
+    --rose-wash: rgba(244,63,94,.10);
+    --rose-line: rgba(251,113,133,.35);
+    --slate: #D6D3D1;
+    --slate-wash: rgba(214,211,209,.08);
+    --shadow: 0 1px 3px rgba(0,0,0,.4);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.6;
+    padding-block: 0 96px;
+    padding-inline: 20px;
+  }
+  a { color: var(--teal); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; border-radius: 4px; }
+  strong { font-weight: 600; color: var(--ink); }
+  code { font-family: var(--mono); font-size: .88em; background: var(--surface-2); padding: .1em .35em; border-radius: 4px; color: var(--ink-2); }
+  h1, h2, h3, h4 { font-family: var(--serif); font-weight: 600; line-height: 1.15; margin: 0; text-wrap: balance; color: var(--ink); }
+  p { margin: 0; }
+  ul, ol { margin: 0; padding-left: 1.25em; }
+  li + li { margin-top: .35em; }
+
+  .frame { max-width: 1160px; margin: 0 auto; }
+
+  /* ── Masthead ── */
+  .masthead {
+    padding-block: 56px 40px;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    gap: 22px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+  }
+  .eyebrow .arabic { font-family: var(--serif); font-size: 18px; letter-spacing: 0; text-transform: none; color: var(--teal); }
+  .masthead h1 { font-size: clamp(44px, 7vw, 76px); letter-spacing: -.01em; }
+  .masthead h1 em { font-style: italic; font-weight: 400; color: var(--teal); }
+  .thesis { font-size: 21px; line-height: 1.5; max-width: 62ch; color: var(--ink-2); }
+  .thesis b { color: var(--ink); font-weight: 600; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 15px; color: var(--ink-3); }
+  .meta span b { color: var(--ink-2); font-weight: 500; }
+
+  /* ── Two-column body with contents rail ── */
+  .body { display: grid; grid-template-columns: 1fr; gap: 48px; padding-top: 40px; }
+  .rail { display: none; }
+  @media (min-width: 1040px) {
+    .body { grid-template-columns: 220px minmax(0, 1fr); gap: 64px; }
+    .rail { display: block; position: sticky; top: 24px; align-self: start; }
+  }
+  .rail .label { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-4); margin-bottom: 12px; }
+  .rail ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+  .rail li { margin: 0; }
+  .rail a { color: var(--ink-3); font-size: 14.5px; line-height: 1.35; display: block; padding: 3px 0; }
+  .rail a:hover { color: var(--teal); text-decoration: none; }
+  .rail .sub a { padding-left: 14px; font-size: 13.5px; color: var(--ink-4); }
+
+  main { min-width: 0; display: grid; gap: 72px; }
+  section { display: grid; gap: 22px; scroll-margin-top: 24px; }
+  section > h2 { font-size: clamp(28px, 3.6vw, 38px); letter-spacing: -.01em; }
+  section > h2 .n { font-family: var(--mono); font-size: 13px; letter-spacing: .12em; color: var(--ink-4); display: block; margin-bottom: 10px; font-weight: 400; }
+  section h3 { font-size: 23px; margin-top: 10px; }
+  section h4 { font-family: var(--sans); font-weight: 600; font-size: 16px; letter-spacing: .01em; color: var(--ink); }
+  .prose { max-width: 66ch; display: grid; gap: 16px; }
+  .prose p, .prose li { color: var(--ink-2); }
+  .prose ul, .prose ol { display: grid; gap: 8px; }
+  .lede { font-size: 19px; line-height: 1.55; color: var(--ink-2); max-width: 62ch; }
+
+  /* ── Summary list ── */
+  .tldr { display: grid; gap: 14px; padding: 26px 28px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; max-width: 78ch; }
+  .tldr h3 { font-size: 20px; }
+  .tldr ol { display: grid; gap: 10px; padding-left: 1.4em; }
+  .tldr li { color: var(--ink-2); }
+  .tldr li b { color: var(--ink); }
+
+  /* ── Assessment columns ── */
+  .cols { display: grid; gap: 28px; grid-template-columns: 1fr; }
+  @media (min-width: 760px) { .cols { grid-template-columns: 1fr 1fr; } }
+  .col h4 { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .col ul { display: grid; gap: 9px; }
+  .col li { color: var(--ink-2); font-size: 16px; }
+  .col li b { color: var(--ink); font-weight: 500; }
+
+  /* ── Principles ── */
+  .principles { display: grid; gap: 0; border-top: 1px solid var(--line); }
+  .principle { display: grid; grid-template-columns: 1fr; gap: 6px 28px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+  @media (min-width: 700px) { .principle { grid-template-columns: 240px 1fr; } }
+  .principle h4 { font-family: var(--serif); font-weight: 600; font-size: 19px; }
+  .principle p { color: var(--ink-2); font-size: 16px; max-width: 64ch; }
+
+  /* ── IA before / after ── */
+  .ia { display: grid; gap: 22px; grid-template-columns: 1fr; }
+  @media (min-width: 820px) { .ia { grid-template-columns: 1fr 1fr; } }
+  .ia-card { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 20px 22px; display: grid; gap: 14px; align-content: start; }
+  .ia-card.after { border-color: var(--teal-line); background: var(--teal-wash); }
+  .ia-card .label { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tab { font-size: 14px; font-weight: 500; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--ink-2); background: var(--surface); }
+  .ia-card.after .tab { border-color: var(--teal); color: var(--teal-ink); }
+  .ia-card ul { display: grid; gap: 8px; padding-left: 1.2em; }
+  .ia-card li { color: var(--ink-2); font-size: 15px; }
+  .ia-card li b { color: var(--ink); font-weight: 500; }
+
+  /* ── Screens ── */
+  .screens { display: grid; gap: 0; border-top: 1px solid var(--line); }
+  .screen { display: grid; grid-template-columns: 1fr; gap: 8px 28px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+  @media (min-width: 760px) { .screen { grid-template-columns: 200px 1fr; } }
+  .screen h4 { font-family: var(--serif); font-size: 21px; font-weight: 600; }
+  .screen .was { font-family: var(--mono); font-size: 12.5px; color: var(--ink-4); margin-top: 6px; letter-spacing: .02em; }
+  .screen ul { display: grid; gap: 8px; }
+  .screen li { color: var(--ink-2); font-size: 16px; }
+  .screen li b { color: var(--ink); font-weight: 500; }
+
+  /* ── Tables ── */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; background: var(--surface-2); }
+  tr:last-child td { border-bottom: 0; }
+  td { color: var(--ink-2); }
+  td b { color: var(--ink); font-weight: 500; }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tablewrap.tight th, .tablewrap.tight td { padding: 10px 12px; font-size: 14.5px; }
+
+  /* ── Verdict chips ── */
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px 3px 7px; border-radius: 999px; border: 1px solid; white-space: nowrap; font-family: var(--sans); }
+  .chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .chip.keep { color: var(--teal-ink); background: var(--teal-wash); border-color: var(--teal-line); }
+  .chip.simplify { color: var(--amber); background: var(--amber-wash); border-color: var(--amber-line); }
+  .chip.demote { color: var(--slate); background: var(--slate-wash); border-color: var(--line-strong); }
+  .chip.demote::before { border-radius: 1px; }
+  .chip.deprecate { color: var(--rose); background: var(--rose-wash); border-color: var(--rose-line); }
+  .chip.deprecate::before { width: 8px; height: 2px; border-radius: 1px; }
+  .chip.reverse { color: var(--teal-ink); background: var(--surface); border-color: var(--teal); }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 18px; font-size: 14px; color: var(--ink-3); align-items: center; }
+
+  /* ── The three bets ── */
+  .bets { display: grid; gap: 22px; }
+  .bet {
+    display: grid; grid-template-columns: 1fr; gap: 18px 36px;
+    padding: 30px 30px 32px;
+    border-radius: 18px;
+    background: var(--teal-wash);
+    border: 1px solid var(--teal-line);
+  }
+  @media (min-width: 900px) { .bet { grid-template-columns: 120px minmax(0, 1fr); } }
+  .bet .rank { font-family: var(--serif); font-size: 84px; line-height: .9; font-weight: 700; color: var(--teal); letter-spacing: -.04em; }
+  .bet .rank small { display: block; font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin-top: 10px; font-weight: 400; letter-spacing: .14em; }
+  .bet h3 { font-size: 30px; margin: 0; }
+  .bet .tag { font-size: 16px; color: var(--teal-ink); font-weight: 500; margin-top: 4px; }
+  .bet .grid { display: grid; gap: 18px 28px; grid-template-columns: 1fr; margin-top: 8px; }
+  @media (min-width: 760px) { .bet .grid { grid-template-columns: 1fr 1fr; } }
+  .bet .grid > div { display: grid; gap: 8px; align-content: start; }
+  .bet .grid h4 { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); font-family: var(--mono); font-weight: 500; }
+  .bet .grid p, .bet .grid li { color: var(--ink-2); font-size: 15.5px; }
+  .bet .grid ol, .bet .grid ul { display: grid; gap: 6px; }
+  .bet .body-text { color: var(--ink-2); font-size: 16.5px; max-width: 70ch; display: grid; gap: 12px; }
+  .bet .body-text b { color: var(--ink); }
+  .callout { padding: 18px 22px; border-radius: 12px; background: var(--amber-wash); border: 1px solid var(--amber-line); color: var(--ink-2); font-size: 15.5px; max-width: 80ch; }
+  .callout b { color: var(--ink); }
+  .runner { padding: 22px 26px; border-radius: 14px; border: 1px dashed var(--line-strong); display: grid; gap: 8px; max-width: 80ch; }
+  .runner h4 { font-family: var(--serif); font-size: 20px; }
+  .runner p { color: var(--ink-2); font-size: 15.5px; }
+
+  /* ── Roadmap ── */
+  .phases { display: grid; gap: 0; border-top: 1px solid var(--line); }
+  .phase { display: grid; grid-template-columns: 1fr; gap: 6px 28px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+  @media (min-width: 760px) { .phase { grid-template-columns: 150px 1fr 140px; } }
+  .phase .when { font-family: var(--mono); font-size: 13px; color: var(--ink-3); letter-spacing: .04em; padding-top: 4px; }
+  .phase h4 { font-family: var(--serif); font-size: 19px; }
+  .phase p { color: var(--ink-2); font-size: 15.5px; margin-top: 4px; max-width: 66ch; }
+  .phase .effort { font-family: var(--mono); font-size: 13px; color: var(--ink-3); text-align: left; padding-top: 4px; }
+  @media (min-width: 760px) { .phase .effort { text-align: right; } }
+
+  /* ── Questions ── */
+  .qs { display: grid; gap: 12px; counter-reset: q; padding: 0; list-style: none; max-width: 76ch; }
+  .qs li { display: grid; grid-template-columns: 34px 1fr; gap: 10px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; color: var(--ink-2); font-size: 15.5px; margin: 0; }
+  .qs li::before { counter-increment: q; content: counter(q); font-family: var(--serif); font-size: 22px; color: var(--teal); line-height: 1; padding-top: 2px; }
+  .qs li b { color: var(--ink); font-weight: 500; }
+  .qs li .rec { display: block; margin-top: 6px; font-size: 14px; color: var(--ink-3); }
+  .qs li .rec b { color: var(--teal-ink); font-weight: 600; }
+
+  footer { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 14px; display: grid; gap: 6px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .bet { transition: transform .2s ease; }
+  }
+  @media print {
+    body { padding-inline: 0; font-size: 12.5px; }
+    .rail { display: none; }
+    .body { grid-template-columns: 1fr; }
+    .bet, .ia-card, .tldr, .tablewrap, .qs li { break-inside: avoid; }
+    a { color: inherit; }
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+
+<header class="masthead">
+  <div class="eyebrow">
+    <span class="arabic">كتاب</span>
+    <span>Product proposal</span>
+    <span>September 2026</span>
+    <span>v2.12 to 3.0</span>
+  </div>
+  <h1>Kitab 3.0<br><em>from tracker to reading memory</em></h1>
+  <p class="thesis">
+    Kitab v2 is a very good reading tracker. It knows what you read, when, and how much you liked it. What it does not yet do is hold on to <b>what the reading meant</b>. Your Kindle highlights, your reviews, your ratings and your dates all live in separate rooms of the app. 3.0 puts them in one room, gives the app four tabs instead of eight destinations, and adds three features that no other tracker does well.
+  </p>
+  <div class="meta">
+    <span>Author <b>Claude, acting product manager</b></span>
+    <span>Basis <b>v2.12.0 codebase and audit</b></span>
+    <span>Audience <b>Adib, sole owner</b></span>
+    <span>Reading time <b>about 20 minutes</b></span>
+  </div>
+</header>
+
+<div class="body">
+<nav class="rail" aria-label="Contents">
+  <div class="label">Contents</div>
+  <ol>
+    <li><a href="#summary">Summary</a></li>
+    <li><a href="#today">Where Kitab stands</a></li>
+    <li><a href="#principles">Principles</a></li>
+    <li><a href="#ia">Information architecture</a></li>
+    <li><a href="#screens">Screen by screen</a></li>
+    <li><a href="#design">Design modernization</a></li>
+    <li><a href="#improvements">Functionality</a></li>
+    <li><a href="#audit">Feature audit</a></li>
+    <li><a href="#bets">The three bets</a></li>
+    <li class="sub"><a href="#bet-journal">1 · Commonplace Book</a></li>
+    <li class="sub"><a href="#bet-ask">2 · Ask Your Library</a></li>
+    <li class="sub"><a href="#bet-circle">3 · Reading Circle</a></li>
+    <li><a href="#data">Data model</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#risks">Risks</a></li>
+    <li><a href="#decisions">Decisions I need</a></li>
+    <li><a href="#success">What success looks like</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section id="summary">
+  <h2><span class="n">In brief</span>Summary</h2>
+  <div class="tldr">
+    <h3>What I am proposing</h3>
+    <ol>
+      <li><b>Four tabs: Home, Shelves, Highlights, You.</b> Library and TBR merge into Shelves. Discover and Rank stop being destinations and become actions inside the shelves and the year view. Settings folds into You.</li>
+      <li><b>The book page becomes the hero screen.</b> Cover-forward, one row for status and rating, then a timeline of everything you did with the book.</li>
+      <li><b>Adding a book takes one tap.</b> Search, tap, done. Editing is a sheet you open only if you want to.</li>
+      <li><b>Real dates.</b> Finish dates get optional day precision and start dates are recorded automatically. This unlocks pace, a reading calendar and an honest "days to finish".</li>
+      <li><b>Eleven features get simplified, demoted or removed</b>, including the spoiler toggle, the sidebar tag shortcuts, five notification toggles, the Enrich review list and the month-only date rule.</li>
+      <li><b>Three bets:</b> the Commonplace Book (a per-book journal that unifies highlights, notes, progress and review), Ask Your Library (questions answered from your own highlights, with citations), and Reading Circle (quiet sharing with family, no feed).</li>
+      <li><b>Twelve to sixteen weeks of evenings</b>, in five phases, each of which ships something usable on its own.</li>
+    </ol>
+  </div>
+</section>
+
+<section id="today">
+  <h2><span class="n">Assessment</span>Where Kitab stands today</h2>
+  <p class="lede">This is written from the code, not from memory. I read every screen, hook and API route while doing the v2.12 cleanup, so the list below is what the app actually does, including the parts that are quietly excellent and the parts that have accreted.</p>
+  <div class="cols">
+    <div class="col">
+      <h4>What is genuinely strong</h4>
+      <ul>
+        <li><b>Kindle highlight sync is a moat.</b> Nobody else scrapes read.amazon.com through a logged-in WKWebView, incrementally, overnight, with a foreground fallback. It is the single most valuable thing in the app.</li>
+        <li><b>Capture is frictionless where it matters.</b> Barcode scanning, the iOS share extension that resolves Amazon and Goodreads links, and Hardcover-first search all get a book into the app in seconds.</li>
+        <li><b>Discover is honest.</b> Gemini recommendations are verified against Google Books, deduplicated against the library and past sessions, and never invent titles.</li>
+        <li><b>The foundations are right.</b> Offline-first cache, dark mode by default, Playfair and DM Sans, teal on paper, Lucide icons, sheets for quick actions, haptics. The taste is already there.</li>
+        <li><b>It is fast now.</b> After 3.0's prerequisite cleanup the main bundle is 668 KB, edits apply instantly and the library grid no longer mounts a hidden form per card.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h4>Where it has accreted</h4>
+      <ul>
+        <li><b>Eight destinations for a personal app.</b> Five bottom tabs plus an eight-item sidebar, with Rank and Discover as peers of Library.</li>
+        <li><b>Home does seven jobs.</b> Goal, highlight of the day, currently reading, four stat tiles, anniversaries, recently read, and a Kindle sync card. Settings has nine cards.</li>
+        <li><b>TBR is invisible from Library.</b> The Library filters out <code>status = tbr</code>, so a book you own lives in one of two places depending on whether you have started it.</li>
+        <li><b>Month-only finish dates.</b> <code>date_finished</code> is always the first of the month and a start date is never written. That is why "average days to finish" had to be removed and why a reading calendar is impossible today.</li>
+        <li><b>Two modals to add a book.</b> Search modal, then a two-tab form modal, before anything is saved.</li>
+        <li><b>Six copies of the status labels and colours</b>, which disagree: "Finished" here, "Read" there; an amber TBR pill next to a blue TBR dot.</li>
+        <li><b>Four surfaces for the highlight of the day</b> that pick three different quotes, because each seeds its own randomness.</li>
+        <li><b>Five notification toggles</b> and two time pickers for a single user.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="principles">
+  <h2><span class="n">North star</span>Five principles for 3.0</h2>
+  <div class="principles">
+    <div class="principle"><h4>A memory, not a metric</h4><p>Kitab exists to remember what you read and what it meant to you. Numbers are a by-product. No streaks, no guilt, no red badges when you have not opened a book this week.</p></div>
+    <div class="principle"><h4>Cover first, chrome second</h4><p>Book covers are the most beautiful asset the app has. Screens should lead with them and let the interface recede, the way a good bookshop does.</p></div>
+    <div class="principle"><h4>One way to do each thing</h4><p>One add flow, one status vocabulary, one daily highlight, one place for settings. Where two paths exist today, keep the better one.</p></div>
+    <div class="principle"><h4>Phone first, desktop faithful</h4><p>Kitab lives on the iPhone home screen. Every screen is designed at 390 points wide first. Desktop gets the same screens with more room, not different screens.</p></div>
+    <div class="principle"><h4>Quiet by default</h4><p>The app speaks up twice a day at most: a reading nudge you chose and a highlight you saved. Everything else waits on Home until you look.</p></div>
+  </div>
+</section>
+
+<section id="ia">
+  <h2><span class="n">Structure</span>Information architecture</h2>
+  <p class="lede">The single biggest change is going from eight destinations to four. Each tab answers one question: what am I doing now, what do I have, what did I keep, and how is it going.</p>
+  <div class="ia">
+    <div class="ia-card">
+      <div class="label">Today · v2.12</div>
+      <div class="tabs"><span class="tab">Home</span><span class="tab">Library</span><span class="tab">TBR</span><span class="tab">Discover</span><span class="tab">Rank</span></div>
+      <div class="label">Plus, desktop sidebar</div>
+      <div class="tabs"><span class="tab">Dashboard</span><span class="tab">Library</span><span class="tab">To Be Read</span><span class="tab">Statistics</span><span class="tab">Highlights</span><span class="tab">Rank</span><span class="tab">Discover</span><span class="tab">Settings</span></div>
+      <ul>
+        <li>Highlights and Stats are unreachable from the phone tab bar; they hide behind Home links.</li>
+        <li>Rank and Discover, both occasional activities, occupy 40% of the tab bar.</li>
+        <li>Settings is a nine-card scroll that also holds Kindle sync and notifications.</li>
+      </ul>
+    </div>
+    <div class="ia-card after">
+      <div class="label">Proposed · 3.0</div>
+      <div class="tabs"><span class="tab">Home</span><span class="tab">Shelves</span><span class="tab">Highlights</span><span class="tab">You</span></div>
+      <ul>
+        <li><b>Home</b> answers "what am I doing now": the book in hand with a tap-to-log page, what's next, today's highlight, and the goal in one line.</li>
+        <li><b>Shelves</b> is Library and TBR together, with a segmented control: Reading · To read · Finished · Didn't finish · All. Discover becomes a "Find something" sheet on the To read shelf.</li>
+        <li><b>Highlights</b> earns a tab. It is the thing you saved, and the raw material for the three bets.</li>
+        <li><b>You</b> holds the year: stats, goal, Year in Books, Rank as a card, then settings grouped into Kindle, Notifications, Library tools, Links, Account.</li>
+        <li>Desktop keeps a sidebar with the same four items plus a search field.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="screens">
+  <h2><span class="n">Redesign</span>Screen by screen</h2>
+  <div class="screens">
+    <div class="screen">
+      <div><h4>Home</h4><div class="was">was: Dashboard, 7 sections</div></div>
+      <ul>
+        <li><b>Now.</b> The current book, large cover, progress bar, and a "Log pages" button that opens a number pad sheet. If you read two books at once, they stack.</li>
+        <li><b>Next up.</b> The top of your To read shelf plus one Discover suggestion, each addable or startable in one tap.</li>
+        <li><b>Today's highlight.</b> Same card as now, but it is the one daily pick shared by the widget and the notification.</li>
+        <li><b>One line of numbers.</b> "14 of 24 this year · 3,120 pages". The four stat tiles go.</li>
+        <li><b>This month in past years</b> stays; it is a lovely card. Recently read and the Kindle sync card go; both have homes elsewhere.</li>
+      </ul>
+    </div>
+    <div class="screen">
+      <div><h4>Shelves</h4><div class="was">was: Library + TBR</div></div>
+      <ul>
+        <li>Segmented control at the top, remembered per session. To read keeps drag-to-reorder and swipe gestures; Finished keeps sort by date read.</li>
+        <li>One search field in the header, one filter sheet (tags, rating, year), one grid/list toggle, one Add button. The four controls become the same height and the same style.</li>
+        <li>Shuffle moves into the shelf's overflow menu. Multi-select arrives for tag, move and delete.</li>
+        <li>The desktop view shows the same shelves in a wider grid; no separate list.</li>
+      </ul>
+    </div>
+    <div class="screen">
+      <div><h4>Book</h4><div class="was">was: Book Detail</div></div>
+      <ul>
+        <li><b>Hero.</b> Cover at 40% of the width, a soft blur of the same cover behind the header, title in Playfair, author as a link to their other books in your library.</li>
+        <li><b>One control row.</b> Status pill (tap to change), stars, and the progress bar when reading. No separate Edit and Review buttons; both become items in an overflow menu and in the timeline.</li>
+        <li><b>The timeline</b> (Bet 1). Started, pages logged, highlights, your notes, finished, rating, review, in date order. This replaces the separate Review card and Highlights accordion.</li>
+        <li><b>About</b> stays collapsed. Links become a single row of icons: Amazon, Libby, search Wikipedia.</li>
+        <li><b>Also in your library</b> replaces "More from your library" with a real author view when tapped.</li>
+      </ul>
+    </div>
+    <div class="screen">
+      <div><h4>Highlights</h4><div class="was">was: reachable from Home</div></div>
+      <ul>
+        <li>Today's highlight on top, full width, with Shuffle and Copy.</li>
+        <li>Then every highlight grouped by book, searchable, filterable by book and by favourite. Long-press a highlight for Favourite, Add note, Copy, Quote card, Ask about this.</li>
+        <li>Typed highlights for paper books: a plus button opens a sheet with a text field and a book picker. Paste from iOS Live Text works today with no extra code.</li>
+      </ul>
+    </div>
+    <div class="screen">
+      <div><h4>You</h4><div class="was">was: Stats + Settings + Rank</div></div>
+      <ul>
+        <li>Year selector as pills, then the stats, then Year in Books as a card that opens the recap, then "Rank your finished books" as a card that opens the game.</li>
+        <li>Reading goal is set here, not on the Stats page.</li>
+        <li>Settings in five groups: Kindle (auto-sync, sync now, full re-sync, unmatched), Notifications (two toggles), Library tools (import, export, fill in missing details), Links (Libby), Account.</li>
+      </ul>
+    </div>
+    <div class="screen">
+      <div><h4>Add a book</h4><div class="was">was: search modal then form modal</div></div>
+      <ul>
+        <li>Search, barcode and shared links all land in one sheet. Tapping a result adds it to To read immediately with a toast: "Added · Edit".</li>
+        <li>Edit is a single-scroll sheet. Finish month and year appear only when status is Finished; current page appears only when Reading. The Details and Dates tabs go.</li>
+        <li>Cover choice happens here too: the app offers the Hardcover, Google and Open Library covers side by side, plus "Use a photo".</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="design">
+  <h2><span class="n">Craft</span>Design modernization</h2>
+  <div class="prose">
+    <p>Kitab already has a distinct look. The job is to make it a system, so every new screen inherits it instead of re-deciding it. The v2.12 cleanup fixed the floor (no text under 14px, no emoji, contrast in both themes). 3.0 fixes the ceiling.</p>
+  </div>
+  <div class="tablewrap tight">
+    <table>
+      <thead><tr><th>Area</th><th>Today</th><th>Proposed</th></tr></thead>
+      <tbody>
+        <tr><td><b>Tokens</b></td><td>Tailwind palette plus a parallel set of CSS variables that nothing reads.</td><td>One token file: paper 50 to 300, ink 300 to 900, teal, amber, rose, plus semantic aliases (surface, line, text, muted, accent). Tailwind reads the tokens. Delete the unused variables.</td></tr>
+        <tr><td><b>Type</b></td><td>Playfair for titles, DM Sans for everything else, JetBrains Mono for a few numbers. Sizes chosen per screen.</td><td>A six-step scale: 14 label, 16 body, 18 lead, 22 title, 28 page, 36 display. Playfair only at 22 and above. Tabular numerals everywhere digits align.</td></tr>
+        <tr><td><b>Components</b></td><td>Chips, pills and status badges are each written inline in five or six places, with different padding.</td><td>Chip, StatusPill, Sheet, Card, StatLine, CoverTile, TimelineItem. One status vocabulary: Reading, To read, Finished, Didn't finish, with one colour each (teal, amber, emerald, rose) used for pill, dot and chart.</td></tr>
+        <tr><td><b>Surfaces</b></td><td>Almost everything is a white card with a border and a shadow.</td><td>Cards only for things you can act on. Sections separate with space and a hairline. Covers cast the only shadows.</td></tr>
+        <tr><td><b>Sheets over modals</b></td><td>Add, Edit, Review and Discover preview are centred modals with sticky headers.</td><td>On the phone every one of these is a bottom sheet with a drag handle, like the quick-actions sheet today. On desktop they stay centred.</td></tr>
+        <tr><td><b>Motion</b></td><td>Framer Motion springs for sheets, staggered fades on lists, a shimmer on the splash.</td><td>Keep the spring for sheets and the shimmer. Drop list staggers (they add latency). Honour reduced motion. Page transitions are instant.</td></tr>
+        <tr><td><b>Covers</b></td><td>Right-sized, lazy, cached. Fallback is a coloured tile with initials.</td><td>Ambient blur of the cover behind the book header. Fallback tiles pick their colour from the title hash, as today, but with the title set in Playfair, so a coverless book still looks designed.</td></tr>
+        <tr><td><b>Themes</b></td><td>Dark by default, manual toggle.</td><td>Add "Match system". Light mode gets the same attention as dark: warmer paper, teal 700, ink 700 for body.</td></tr>
+        <tr><td><b>Accessibility</b></td><td>Labels on icon buttons since v2.12. Stars are spans.</td><td>Stars become buttons with arrow-key rating. Every sheet traps focus and closes on Escape. Dynamic Type respected on iOS.</td></tr>
+        <tr><td><b>App icon and splash</b></td><td>Teal K lettermark; default splash.</td><td>Keep the K. Splash matches the paper or ink background so there is no white flash.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="improvements">
+  <h2><span class="n">Improvements</span>Functionality worth adding</h2>
+  <p class="lede">These are not the three bets. They are the improvements that make the existing product better and that the bets depend on. Sizes are in evenings of work with Claude.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Improvement</th><th>Why</th><th>Size</th></tr></thead>
+      <tbody>
+        <tr><td><b>Log pages from Home</b></td><td>The current-page field is buried in the edit form's Dates tab. A number pad sheet on the Home card makes progress a two-second habit and feeds pace.</td><td class="num">2</td></tr>
+        <tr><td><b>Real dates</b></td><td>Record <code>date_started</code> automatically when a book moves to Reading. Let finish dates carry a day (default today) with a precision flag so old month-only rows still work. Every date stat becomes honest.</td><td class="num">3</td></tr>
+        <tr><td><b>Reading calendar</b></td><td>A month grid on You showing days you logged pages and days you finished a book. This is the "memory" view of time, and it needs real dates.</td><td class="num">3</td></tr>
+        <tr><td><b>Pace and finish estimate</b></td><td>"About 9 days to finish at your pace." Derived from logged pages. Shown on the Home card only, never as a nag.</td><td class="num">1</td></tr>
+        <tr><td><b>Read again</b></td><td>Re-reads happen. "Read again" archives the previous reading (dates, rating, review) into history and starts a fresh one. Needs a <code>readings</code> table.</td><td class="num">4</td></tr>
+        <tr><td><b>Year in Books</b></td><td>Each January, and on demand for any year: books, pages, genres, top author, longest, fastest, best month, your five-star shelf, the ten highlights you favourited, as a scrollable story with a share image. It uses stats the app already computes; the design is the product.</td><td class="num">5</td></tr>
+        <tr><td><b>Favourite and tag highlights</b></td><td>A star on a highlight and optional tags. Feeds Year in Books, the daily pick (favourites weighted), and Ask.</td><td class="num">2</td></tr>
+        <tr><td><b>Quote cards</b></td><td>Render a highlight with the book cover and title to an image, on a canvas, for sharing. The one social feature that fits a quiet app.</td><td class="num">2</td></tr>
+        <tr><td><b>Search everything</b></td><td>The command palette searches titles, authors and tags today. Add highlights, notes and reviews, with a result group per type.</td><td class="num">2</td></tr>
+        <tr><td><b>Author view</b></td><td>Tap an author anywhere to see their books in your library and one-tap "find another by this author".</td><td class="num">2</td></tr>
+        <tr><td><b>Cover picker</b></td><td>Choose among Hardcover, Google and Open Library covers or use a photo. Ends the "wrong edition cover" annoyance without leaving the app.</td><td class="num">3</td></tr>
+        <tr><td><b>Widgets</b></td><td>Currently reading with progress (small), today's highlight (medium, exists), a lock-screen highlight. Widgets are where a reading app earns daily attention.</td><td class="num">4</td></tr>
+        <tr><td><b>Imports</b></td><td>StoryGraph CSV shares the Goodreads shape. Re-add Kindle "My Clippings.txt" upload for Kindle e-readers and anyone not on iOS.</td><td class="num">2</td></tr>
+        <tr><td><b>Offline writes that work</b></td><td>The old queue never queued anything and was removed. Logging pages and notes on a plane needs a real one: queue mutations in IndexedDB, replay on reconnect, show a subtle "will sync" mark.</td><td class="num">4</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="audit">
+  <h2><span class="n">Cleanup</span>Feature audit</h2>
+  <p class="lede">Every feature in the app, with a verdict. The point is to take things away so the three bets have room. Deprecation means removal with a migration; nothing is deleted from the database.</p>
+  <div class="legend">
+    <span class="chip keep">Keep</span>
+    <span class="chip simplify">Simplify</span>
+    <span class="chip demote">Demote</span>
+    <span class="chip deprecate">Deprecate</span>
+    <span class="chip reverse">Reverse</span>
+  </div>
+  <div class="tablewrap tight">
+    <table>
+      <thead><tr><th>Feature</th><th>Verdict</th><th>Reasoning and what happens</th></tr></thead>
+      <tbody>
+        <tr><td><b>Kindle highlight sync</b></td><td><span class="chip keep">Keep</span></td><td>The moat. Status moves to You › Kindle; Home shows nothing unless a sign-in is needed.</td></tr>
+        <tr><td><b>Share extension, barcode, Hardcover search</b></td><td><span class="chip keep">Keep</span></td><td>All three feed the new one-tap add flow unchanged.</td></tr>
+        <tr><td><b>Discover</b></td><td><span class="chip simplify">Simplify</span></td><td>Keep the prompt and the Gemini pipeline. Drop the sessions history (recent, older, per-session regenerate, per-book delete). It becomes a "Find something" sheet on the To read shelf that remembers your last three prompts. One list, add from it, done.</td></tr>
+        <tr><td><b>Rank (ELO)</b></td><td><span class="chip demote">Demote</span></td><td>Fun once a quarter, not a tab. Becomes "Rank your finished books" under You › Year. Keep the K-factor-32 maths and the tag filter; fix rounding drift by moving one delta between the pair.</td></tr>
+        <tr><td><b>TBR as its own tab</b></td><td><span class="chip demote">Demote</span></td><td>Becomes the To read shelf inside Shelves. Drag order, swipe gestures and notes survive.</td></tr>
+        <tr><td><b>Highlights page</b></td><td><span class="chip keep">Keep</span></td><td>Promoted to a tab. See Bet 1.</td></tr>
+        <tr><td><b>Grid / list toggle</b></td><td><span class="chip keep">Keep</span></td><td>Cheap and used.</td></tr>
+        <tr><td><b>Sidebar tag shortcuts</b></td><td><span class="chip deprecate">Deprecate</span></td><td>Duplicates the filter sheet and only shows twelve tags. Remove.</td></tr>
+        <tr><td><b>Enrich Library</b></td><td><span class="chip simplify">Simplify</span></td><td>Enrich automatically on add and when a cover is missing. The manual tool becomes one button, "Fill in missing details", without the checkbox review list.</td></tr>
+        <tr><td><b>Import from Goodreads</b></td><td><span class="chip keep">Keep</span></td><td>Add StoryGraph and My Clippings.txt. Duplicate detection arrived in v2.12.</td></tr>
+        <tr><td><b>Export CSV and JSON</b></td><td><span class="chip keep">Keep</span></td><td>Rename to "Goodreads CSV" and "Full backup (JSON)". No other change.</td></tr>
+        <tr><td><b>Review spoiler toggle</b></td><td><span class="chip deprecate">Deprecate</span></td><td>A personal journal has nobody to protect from spoilers. If Reading Circle ships, reviews are private by default anyway. Drop the toggle; keep the column.</td></tr>
+        <tr><td><b>Wikipedia lookup and <code>wiki_url</code> cache</b></td><td><span class="chip simplify">Simplify</span></td><td>Two API calls and a cached column to save one click. Replace with a plain Wikipedia search link. Delete the lookup code.</td></tr>
+        <tr><td><b>Libby link</b></td><td><span class="chip keep">Keep</span></td><td>Moves to You › Links. Accept a pasted Libby URL and derive the slug from it.</td></tr>
+        <tr><td><b>Notifications (5 toggles, 2 times)</b></td><td><span class="chip simplify">Simplify</span></td><td>Two toggles: Daily reading nudge (time) and Today's highlight (time). Goal milestones and anniversaries become moments on Home. The Kindle reminder folds into the nudge when a sync is overdue.</td></tr>
+        <tr><td><b>Highlight of the day (4 surfaces)</b></td><td><span class="chip simplify">Simplify</span></td><td>One daily pick, computed once from the date and weighted toward favourites, shown identically on Home, Highlights, the widget and the notification.</td></tr>
+        <tr><td><b>Reading goal</b></td><td><span class="chip keep">Keep</span></td><td>Set and edited under You. Shown as one line on Home.</td></tr>
+        <tr><td><b>Tags</b></td><td><span class="chip simplify">Simplify</span></td><td>Tags are being used for years ("2026") as well as genres. Year comes from the finish date now. Tags become genre and mood, with automatic colours and a suggested set on first use.</td></tr>
+        <tr><td><b>Month-only finish dates</b></td><td><span class="chip reverse">Reverse</span></td><td>A simplification that now blocks four features. Add optional day precision and automatic start dates. Old rows keep working with a precision flag.</td></tr>
+        <tr><td><b>Recently read on Home</b></td><td><span class="chip deprecate">Deprecate</span></td><td>The Finished shelf, sorted by date, is the same thing one tap away.</td></tr>
+        <tr><td><b>Four stat tiles on Home</b></td><td><span class="chip simplify">Simplify</span></td><td>One line of text. The tiles live under You.</td></tr>
+        <tr><td><b>Command palette (⌘K)</b></td><td><span class="chip keep">Keep</span></td><td>Desktop keeps it. On the phone the search icon opens the Shelves search with the keyboard up, instead of a second overlay.</td></tr>
+        <tr><td><b>Anniversaries ("this month in past years")</b></td><td><span class="chip keep">Keep</span></td><td>Correct since v2.12. Stays on Home.</td></tr>
+        <tr><td><b>Six status label and colour maps</b></td><td><span class="chip simplify">Simplify</span></td><td>One <code>STATUS</code> map in <code>lib/utils.js</code>: label, short label, colour, icon. Everything imports it.</td></tr>
+        <tr><td><b>PWA install</b></td><td><span class="chip keep">Keep</span></td><td>Desktop use. The manifest is real since v2.12.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="bets">
+  <h2><span class="n">The gamechangers</span>Three bets, ranked</h2>
+  <p class="lede">Each of these changes what Kitab is, not just what it does. They are ranked by how much they deepen the core job, remembering what you read, and by how much they depend on things already in the app. The first two are pure upside. The third changes the app's nature and needs your decision.</p>
+
+  <div class="bets">
+
+    <article class="bet" id="bet-journal">
+      <div class="rank">1<small>Highest confidence</small></div>
+      <div>
+        <h3>The Commonplace Book</h3>
+        <p class="tag">Every book gets a journal. Every journal is searchable.</p>
+        <div class="body-text" style="margin-top:14px">
+          <p>A commonplace book is the centuries-old habit of copying passages you want to keep into one notebook, with your own thoughts beside them. Kitab already has half of one: it syncs your Kindle highlights. What it lacks is the other half, your thoughts, and a place where both sit together in time.</p>
+          <p><b>What it is.</b> On every book page, a timeline: the day you started, the pages you logged, each highlight as it arrived, notes you typed in the moment, the day you finished, your rating, your review. A global Journal view on the Highlights tab shows the same entries across all books by date, so "what was I reading and thinking in March" has an answer.</p>
+          <p><b>Why it is gamechanging.</b> It turns four separate features (highlights, review, progress, dates) into one story per book, which is what people actually want to look back on. It gives paper books the same treatment as Kindle books. And it is the raw material for the other two bets: Ask reads the journal, and Year in Books quotes it.</p>
+        </div>
+        <div class="grid">
+          <div>
+            <h4>How it works</h4>
+            <ol>
+              <li>Book page shows the timeline below the control row. A field at the bottom reads "Add a note…".</li>
+              <li>Logging pages from Home writes a progress entry. Changing status writes a status entry. Kindle sync writes highlight entries with the sync date.</li>
+              <li>A note can be attached to a highlight (reply) or stand alone with an optional page number.</li>
+              <li>Finishing a book offers three prompts: "One sentence for future you", "Who would you give this to", "Rate it". Skippable.</li>
+              <li>Highlights tab gains a Journal segment: everything, by date, with the book cover as the marker.</li>
+            </ol>
+          </div>
+          <div>
+            <h4>Under the hood</h4>
+            <ul>
+              <li>New <code>journal_entries</code> table: <code>book_id</code>, <code>kind</code> (note, progress, status, review, finished), <code>body</code>, <code>page</code>, <code>highlight_id</code> nullable, <code>created_at</code>.</li>
+              <li>Highlights stay in <code>highlights</code>; the timeline is a union of both, ordered by date.</li>
+              <li>Typed highlights are rows in <code>highlights</code> with <code>source = 'manual'</code>.</li>
+              <li>Offline queue is built here, since notes and pages must work without signal.</li>
+            </ul>
+            <h4 style="margin-top:6px">Cost and risk</h4>
+            <p>Three to four weeks. Scope is the risk; ship notes and page logging first, prompts and the Journal segment second. No new services.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="bet" id="bet-ask">
+      <div class="rank">2<small>Highest leverage</small></div>
+      <div>
+        <h3>Ask Your Library</h3>
+        <p class="tag">Questions answered from your own highlights, with citations.</p>
+        <div class="body-text" style="margin-top:14px">
+          <p>You have synced hundreds, soon thousands, of highlights. Today the only way back to one is to remember which book it was in. Ask makes the whole collection answerable.</p>
+          <p><b>What it is.</b> A question box on the Highlights tab. "What did I save about patience?" "Which of my books disagree with each other about money?" "Summarise what I highlighted in Sapiens." Every answer quotes your highlights and links to the book and the passage. On any single highlight, a Connections row shows the three most related highlights from other books.</p>
+          <p><b>Why it is gamechanging.</b> It is the payoff for the moat. The Kindle sync becomes worth doing not because the highlights are stored but because they come back when you need them. No mainstream reading tracker does this over the reader's own text, with citations, for free.</p>
+        </div>
+        <div class="grid">
+          <div>
+            <h4>How it works</h4>
+            <ol>
+              <li>Each highlight, note and review gets an embedding when it is created or synced.</li>
+              <li>A question is embedded, the closest twenty passages are fetched, and Gemini writes an answer that may only use those passages and must cite them.</li>
+              <li>Answers render as prose with numbered citations; tapping one opens the book page scrolled to the highlight.</li>
+              <li>Connections on a highlight is the same nearest-neighbour query with no model call at all.</li>
+              <li>Four suggested questions appear when the box is empty, generated from your most-highlighted books.</li>
+            </ol>
+          </div>
+          <div>
+            <h4>Under the hood</h4>
+            <ul>
+              <li>Supabase <code>pgvector</code> extension (available on the free tier) and a <code>highlight_embeddings</code> table.</li>
+              <li>Gemini's embedding model and Gemini 3.5 Flash for answers, both on the free tier already used by Discover. Both calls go through a serverless route with the same session check as <code>/api/recommend</code>.</li>
+              <li>Backfill embeds the existing highlights once, in batches, from the app.</li>
+            </ul>
+            <h4 style="margin-top:6px">Cost and risk</h4>
+            <p>Two to three weeks. Near-zero running cost at personal scale. The risk is a confident wrong answer; the mitigation is that the model is only shown your passages and every sentence carries a citation. If it cannot answer from your highlights, it says so.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="bet" id="bet-circle">
+      <div class="rank">3<small>Needs a decision</small></div>
+      <div>
+        <h3>Reading Circle</h3>
+        <p class="tag">Quiet sharing with the people you actually talk to about books.</p>
+        <div class="body-text" style="margin-top:14px">
+          <p>Kitab's handoff notes say it is a personal tool, not a product. Your own brief says you build for yourself, friends and family. Both are true, and the gap between them is where this bet lives.</p>
+          <p><b>What it is.</b> Invite up to a handful of people. Each keeps their own Kitab. A Circle view under You shows what each person is reading now and finished recently, covers only. You can pass a book to someone: it lands on their To read shelf with a note from you. A shared shelf ("Summer reads", "Kids") lets everyone add. There is no feed, no likes, no comments beyond the note, and reviews and highlights are never visible unless you share one on purpose.</p>
+          <p><b>Why it is gamechanging.</b> Reading is one of the few things families talk about across generations, and Kitab has no way to carry that conversation. Children's reading in particular has nowhere to live today. A circle makes the app a family thing without making it a social network.</p>
+        </div>
+        <div class="grid">
+          <div>
+            <h4>How it works</h4>
+            <ol>
+              <li>You › Circle › Invite generates a link. The invitee signs in with Google as usual and lands in the circle.</li>
+              <li>The Circle view lists members with their current book and last three finished.</li>
+              <li>Long-press any book anywhere for "Pass to…", pick a person, add a note.</li>
+              <li>Passed books arrive on the To read shelf with the sender's name and note in the book's journal.</li>
+              <li>Leaving the circle removes your rows from everyone's view immediately.</li>
+            </ol>
+          </div>
+          <div>
+            <h4>Under the hood</h4>
+            <ul>
+              <li>Tables: <code>circles</code>, <code>circle_members</code>, <code>circle_shelves</code>, <code>passed_books</code>.</li>
+              <li>A database view exposes only title, author, cover, status and finish date of members' books. Row-level security keeps reviews, highlights and journals private.</li>
+              <li>Invites are single-use tokens with a seven-day expiry.</li>
+            </ul>
+            <h4 style="margin-top:6px">Cost and risk</h4>
+            <p>Three to four weeks. This is the only bet that adds a second user to the data model, so the security work has to be done carefully. It is also the only one that changes what the app is for, which is why it is ranked third and shipped last.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="callout"><b>On the third bet.</b> If you would rather keep Kitab entirely personal, say so and the roadmap ends at Phase 3. Nothing in the first two bets depends on it.</div>
+
+  <div class="runner">
+    <h4>Runner-up: Year in Books</h4>
+    <p>An annual recap in the style of a music service's year-end story was the fourth candidate. It is a genuine delight and it is in the improvements table above with a size of five evenings. It did not make the top three because it deepens the existing product rather than changing it, and because it gets far better once the Commonplace Book exists to quote from.</p>
+  </div>
+</section>
+
+<section id="data">
+  <h2><span class="n">Schema</span>Data model changes</h2>
+  <div class="tablewrap tight">
+    <table>
+      <thead><tr><th>Change</th><th>For</th><th>Migration</th></tr></thead>
+      <tbody>
+        <tr><td><b><code>books.date_started</code> written automatically; <code>books.date_precision</code> ('month' or 'day')</b></td><td>Real dates, calendar, pace</td><td>Existing rows get precision 'month'. Nothing else changes; every existing date query keeps working.</td></tr>
+        <tr><td><b><code>readings</code> table</b></td><td>Read again</td><td>One row per completed reading. Created lazily the first time "Read again" is used on a book; no backfill needed.</td></tr>
+        <tr><td><b><code>journal_entries</code> table</b></td><td>Commonplace Book</td><td>New. Existing reviews are copied in as review entries dated <code>updated_at</code>, so old books have a timeline on day one.</td></tr>
+        <tr><td><b><code>highlights.is_favorite</code>, <code>highlights.source</code>, <code>highlight_tags</code></b></td><td>Favourites, typed highlights, Year in Books</td><td>Defaults false and 'kindle'. No backfill.</td></tr>
+        <tr><td><b><code>highlight_embeddings</code> (pgvector)</b></td><td>Ask Your Library</td><td>Enable the extension, backfill in batches of 100 from the app with a progress bar under You › Library tools.</td></tr>
+        <tr><td><b><code>circles</code>, <code>circle_members</code>, <code>circle_shelves</code>, <code>passed_books</code>, plus a <code>circle_books</code> view</b></td><td>Reading Circle</td><td>New, only if Phase 4 is approved. Row-level security policies written and tested before any UI.</td></tr>
+        <tr><td><b>Drop: <code>books.review_spoiler</code> usage, <code>books.wiki_url</code> usage</b></td><td>Deprecations</td><td>Columns stay; the app stops reading and writing them. Removed from the schema in a later release.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="roadmap">
+  <h2><span class="n">Sequence</span>Roadmap</h2>
+  <p class="lede">Five phases. Each ends with a deploy you would be happy to use if the next phase never happened. Effort is in weeks of evenings, working the way we did on v2.12.</p>
+  <div class="phases">
+    <div class="phase">
+      <div class="when">Phase 0</div>
+      <div><h4>Foundation</h4><p>Design tokens and the seven components. Four-tab navigation, Shelves merge, You. One-tap add flow and the edit sheet. Real dates and automatic start dates. The deprecation list. The single status map. Ships as 3.0.</p></div>
+      <div class="effort">2 to 3 weeks</div>
+    </div>
+    <div class="phase">
+      <div class="when">Phase 1</div>
+      <div><h4>The Commonplace Book</h4><p>Journal entries, notes, page logging from Home, typed highlights, the book timeline, the Journal segment, finishing prompts, offline queue. Ships as 3.1.</p></div>
+      <div class="effort">3 to 4 weeks</div>
+    </div>
+    <div class="phase">
+      <div class="when">Phase 2</div>
+      <div><h4>Ask Your Library</h4><p>Embeddings, backfill, the question box with citations, Connections on a highlight, suggested questions. Ships as 3.2.</p></div>
+      <div class="effort">2 to 3 weeks</div>
+    </div>
+    <div class="phase">
+      <div class="when">Phase 3</div>
+      <div><h4>The year</h4><p>Year in Books, reading calendar, pace, favourites and quote cards, the currently-reading widget, StoryGraph and My Clippings imports. Ships as 3.3, ideally before January.</p></div>
+      <div class="effort">2 to 3 weeks</div>
+    </div>
+    <div class="phase">
+      <div class="when">Phase 4</div>
+      <div><h4>Reading Circle</h4><p>Only with your go-ahead. Security policies first, then invites, the Circle view, passing books, shared shelves. Ships as 3.4.</p></div>
+      <div class="effort">3 to 4 weeks</div>
+    </div>
+  </div>
+</section>
+
+<section id="risks">
+  <h2><span class="n">Honesty</span>Risks and what I would cut first</h2>
+  <div class="prose">
+    <ul>
+      <li><b>The navigation change is the one people feel.</b> Merging Library and TBR moves muscle memory. Mitigation: the To read shelf is the default when you have books there, and the tab bar keeps the same icons for Home and Shelves.</li>
+      <li><b>Real dates change a rule that was chosen deliberately.</b> Month-only was picked so that logging a finished book never required remembering the day. The proposal keeps that: the day is optional and defaults to today, and the edit sheet still shows month and year first.</li>
+      <li><b>Ask can be confidently wrong.</b> Citations are mandatory and the model never sees anything but your own passages. Even so, the answer box says "from your highlights" and never "the book says".</li>
+      <li><b>Scope.</b> Every phase has a first half that ships alone. If time is short, the cut order is: Circle, then quote cards and widgets, then Year in Books, then the Journal segment (keep the per-book timeline).</li>
+      <li><b>The Kindle scraper is fragile by nature.</b> Nothing here touches it, and the Commonplace Book makes the app valuable even when Amazon changes its markup, because typed highlights and notes do not depend on it.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="decisions">
+  <h2><span class="n">Interview</span>Decisions I need from you</h2>
+  <p class="lede">You asked to be interviewed on design rather than have choices made for you. Each question has my recommendation; disagree freely.</p>
+  <ol class="qs">
+    <li><div><b>Does Highlights deserve a tab, or should it live inside Home?</b><span class="rec">Recommendation: <b>a tab.</b> It is the thing you keep, and both Ask and the Journal live there.</span></div></li>
+    <li><div><b>Are you willing to record day-precision finish dates, or is month genuinely all you want?</b><span class="rec">Recommendation: <b>optional day, default today.</b> You never have to type a date, and the calendar becomes possible.</span></div></li>
+    <li><div><b>Reading Circle: yes, no, or later? If yes, who is the first invite?</b><span class="rec">Recommendation: <b>later, decide after 3.2 ships.</b> Nothing else depends on it.</span></div></li>
+    <li><div><b>Streaks: none, or a gentle one?</b><span class="rec">Recommendation: <b>none.</b> A memory, not a metric.</span></div></li>
+    <li><div><b>Rank: demote to a card under You, or remove entirely?</b><span class="rec">Recommendation: <b>demote.</b> It is fun and the code is small.</span></div></li>
+    <li><div><b>The spoiler toggle on reviews: drop it?</b><span class="rec">Recommendation: <b>drop.</b> Reviews stay private even in a circle.</span></div></li>
+    <li><div><b>Ambient blurred cover behind the book header: too much, or just right?</b><span class="rec">Recommendation: <b>just right at 12% opacity</b>, off when the cover is a fallback tile. I will mock both.</span></div></li>
+    <li><div><b>Tab names: "Shelves" or "Library"? "You" or "Me"?</b><span class="rec">Recommendation: <b>Shelves and You.</b> Shelves says there are several; You is warmer than Profile.</span></div></li>
+    <li><div><b>Light mode on desktop by default, dark on the phone?</b><span class="rec">Recommendation: <b>match the system on both.</b> With a manual override kept.</span></div></li>
+    <li><div><b>Finishing prompts ("one sentence for future you"): welcome, or a nag?</b><span class="rec">Recommendation: <b>show once per book, skip with one tap</b>, never again for that book.</span></div></li>
+  </ol>
+</section>
+
+<section id="success">
+  <h2><span class="n">Measure</span>What success looks like</h2>
+  <div class="prose">
+    <p>For a personal app the honest measure is a feeling: do you reach for Kitab when you close a book. A few numbers will tell us whether the feeling is being earned.</p>
+    <ul>
+      <li>Adding a book takes under eight seconds from opening the app, including a barcode scan.</li>
+      <li>Every book finished after 3.0 has a date within a day of the real one, and most have a note.</li>
+      <li>You open the Highlights tab more days than not, because there is something new or something asked there.</li>
+      <li>Ask answers at least half of your questions from your own highlights without saying it cannot.</li>
+      <li>The January recap gets opened, and shared with at least one person.</li>
+      <li>Nothing in the app makes you feel behind.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div>Prepared as a proposal, not a commitment. Every claim about the current app is from the v2.12.0 source. Sizes are estimates for evening sessions with Claude and will move.</div>
+  <div>Kitab · kitab.ihsan.build · September 2026</div>
+</footer>
+
+</main>
+</div>
+</div>
+</body>
+</html>
