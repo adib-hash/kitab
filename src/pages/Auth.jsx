@@ -51,6 +51,7 @@ export function Auth({ session }) {
           skipBrowserRedirect: true,
         }
       });
+      if (error) { setError(error.message); return }
       if (data?.url) {
         // Force Google account picker so cached credentials don't auto-select
         const oauthUrl = new URL(data.url);
@@ -60,7 +61,6 @@ export function Auth({ session }) {
         // Listen for the app to reopen via the custom URL scheme
         const handleUrl = async (event) => {
           if (event.url?.startsWith('com.adibchoudhury.kitab://')) {
-            const url = new URL(event.url.replace('com.adibchoudhury.kitab://', 'https://placeholder/'));
             // Extract tokens from the URL fragment
             const params = new URLSearchParams(event.url.split('#')[1] || event.url.split('?')[1] || '');
             const access_token = params.get('access_token');

@@ -57,12 +57,6 @@ function ToggleRow({ icon, label, description, enabled, onToggle, children }) {
 }
 
 function TimeSelect({ hour, minute, onChange, label }) {
-  const formatTime = (h, m) => {
-    const period = h >= 12 ? 'PM' : 'AM'
-    const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h
-    return `${displayHour}:${String(m).padStart(2, '0')} ${period}`
-  }
-
   // Generate hour options
   const hours = Array.from({ length: 24 }, (_, i) => i)
 

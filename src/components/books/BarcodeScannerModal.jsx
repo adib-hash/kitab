@@ -16,7 +16,6 @@ export function BarcodeScannerModal({ open, onClose, onDetect }) {
     document.body.style.width = '100%'
 
     let stopped = false
-    let readerRef = null
     let lastIsbn = null
     let consecutiveCount = 0
 
@@ -26,7 +25,6 @@ export function BarcodeScannerModal({ open, onClose, onDetect }) {
     async function startReader() {
       try {
         const reader = new BrowserMultiFormatReader(hints)
-        readerRef = reader
 
         await reader.decodeFromConstraints(
           { video: { facingMode: 'environment' } },

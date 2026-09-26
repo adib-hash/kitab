@@ -2,38 +2,12 @@ import { useState } from 'react'
 import { clsx } from 'clsx'
 import { impactLight } from '../../lib/haptics'
 
-function HalfStar({ filled, half, size = 16 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id={`grad-${filled}-${half}`}>
-          <stop offset={half ? '50%' : filled ? '100%' : '0%'} stopColor="#F59E0B" />
-          <stop offset={half ? '50%' : filled ? '100%' : '0%'} stopColor="#D6D3D1" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M10 1.5l2.39 4.84 5.34.78-3.87 3.77.91 5.33L10 13.77l-4.77 2.45.91-5.33L2.27 7.12l5.34-.78L10 1.5z"
-        fill={filled ? '#F59E0B' : half ? 'url(#half-fill)' : '#E8DDD0'}
-        className="transition-colors duration-100"
-      />
-      {half && (
-        <path
-          d="M10 1.5l2.39 4.84 5.34.78-3.87 3.77.91 5.33L10 13.77V1.5z"
-          fill="#F59E0B"
-        />
-      )}
-    </svg>
-  )
-}
-
 export function StarRating({ value, onChange, size = 'md', readOnly = false }) {
   const [hovered, setHovered] = useState(null)
   const starSize = size === 'sm' ? 14 : size === 'lg' ? 24 : 18
   const display = hovered !== null ? hovered : (value || 0)
 
-  function getStarState(starIndex, position) {
-    // starIndex 1-5, position 'left' or 'right' for half/full
-    const val = starIndex - (position === 'left' ? 0.5 : 0)
+  function getStarState(starIndex) {
     if (display >= starIndex) return 'full'
     if (display >= starIndex - 0.5) return 'half'
     return 'empty'
@@ -62,7 +36,7 @@ export function StarRating({ value, onChange, size = 'md', readOnly = false }) {
       onMouseLeave={() => !readOnly && setHovered(null)}
     >
       {[1, 2, 3, 4, 5].map(i => {
-        const state = getStarState(i, 'right')
+        const state = getStarState(i)
         return (
           <span
             key={i}

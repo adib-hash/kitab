@@ -48,6 +48,7 @@ A cleanup release: no new features, but a long list of small fixes, performance 
 - Dashboard's widget/notification sync effect fired on every render while highlights were loading (a fresh `[]` default each time); it now runs once the library has loaded and only when the data changes.
 - Stats keeps a valid year pill active when the current year has no finished books (e.g. every January). "Add manually" after a prefilled search starts with a clean form. Discover strips, Highlights groups and Rank results use stable keys; Rank's reveal stagger is capped so long lists don't take twelve seconds to appear. A rejected `getSession()` at startup resolves to signed-out immediately instead of waiting out the 5-second fallback.
 - Icon-only buttons (search, close, clear, sort, view toggle, sidebar toggles, theme, tag edit/delete, drag handle, highlight copy/delete) have `aria-label`s. `index.html` puts `<meta charset>` first and declares `theme-color`.
+- A one-off ESLint pass (no-undef, jsx-no-undef, rules-of-hooks, no-unused-vars) over `src/` and `api/` reports zero errors; the six unused locals it flagged are removed, and a failed Google sign-in on iOS now shows its error instead of being swallowed.
 
 
 ## v2.11.1 — 2026-08-28
