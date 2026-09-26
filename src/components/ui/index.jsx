@@ -97,14 +97,14 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
             {title && (
               <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-paper-200 dark:border-ink-700 bg-white/95 dark:bg-ink-800/95 backdrop-blur-sm">
                 <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50">{title}</h2>
-                <button onClick={onClose} className="p-1 rounded-lg hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-500 transition-colors">
+                <button onClick={onClose} aria-label="Close" className="p-1 rounded-lg hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-500 dark:text-ink-400 transition-colors">
                   <X size={18} />
                 </button>
               </div>
             )}
             {!title && (
               <div className="sticky top-2 z-10 h-0 flex justify-end pr-2 pointer-events-none">
-                <button onClick={onClose} className="pointer-events-auto p-1.5 rounded-lg bg-white/80 dark:bg-ink-800/80 hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-400 transition-colors">
+                <button onClick={onClose} aria-label="Close" className="pointer-events-auto p-1.5 rounded-lg bg-white/80 dark:bg-ink-800/80 hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-400 transition-colors">
                   <X size={16} />
                 </button>
               </div>
@@ -177,7 +177,7 @@ export function StatCard({ label, value, sub, icon }) {
         {icon && <span className="text-xl opacity-40">{icon}</span>}
       </div>
       <p className="font-serif text-3xl font-semibold text-ink-900 dark:text-paper-50">{value ?? '—'}</p>
-      {sub && <p className="text-xs text-ink-500 mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">{sub}</p>}
     </div>
   )
 }

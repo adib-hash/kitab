@@ -61,7 +61,7 @@ export function LibraryFilters() {
           className="input pl-9"
         />
         {librarySearch && (
-          <button onClick={() => setLibrarySearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600">
+          <button onClick={() => setLibrarySearch('')} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600">
             <X size={14} />
           </button>
         )}

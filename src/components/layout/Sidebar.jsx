@@ -72,9 +72,13 @@ export function Sidebar({ onSearch }) {
             <Link to="/" className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 hover:text-teal-700 dark:hover:text-teal-400 transition-colors">Kitab</Link>
           </div>
         )}
-        {collapsed && <BookOpen size={22} className="text-teal-600 dark:text-teal-400" />}
+        {collapsed && (
+          <Link to="/" aria-label="Kitab home">
+            <BookOpen size={22} className="text-teal-600 dark:text-teal-400" />
+          </Link>
+        )}
         {!collapsed && (
-          <button onClick={toggleSidebar} className="p-2 rounded-lg hover:bg-paper-100 dark:hover:bg-ink-800 text-ink-400 transition-colors">
+          <button onClick={toggleSidebar} aria-label="Collapse sidebar" className="p-2 rounded-lg hover:bg-paper-100 dark:hover:bg-ink-800 text-ink-400 transition-colors">
             <ChevronLeft size={16} />
           </button>
         )}
@@ -131,6 +135,7 @@ export function Sidebar({ onSearch }) {
         {collapsed && (
           <button
             onClick={toggleSidebar}
+            aria-label="Expand sidebar"
             className="w-full flex items-center justify-center p-2 rounded-xl text-ink-500 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors"
           >
             <ChevronLeft size={16} className="rotate-180" />
@@ -138,6 +143,7 @@ export function Sidebar({ onSearch }) {
         )}
         <button
           onClick={toggleDarkMode}
+          aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           className={clsx(
             'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-ink-600 dark:text-ink-400 hover:bg-paper-100 dark:hover:bg-ink-800',
             collapsed ? 'w-full justify-center' : 'w-full'

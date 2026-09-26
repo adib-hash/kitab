@@ -26,10 +26,10 @@ function TagRow({ tag, onEdit, onDelete }) {
       <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: tag.color }} />
       <span className="flex-1 text-sm text-ink-800 dark:text-ink-300">{tag.name}</span>
       <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-        <button onClick={() => onEdit(tag)} className="p-1.5 rounded-lg hover:bg-paper-200 dark:hover:bg-ink-700 text-ink-500">
+        <button onClick={() => onEdit(tag)} aria-label={`Rename ${tag.name}`} className="p-1.5 rounded-lg hover:bg-paper-200 dark:hover:bg-ink-700 text-ink-500">
           <Edit2 size={13} />
         </button>
-        <button onClick={() => onDelete(tag.id)} className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 text-ink-500 hover:text-rose-600">
+        <button onClick={() => onDelete(tag.id)} aria-label={`Delete ${tag.name}`} className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 text-ink-500 hover:text-rose-600">
           <Trash2 size={13} />
         </button>
       </div>
@@ -220,7 +220,7 @@ function EnrichLibrary({ books }) {
                   {hasUpdates ? (
                     <CheckCircle size={16} className="text-teal-600 flex-shrink-0" />
                   ) : (
-                    <XCircle size={16} className="text-ink-300 dark:text-ink-600 flex-shrink-0" />
+                    <XCircle size={16} className="text-ink-400 dark:text-ink-500 flex-shrink-0" />
                   )}
                 </div>
               )
@@ -612,13 +612,14 @@ export function Settings() {
       <div className="flex items-center gap-3 mb-0">
         <button
           onClick={() => navigate(-1)}
+          aria-label="Back"
           className="p-2 rounded-xl hover:bg-paper-100 dark:hover:bg-ink-800 text-ink-500 transition-colors"
         >
           <ChevronLeft size={20} />
         </button>
         <div>
           <h1 className="page-title">Settings</h1>
-          <p className="text-xs text-ink-400 dark:text-ink-600 mt-0.5">Kitab · v2.12.0</p>
+          <p className="text-xs text-ink-400 dark:text-ink-400 mt-0.5">Kitab · v2.12.0</p>
         </div>
       </div>
 
@@ -629,7 +630,7 @@ export function Settings() {
         </h2>
         <p className="text-sm text-ink-600 dark:text-ink-400">
           Enter your library's OverDrive subdomain to enable "Check Libby" links on every book.
-          Find it in your library's Libby URL — e.g. <span className="font-mono text-xs bg-paper-100 dark:bg-ink-700 px-1.5 py-0.5 rounded">sfpl.overdrive.com</span> → enter <span className="font-mono text-xs bg-paper-100 dark:bg-ink-700 px-1.5 py-0.5 rounded">sfpl</span>.
+          Find it in your library's Libby URL — e.g. <span className="font-mono text-xs bg-paper-100 dark:bg-ink-700 px-1.5 py-0.5 rounded">sfpl.overdrive.com</span> and enter <span className="font-mono text-xs bg-paper-100 dark:bg-ink-700 px-1.5 py-0.5 rounded">sfpl</span>.
         </p>
         <div className="flex gap-2">
           <input
@@ -682,7 +683,7 @@ export function Settings() {
           <Upload size={18} className="text-teal-600" /> Import from Goodreads
         </h2>
         <p className="text-sm text-ink-600 dark:text-ink-400">
-          Export your library from Goodreads (My Books → Import/Export) then upload it here.
+          Export your library from Goodreads (My Books, then Import/Export) and upload it here.
         </p>
         <label className={`btn-secondary cursor-pointer ${importing ? 'opacity-50' : ''}`}>
           <Upload size={14} />

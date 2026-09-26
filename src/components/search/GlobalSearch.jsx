@@ -86,7 +86,7 @@ export function GlobalSearch({ open, onClose }) {
                   style={{ fontSize: '16px' }}
                 />
                 {query && (
-                  <button onClick={() => setQuery('')} className="text-ink-400 hover:text-ink-600 dark:hover:text-ink-300">
+                  <button onClick={() => setQuery('')} aria-label="Clear search" className="text-ink-400 hover:text-ink-600 dark:hover:text-ink-300">
                     <X size={16} />
                   </button>
                 )}

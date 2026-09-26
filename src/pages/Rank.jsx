@@ -136,7 +136,7 @@ function ResultsView({ rankedBooks, matchCount, onContinue, onReset, resetting, 
             </div>
             <div className="text-right flex-shrink-0">
               <p className="text-xs font-mono text-ink-400">{book.elo}</p>
-              <p className="text-xs text-ink-300">{book.elo_wins}W / {book.elo_losses}L</p>
+              <p className="text-xs text-ink-500 dark:text-ink-400">{book.elo_wins}W / {book.elo_losses}L</p>
             </div>
           </Link>
           </motion.div>
@@ -389,7 +389,7 @@ export function Rank() {
             </div>
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-paper-200 dark:bg-ink-700" />
-              <span className="text-xs font-bold text-ink-300 uppercase tracking-widest">VS</span>
+              <span className="text-xs font-bold text-ink-500 dark:text-ink-400 uppercase tracking-widest">VS</span>
               <div className="flex-1 h-px bg-paper-200 dark:bg-ink-700" />
             </div>
             <p className="text-center text-xs text-ink-400">{matchCount} matchups completed · Tap a book to choose</p>

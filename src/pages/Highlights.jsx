@@ -75,6 +75,7 @@ export function Highlights() {
           {query && (
             <button
               onClick={() => setQuery('')}
+              aria-label="Clear search"
               className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600"
             >
               <X size={14} />
@@ -170,7 +171,7 @@ export function Highlights() {
                       <button
                         onClick={() => handleCopy(h.text)}
                         className="p-1.5 rounded-md text-ink-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
-                        title="Copy"
+                        title="Copy" aria-label="Copy highlight"
                       >
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -180,7 +181,7 @@ export function Highlights() {
                       <button
                         onClick={() => deleteHighlight.mutate(h.id)}
                         className="p-1.5 rounded-md text-ink-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
-                        title="Delete"
+                        title="Delete" aria-label="Delete highlight"
                       >
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="3 6 5 6 21 6"></polyline>

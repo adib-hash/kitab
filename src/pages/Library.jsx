@@ -76,9 +76,11 @@ export function Library() {
           {/* Filters */}
           <button
             onClick={() => setFiltersOpen(!filtersOpen)}
-            className={`p-2 rounded-lg border transition-colors relative ${activeFilterCount > 0 ? 'border-teal-500 text-teal-700 bg-teal-50 dark:bg-teal-900/20' : 'border-paper-200 dark:border-ink-600 text-ink-500 hover:bg-paper-50'}`}
+            aria-label="Filters"
+            aria-expanded={filtersOpen}
+            className={`h-9 w-9 flex items-center justify-center rounded-lg border transition-colors relative ${activeFilterCount > 0 ? 'border-teal-500 text-teal-700 bg-teal-50 dark:bg-teal-900/20' : 'border-paper-200 dark:border-ink-600 text-ink-500 dark:text-ink-400 hover:bg-paper-50 dark:hover:bg-ink-800'}`}
           >
-            <SlidersHorizontal size={17} />
+            <SlidersHorizontal size={16} />
             {activeFilterCount > 0 && (
               <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-teal-600 text-white text-[10px] rounded-full flex items-center justify-center">
                 {activeFilterCount}
@@ -89,8 +91,9 @@ export function Library() {
           <select
             value={librarySort}
             onChange={e => setLibrarySort(e.target.value)}
-            className="text-xs border border-paper-200 dark:border-ink-600 rounded-lg px-2 h-8 bg-white dark:bg-ink-800 text-ink-600 dark:text-ink-400"
-            style={{ fontSize: '13px' }}
+            aria-label="Sort books"
+            className="border border-paper-200 dark:border-ink-600 rounded-lg px-2 h-9 bg-white dark:bg-ink-800 text-ink-600 dark:text-ink-400"
+            style={{ fontSize: '16px' }}
           >
             {Object.entries(SORT_LABELS).map(([value, label]) => (
               <option key={value} value={value}>{label}</option>
@@ -98,17 +101,17 @@ export function Library() {
           </select>
           {/* View toggle */}
           <div className="flex items-center border border-paper-200 dark:border-ink-600 rounded-lg overflow-hidden">
-            <button onClick={() => setLibraryView('grid')}
-              className={`p-2 transition-colors ${libraryView === 'grid' ? 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'hover:bg-paper-50 text-ink-500'}`}>
+            <button onClick={() => setLibraryView('grid')} aria-label="Grid view" aria-pressed={libraryView === 'grid'}
+              className={`h-9 w-9 flex items-center justify-center transition-colors ${libraryView === 'grid' ? 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'hover:bg-paper-50 dark:hover:bg-ink-800 text-ink-500 dark:text-ink-400'}`}>
               <LayoutGrid size={16} />
             </button>
-            <button onClick={() => setLibraryView('list')}
-              className={`p-2 transition-colors ${libraryView === 'list' ? 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'hover:bg-paper-50 text-ink-500'}`}>
+            <button onClick={() => setLibraryView('list')} aria-label="List view" aria-pressed={libraryView === 'list'}
+              className={`h-9 w-9 flex items-center justify-center transition-colors ${libraryView === 'list' ? 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'hover:bg-paper-50 dark:hover:bg-ink-800 text-ink-500 dark:text-ink-400'}`}>
               <List size={16} />
             </button>
           </div>
           {/* Add button */}
-          <button onClick={() => setSearchOpen(true)} className="btn-primary">
+          <button onClick={() => setSearchOpen(true)} className="btn-primary h-9" aria-label="Add book">
             <Plus size={16} />
             <span className="hidden sm:inline">Add Book</span>
           </button>

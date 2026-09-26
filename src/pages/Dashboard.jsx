@@ -128,10 +128,10 @@ export function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={toggleDarkMode} className="md:hidden p-2 rounded-xl text-ink-500 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors">
+          <button onClick={toggleDarkMode} aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} className="md:hidden p-2 rounded-xl text-ink-500 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors">
             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-          <Link to="/settings" className="md:hidden p-2 rounded-xl text-ink-500 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors">
+          <Link to="/settings" aria-label="Settings" className="md:hidden p-2 rounded-xl text-ink-500 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors">
             <Settings size={20} />
           </Link>
           <button onClick={() => setSearchOpen(true)} className="btn-primary">
@@ -220,7 +220,8 @@ export function Dashboard() {
                 <button
                   onClick={shuffleHighlight}
                   title="Show another highlight"
-                  className="p-2 rounded-xl transition-colors text-ink-300 dark:text-ink-600 hover:text-teal-500"
+                  className="p-2 rounded-xl transition-colors text-ink-400 dark:text-ink-500 hover:text-teal-500"
+                  aria-label="Show another highlight"
                 >
                   <RefreshCw size={14} />
                 </button>
@@ -283,7 +284,7 @@ export function Dashboard() {
           <div className="grid grid-cols-2 gap-3">
             <StatCard label="Books Read" value={yearStats.totalRead} icon={<BookOpen size={18} />} sub={String(thisYear)} />
             <StatCard label="Pages Read" value={yearStats.totalPages.toLocaleString()} icon={<FileText size={18} />} sub={String(thisYear)} />
-            <StatCard label="Avg Rating" value={yearStats.avgRating ? `${yearStats.avgRating}★` : null} icon={<Star size={18} />} sub={String(thisYear)} />
+            <StatCard label="Avg Rating" value={yearStats.avgRating ? `${yearStats.avgRating} / 5` : null} icon={<Star size={18} />} sub={String(thisYear)} />
             <StatCard label="On TBR" value={books.filter(b=>b.status==='tbr').length} icon={<Bookmark size={18} />} sub="total" />
           </div>
         </section>
@@ -360,7 +361,7 @@ export function Dashboard() {
 
           <div className="card p-4 space-y-3">
             {lastSyncRaw && !showSyncReminder && (
-              <p className="text-xs text-ink-400 dark:text-ink-600">
+              <p className="text-xs text-ink-400 dark:text-ink-400">
                 Synced automatically · last {daysSinceSync === 0 ? 'today' : daysSinceSync === 1 ? 'yesterday' : `${daysSinceSync} days ago`}
               </p>
             )}

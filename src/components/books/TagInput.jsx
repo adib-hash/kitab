@@ -40,7 +40,7 @@ export function TagInput({ selectedTagIds = [], onChange }) {
         {selectedTags.map(tag => (
           <span key={tag.id} className="tag-pill flex items-center gap-1 pr-1">
             {tag.name}
-            <button type="button" onClick={() => removeTag(tag.id)} className="hover:text-rose-500 transition-colors">
+            <button type="button" onClick={() => removeTag(tag.id)} aria-label={`Remove ${tag.name}`} className="hover:text-rose-500 transition-colors">
               <X size={10} />
             </button>
           </span>

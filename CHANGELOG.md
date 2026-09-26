@@ -2,6 +2,10 @@
 
 A cleanup release: no new features, but a long list of small fixes, performance work, and dead-code removal across the app. Grouped by kind below.
 
+### Changed
+- **The web app now installs properly.** The PWA manifest was the build tool's default: named "kitab" in lowercase, a green theme colour from a Vue template, and no icons at all, so "Add to Home Screen" gave a blank tile. It now has the Kitab name, the dark ink theme colour, and 192/512/180 px icons generated from the same teal lettermark the iOS app uses. The browser favicon is that lettermark too, replacing an emoji.
+- **No more emoji or arrow glyphs in the interface.** The sign-in page's book emoji is a Lucide icon; the "→" in Settings help text and the "★" after average ratings are words ("4.2 / 5").
+
 ### Fixed
 - **Recommendations now require you to be signed in.** `/api/recommend` spends Gemini and Anthropic credit on every call and, like every file in `api/`, is a public URL. It now checks the caller's Supabase session (the app sends its access token) and rejects anything else with 401. It also refuses prompts over 20,000 characters. This is the same class of exposure v2.11.1 closed for the old endpoint, applied to the live one.
 - **The share-link resolver is no longer an open proxy.** `/api/resolve-url` would fetch any URL it was given, with no timeout and no size limit. It now accepts only Amazon short links, Amazon store domains, and Goodreads (checked again after redirects), gives up after 8 seconds, and reads at most 500 KB of the page.
@@ -20,6 +24,8 @@ A cleanup release: no new features, but a long list of small fixes, performance 
 - **Closing a share-sheet preview mid-lookup no longer pops the search modal open afterwards**, and the modal now shares the app's scroll-lock hook instead of its own copy.
 - **Sidebar tag shortcuts now take you to the Library.** They set the filter but didn't navigate, so clicking one from another page did nothing visible.
 - **"On this day" is now "This month in past years", and works.** Finish dates are stored to the month, so the day-of-month match only ever fired on the 1st (and in UTC, so a day early in US time zones). It now matches the month in local time, the same way notifications already did.
+- **Low-contrast text in both themes.** Win/loss counts and the "VS" divider on Rank were near-invisible on light backgrounds; the version line, last-sync line, section labels and several muted icons were too dim in dark mode; the Library header's hover states turned light in dark mode; Book Detail's loading skeleton was bright in dark mode. All adjusted to the palette's readable steps.
+- **Mobile pages clear the bottom bar.** Content padding under the bottom navigation now accounts for the home-indicator safe area, so the last row is never tucked behind it. The four Library header controls (filters, sort, view toggle, add) are the same height. Tapping the cover-URL field in Add Book and the Library sort menu no longer zooms the page on iOS. The sign-in page's Supabase note is legible and ends with a period. The collapsed sidebar logo links home.
 
 ### Performance
 - **The offline cache is written at most once a second instead of on every change.** React Query's persister was serialising the entire cache (every book with its description and review, every highlight, every recommendation session) to localStorage on every cache event, which on a page load is dozens of main-thread writes. Writes now coalesce into one per second, with a flush when the app goes to the background.
@@ -39,6 +45,7 @@ A cleanup release: no new features, but a long list of small fixes, performance 
 - In-memory cache lifetime (`gcTime`) now matches the persisted cache lifetime (7 days). It was 24 h, which the persister docs warn silently caps the on-disk cache at 24 h for anything not on screen.
 - Dashboard's widget/notification sync effect fired on every render while highlights were loading (a fresh `[]` default each time); it now runs once the library has loaded and only when the data changes.
 - Stats keeps a valid year pill active when the current year has no finished books (e.g. every January). "Add manually" after a prefilled search starts with a clean form. Discover strips, Highlights groups and Rank results use stable keys; Rank's reveal stagger is capped so long lists don't take twelve seconds to appear. A rejected `getSession()` at startup resolves to signed-out immediately instead of waiting out the 5-second fallback.
+- Icon-only buttons (search, close, clear, sort, view toggle, sidebar toggles, theme, tag edit/delete, drag handle, highlight copy/delete) have `aria-label`s. `index.html` puts `<meta charset>` first and declares `theme-color`.
 
 
 ## v2.11.1 — 2026-08-28

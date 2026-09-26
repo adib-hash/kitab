@@ -187,7 +187,8 @@ function SortableBook({ book }) {
             {...attributes}
             {...listeners}
             onClick={e => e.preventDefault()}
-            className="cursor-grab active:cursor-grabbing text-ink-300 dark:text-ink-600 hover:text-ink-500 touch-none flex-shrink-0 p-1"
+            className="cursor-grab active:cursor-grabbing text-ink-400 dark:text-ink-500 hover:text-ink-600 touch-none flex-shrink-0 p-1"
+            aria-label="Drag to reorder"
           >
             <GripVertical size={16} />
           </button>

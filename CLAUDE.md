@@ -38,63 +38,83 @@ npm run build && npx cap sync ios
 
 ```
 ~/Documents/claude code/kitab/
-├── api/
-│   ├── recommend.js             # Vercel serverless: Claude recommendations
-│   └── readwise-sync.js         # Vercel serverless: Readwise v2 API proxy
+├── api/                         # Vercel serverless (every file here is a public route)
+│   ├── book-search.js           # Hardcover-first catalog search, Google Books fallback
+│   ├── recommend.js             # Discovery recommendations: Gemini 3.5 Flash, Claude Haiku fallback; requires a Supabase session
+│   └── resolve-url.js           # Follows Amazon/Goodreads share links (allowlisted), extracts og:title
+├── public/
+│   ├── favicon.svg              # Teal "K" lettermark (same artwork as resources/icon.svg)
+│   ├── pwa-192.png, pwa-512.png, apple-touch-icon.png  # PWA/home-screen icons, generated from resources/icon.png with `sips`
+│   └── kindle-scraper.js        # The Kindle notebook scraper; injected by manual AND background sync
 ├── src/
 │   ├── components/
 │   │   ├── books/
-│   │   │   ├── BookCard.jsx     # Grid card; status dot top-left for non-read books
-│   │   │   ├── BookCover.jsx    # Cover image with SVG fallback spine
+│   │   │   ├── BarcodeScannerModal.jsx  # ISBN camera scanner (@zxing); lazy-loaded
+│   │   │   ├── BookCard.jsx     # Grid card; status dot top-left for non-read books; sheet/form mounted only when open
+│   │   │   ├── BookCover.jsx    # Cover image with SVG fallback spine; native filesystem cache
 │   │   │   ├── BookForm.jsx     # Add/edit modal; tbr_note field when status=tbr
-│   │   │   ├── BookSearch.jsx   # Google Books search modal
 │   │   │   ├── BookRow.jsx      # List-view row for Library
-│   │   │   ├── ReviewModal.jsx  # Standalone review editor
+│   │   │   ├── BookSearch.jsx   # Add-a-book search modal (calls /api/book-search)
+│   │   │   ├── ReviewModal.jsx  # Standalone review editor with localStorage draft
+│   │   │   ├── SharePreviewModal.jsx  # iOS share extension: resolve a shared URL to a book
 │   │   │   ├── StarRating.jsx
 │   │   │   ├── StatusBadge.jsx
 │   │   │   └── TagInput.jsx
-│   │   ├── library/
-│   │   │   └── LibraryFilters.jsx  # Status + ratingMin + tags filter panel
+│   │   ├── discover/
+│   │   │   ├── QueryFlow.jsx    # Prompt input + generateRecommendations() (calls /api/recommend with the session token)
+│   │   │   └── RecDetailModal.jsx  # Recommendation detail + add to TBR
 │   │   ├── layout/
 │   │   │   ├── Layout.jsx       # App shell — sidebar + bottom nav
 │   │   │   ├── Sidebar.jsx      # Desktop nav (includes Highlights link)
 │   │   │   └── BottomNav.jsx    # Mobile bottom nav (5 tabs)
+│   │   ├── library/
+│   │   │   └── LibraryFilters.jsx  # Status + ratingMin + tags filter panel
 │   │   ├── search/
 │   │   │   └── GlobalSearch.jsx  # ⌘K full-library search overlay
+│   │   ├── settings/
+│   │   │   └── NotificationSettings.jsx  # iOS local-notification toggles
 │   │   └── ui/
-│   │       ├── index.jsx         # Button, Modal, StatCard, ProgressBar, EmptyState, BookCardSkeleton
+│   │       ├── index.jsx         # Button, Modal, Skeleton, BookCardSkeleton, EmptyState, ProgressBar, StatCard, Divider
 │   │       └── QuickActionsSheet.jsx  # Long-press sheet (status, rating, tags, review)
 │   ├── hooks/
-│   │   ├── useBodyScrollLock.js # Shared scroll-lock hook (used by Modal, QuickActionsSheet, GlobalSearch)
+│   │   ├── useBodyScrollLock.js # Shared scroll-lock hook (Modal, QuickActionsSheet, GlobalSearch, SharePreviewModal)
 │   │   ├── useDebounce.js       # Shared debounce (BookSearch, Highlights search)
-│   │   ├── useLibrary.js        # CRUD for books table (useBook, useAddBook, useUpdateBook, useDeleteBook, useReorderTBR)
-│   │   ├── useTags.js           # Tags CRUD + useReadingGoal + useSetReadingGoal
-│   │   ├── useHighlights.js     # useAllHighlights, useHighlights, useHighlightCount, useDeleteHighlight
-│   │   ├── useKindleSyncFlow.js # iOS Kindle highlights sync orchestration
-│   │   ├── useDiscoverRecs.js   # LLM recommendation fetching
-│   │   └── useLongPress.js      # Long press gesture hook
+│   │   ├── useHighlights.js     # Highlights queries + upsertHighlights() shared by manual and auto Kindle sync
+│   │   ├── useKindleAutoSync.js # Kicks the invisible daily Kindle sync once per session
+│   │   ├── useKindleSyncFlow.js # Manual Kindle sync via the visible in-app browser
+│   │   ├── useLibrary.js        # CRUD for books (useBook, useAddBook, useUpdateBook [optimistic], useDeleteBook, useReorderTBR)
+│   │   ├── useLongPress.js      # Long press gesture hook
+│   │   ├── useNetworkStatus.js  # Online/offline state (native + web)
+│   │   ├── useRecommendations.js # Discover sessions CRUD (recommendations table)
+│   │   └── useTags.js           # Tags CRUD + useReadingGoal + useSetReadingGoal
 │   ├── lib/
-│   │   ├── supabase.js          # Supabase client
-│   │   ├── googleBooks.js       # Google Books API search
-│   │   ├── utils.js             # computeStats(), formatDate(), daysBetween(), pluralize()
+│   │   ├── bookSearch.js        # Client for /api/book-search; exports API_BASE used by every api/ caller
+│   │   ├── coverCache.js        # Native filesystem cover cache
+│   │   ├── covers.js            # sizeCoverUrl() — right-size cover URLs per display slot
+│   │   ├── googleBooks.js       # Google Books search — Discover enrichment + Enrich Library only
 │   │   ├── haptics.js           # Capacitor haptics wrappers (impactLight/Medium, notifySuccess/Warning)
-│   │   ├── offlineQueue.js      # Offline write queue
+│   │   ├── kindleAutoSync.js    # Automatic daily Kindle sync (drain nightly payload / headless scrape)
+│   │   ├── kindleSyncState.js   # Which Kindle books have been scraped; builds scraper config
 │   │   ├── notifications.js     # Local notifications (iOS)
+│   │   ├── offlineQueue.js      # Reconnect listener — invalidates queries when back online
+│   │   ├── openLibrary.js       # findCoverUrl() — Open Library cover fallback
+│   │   ├── supabase.js          # Supabase client
+│   │   ├── utils.js             # computeStats(), formatDate(), daysBetween(), pluralize(), STATUS_LABELS
 │   │   └── widgetBridge.js      # iOS widget data sync
-│   ├── pages/
+│   ├── pages/                   # All but Auth and Dashboard are React.lazy (see App.jsx)
 │   │   ├── Auth.jsx
-│   │   ├── Dashboard.jsx        # Today's highlight (date-seeded), reading goal, stats, anniversary card
+│   │   ├── Dashboard.jsx        # Today's highlight (date-seeded), reading goal, stats, "this month in past years" card
 │   │   ├── Library.jsx          # Grid/list view, filters, inline sort select
 │   │   ├── BookDetail.jsx       # Full book page at /library/:id; styled delete confirm modal; wiki_url cache
 │   │   ├── Highlights.jsx       # All highlights at /highlights; search + book filter + grouped view
-│   │   ├── Stats.jsx            # Year selector (dynamic from data + "All time") + avgDaysToFinish + topAuthor
+│   │   ├── Stats.jsx            # Year selector (dynamic from data + "All time") + topAuthor
 │   │   ├── TBR.jsx              # Drag-to-reorder; swipe right=start, left=remove; tbr_note shown
-│   │   ├── Discover.jsx         # LLM recommendations (3 sections)
+│   │   ├── Discover.jsx         # Prompt-driven recommendation sessions
 │   │   ├── Rank.jsx             # ELO pairwise ranking; tag filter chips
-│   │   └── Settings.jsx         # Tags, import/export, Readwise sync, library overview
+│   │   └── Settings.jsx         # Libby, enrich, import/export, tags, Kindle sync, notifications, logout
 │   ├── store/
-│   │   └── uiStore.js           # Zustand: darkMode, libraryView, librarySort, libraryFilters (incl. ratingMin), librarySearch
-│   └── App.jsx                  # Routes + ProtectedRoute; includes /highlights
+│   │   └── uiStore.js           # Zustand: darkMode, libraryView, librarySort, libraryFilters (incl. ratingMin), librarySearch, librarySlug
+│   └── App.jsx                  # Routes + ProtectedRoute (Suspense inside Layout) + throttled query-cache persister
 ├── CHANGELOG.md
 └── index.html
 ```

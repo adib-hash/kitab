@@ -69,12 +69,12 @@ export function BookDetail() {
 
   if (isLoading) {
     return (
-      <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-paper-200 rounded w-32" />
+      <div className="space-y-6">
+        <div className="h-8 skeleton rounded w-32" />
         <div className="flex gap-8">
-          <div className="w-48 h-72 bg-paper-200 rounded-lg" />
+          <div className="w-48 h-72 skeleton rounded-lg" />
           <div className="flex-1 space-y-4">
-            {[...Array(5)].map((_, i) => <div key={i} className="h-5 bg-paper-200 rounded w-3/4" />)}
+            {[...Array(5)].map((_, i) => <div key={i} className="h-5 skeleton rounded w-3/4" />)}
           </div>
         </div>
       </div>
@@ -250,7 +250,7 @@ export function BookDetail() {
         </div>
       ) : (
         <div className="card p-6 flex flex-col items-center gap-3 text-center">
-          <PenLine size={24} className="text-ink-300 dark:text-ink-600" />
+          <PenLine size={24} className="text-ink-400 dark:text-ink-500" />
           <p className="text-sm text-ink-500 dark:text-ink-400">No review yet.</p>
           <Button variant="secondary" size="sm" onClick={() => setReviewModalOpen(true)}>
             Write a Review
@@ -376,7 +376,8 @@ function HighlightsSection({ bookId, count, autoOpen = false }) {
                 <button
                   onClick={() => deleteHighlight.mutate(h.id)}
                   title="Delete highlight"
-                  className="absolute top-2 right-2 p-1 rounded-md text-ink-300 dark:text-ink-600 hover:text-rose-500 transition-colors"
+                  className="absolute top-2 right-2 p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-rose-500 transition-colors"
+                  aria-label="Delete highlight"
                 >
                   <Trash2 size={13} />
                 </button>

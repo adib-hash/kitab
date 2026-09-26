@@ -72,7 +72,7 @@ export function QuickActionsSheet({ book, open, onClose, onOpenForm, onOpenRevie
       tbr: `"${book.title}" added to your reading list`,
       dnf: `"${book.title}" marked as did not finish`,
     }
-    toast.success(messages[newStatus] ?? `"${book.title}" → ${STATUS_OPTIONS.find(s => s.value === newStatus)?.label ?? newStatus}`)
+    toast.success(messages[newStatus] ?? `"${book.title}" marked as ${STATUS_OPTIONS.find(s => s.value === newStatus)?.label ?? newStatus}`)
     onClose()
     if (newStatus === 'read' && !book.review) {
       setReviewPromptBook({ id: book.id, title: book.title })
@@ -140,6 +140,7 @@ export function QuickActionsSheet({ book, open, onClose, onOpenForm, onOpenRevie
                 </div>
                 <button
                   onClick={onClose}
+                  aria-label="Close"
                   className="flex-shrink-0 p-1.5 rounded-lg hover:bg-paper-100 dark:hover:bg-ink-800 text-ink-400"
                 >
                   <X size={16} />
@@ -264,7 +265,7 @@ export function QuickActionsSheet({ book, open, onClose, onOpenForm, onOpenRevie
                     >
                       <Star size={18} className="flex-shrink-0 text-ink-500 dark:text-ink-400" />
                       <span className="flex-1 text-left text-sm font-medium text-ink-800 dark:text-paper-100">
-                        {book.rating ? `Rating: ${book.rating}★` : 'Rate this book'}
+                        {book.rating ? `Rating: ${book.rating} / 5` : 'Rate this book'}
                       </span>
                     </button>
 

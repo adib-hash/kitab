@@ -114,7 +114,7 @@ export function Stats() {
           <div className="grid grid-cols-2 gap-4">
             <StatCard label="Books Read" value={stats.totalRead} icon={<BookOpen size={18} />} sub={yearLabel} />
             <StatCard label="Pages Read" value={stats.totalPages.toLocaleString()} icon={<FileText size={18} />} sub={yearLabel} />
-            <StatCard label="Avg Rating" value={stats.avgRating ? `${stats.avgRating} ★` : null} icon={<Star size={18} />} sub={yearLabel} />
+            <StatCard label="Avg Rating" value={stats.avgRating ? `${stats.avgRating} / 5` : null} icon={<Star size={18} />} sub={yearLabel} />
             <StatCard label="On TBR" value={tbrCount} icon={<Bookmark size={18} />} sub="total" />
           </div>
 

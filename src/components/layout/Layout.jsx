@@ -58,12 +58,13 @@ export function Layout({ children }) {
           <Link to="/" className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50">Kitab</Link>
           <button
             onClick={() => setSearchOpen(true)}
+            aria-label="Search your library"
             className="p-2 rounded-xl text-ink-500 dark:text-ink-400 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors"
           >
             <Search size={20} />
           </button>
         </div>
-        <main className="px-4 py-5 pb-24" style={{ isolation: 'isolate' }}>
+        <main className="px-4 py-5" style={{ isolation: 'isolate', paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
           <div className="max-w-2xl mx-auto">
             {children}
           </div>

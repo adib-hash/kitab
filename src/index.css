@@ -96,7 +96,7 @@
   }
 
   .section-label {
-    @apply text-xs font-semibold uppercase tracking-widest text-ink-400 dark:text-ink-500;
+    @apply text-xs font-semibold uppercase tracking-widest text-ink-500 dark:text-ink-400;
   }
 
   .tag-pill {

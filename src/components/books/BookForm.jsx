@@ -164,7 +164,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
               onChange={e => set('cover_url', e.target.value)}
               placeholder="Paste URL"
               className={inp}
-              style={{ ...inpStyle, width: '88px', fontSize: '11px', padding: '4px 6px' }}
+              style={{ ...inpStyle, width: '88px', padding: '4px 6px' }}
             />
           </div>
 
