@@ -24,7 +24,7 @@ export function BookDetail() {
   const { data: allBooks = [] } = useLibrary()
   const deleteBook = useDeleteBook()
   const updateBook = useUpdateBook()
-  const { librarySlug } = useUIStore()
+  const librarySlug = useUIStore(s => s.librarySlug)
 
   const [editOpen, setEditOpen] = useState(false)
   const [reviewModalOpen, setReviewModalOpen] = useState(false)

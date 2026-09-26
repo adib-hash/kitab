@@ -66,6 +66,7 @@ npm run build && npx cap sync ios
 │   │       └── QuickActionsSheet.jsx  # Long-press sheet (status, rating, tags, review)
 │   ├── hooks/
 │   │   ├── useBodyScrollLock.js # Shared scroll-lock hook (used by Modal, QuickActionsSheet, GlobalSearch)
+│   │   ├── useDebounce.js       # Shared debounce (BookSearch, Highlights search)
 │   │   ├── useLibrary.js        # CRUD for books table (useBook, useAddBook, useUpdateBook, useDeleteBook, useReorderTBR)
 │   │   ├── useTags.js           # Tags CRUD + useReadingGoal + useSetReadingGoal
 │   │   ├── useHighlights.js     # useAllHighlights, useHighlights, useHighlightCount, useDeleteHighlight

@@ -14,15 +14,21 @@ import { BookSearchModal } from '../components/books/BookSearch'
 import { BookForm } from '../components/books/BookForm'
 import { computeStats, pluralize } from '../lib/utils'
 import { useUIStore } from '../store/uiStore'
+import { useShallow } from 'zustand/react/shallow'
 import { syncWidgetData } from '../lib/widgetBridge'
 import { rescheduleAllNotifications } from '../lib/notifications'
 
+// A stable default: `= []` creates a new array on every render while a query
+// is still loading, which re-ran the widget/notification sync effect below on
+// every render in that window.
+const EMPTY = []
+
 export function Dashboard() {
-  const { data: books = [], isLoading } = useLibrary()
+  const { data: books = EMPTY, isLoading, isSuccess: booksReady } = useLibrary()
   const thisYear = new Date().getFullYear()
   const { data: goal } = useReadingGoal(thisYear)
-  const { darkMode, toggleDarkMode } = useUIStore()
-  const { data: allHighlights = [] } = useAllHighlights()
+  const { darkMode, toggleDarkMode } = useUIStore(useShallow(s => ({ darkMode: s.darkMode, toggleDarkMode: s.toggleDarkMode })))
+  const { data: allHighlights = EMPTY } = useAllHighlights()
 
   const [searchOpen, setSearchOpen] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
@@ -42,13 +48,13 @@ export function Dashboard() {
     ? allHighlights[highlightIdx % allHighlights.length]
     : null
 
-  // Sync data to iOS widgets and reschedule notifications
+  // Sync data to iOS widgets and reschedule notifications — once the library
+  // has actually loaded, and again only when the data itself changes.
   useEffect(() => {
-    if (books.length > 0) {
-      syncWidgetData({ books, goal, highlights: allHighlights })
-      rescheduleAllNotifications({ books, highlights: allHighlights, goal })
-    }
-  }, [books, goal, allHighlights])
+    if (!booksReady || books.length === 0) return
+    syncWidgetData({ books, goal, highlights: allHighlights })
+    rescheduleAllNotifications({ books, highlights: allHighlights, goal })
+  }, [booksReady, books, goal, allHighlights])
 
   function shuffleHighlight() {
     if (allHighlights.length <= 1) return

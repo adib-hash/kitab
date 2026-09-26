@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { BookOpen, BarChart2, Swords, Settings, Moon, Sun, ChevronLeft, BookMarked, Home, Search, Compass, Quote } from 'lucide-react'
 import { useUIStore } from '../../store/uiStore'
+import { useShallow } from 'zustand/react/shallow'
 import { useTags } from '../../hooks/useTags'
 import { clsx } from 'clsx'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -50,7 +51,9 @@ function NavItem({ item, collapsed }) {
 }
 
 export function Sidebar({ onSearch }) {
-  const { sidebarOpen, toggleSidebar, darkMode, toggleDarkMode, setLibraryFilters } = useUIStore()
+  const { sidebarOpen, toggleSidebar, darkMode, toggleDarkMode, setLibraryFilters } = useUIStore(useShallow(s => ({
+    sidebarOpen: s.sidebarOpen, toggleSidebar: s.toggleSidebar, darkMode: s.darkMode, toggleDarkMode: s.toggleDarkMode, setLibraryFilters: s.setLibraryFilters,
+  })))
   const { data: tags = [] } = useTags()
   const collapsed = !sidebarOpen
 

@@ -5,6 +5,7 @@ import { StarRating } from './StarRating'
 import { StatusBadge } from './StatusBadge'
 import { QuickActionsSheet } from '../ui/QuickActionsSheet'
 import { BookForm } from './BookForm'
+import { ReviewModal } from './ReviewModal'
 import { useLongPress } from '../../hooks/useLongPress'
 
 const STATUS_DOT = {
@@ -17,6 +18,7 @@ export const BookCard = memo(function BookCard({ book }) {
   const navigate = useNavigate()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
+  const [reviewOpen, setReviewOpen] = useState(false)
   const [formTab, setFormTab] = useState('details')
 
   const longPress = useLongPress(() => setSheetOpen(true))
@@ -52,20 +54,32 @@ export const BookCard = memo(function BookCard({ book }) {
         </div>
       </div>
 
-      <QuickActionsSheet
-        book={book}
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        onOpenForm={(tab) => { setSheetOpen(false); setFormTab(tab); setFormOpen(true) }}
-      />
-      <BookForm
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        initialBook={book}
-        editingId={book.id}
-        editingTags={book.tags}
-        defaultTab={formTab}
-      />
+      {/* Mounted only while open. A grid of 300 cards otherwise carries 300
+          sheets and 300 forms, each with mutation hooks and effects, for the
+          one card that gets long-pressed. (Trade-off: no exit animation.) */}
+      {sheetOpen && (
+        <QuickActionsSheet
+          book={book}
+          open
+          onClose={() => setSheetOpen(false)}
+          onOpenForm={(tab) => { setFormTab(tab); setFormOpen(true) }}
+          onOpenReview={() => setReviewOpen(true)}
+        />
+      )}
+      {formOpen && (
+        <BookForm
+          open
+          onClose={() => setFormOpen(false)}
+          initialBook={book}
+          editingId={book.id}
+          editingTags={book.tags}
+          defaultTab={formTab}
+          onOpenReview={() => { setFormOpen(false); setReviewOpen(true) }}
+        />
+      )}
+      {reviewOpen && (
+        <ReviewModal open onClose={() => setReviewOpen(false)} book={book} />
+      )}
     </>
   )
 })

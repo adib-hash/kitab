@@ -5,6 +5,7 @@ import { QueryClient } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { supabase } from './lib/supabase'
 import { useUIStore } from './store/uiStore'
+import { useShallow } from 'zustand/react/shallow'
 import { useNetworkStatus } from './hooks/useNetworkStatus'
 import { startQueueReplay } from './lib/offlineQueue'
 
@@ -118,7 +119,7 @@ function ProtectedRoute({ session, children }) {
 }
 
 function ReviewPrompt() {
-  const { reviewPromptBook, clearReviewPromptBook } = useUIStore()
+  const { reviewPromptBook, clearReviewPromptBook } = useUIStore(useShallow(s => ({ reviewPromptBook: s.reviewPromptBook, clearReviewPromptBook: s.clearReviewPromptBook })))
   const [reviewOpen, setReviewOpen] = useState(false)
   if (!reviewPromptBook) return null
   return (
@@ -169,7 +170,7 @@ export default function App() {
   const [showShareSearch, setShowShareSearch] = useState(false)
   const [sharePreviewBook, setSharePreviewBook] = useState(null)
   const [showShareForm, setShowShareForm] = useState(false)
-  const { initDarkMode } = useUIStore()
+  const initDarkMode = useUIStore(s => s.initDarkMode)
 
   useEffect(() => {
     initDarkMode()

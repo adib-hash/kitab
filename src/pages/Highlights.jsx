@@ -1,37 +1,21 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import { Quote, Search, X } from 'lucide-react'
 import { useAllHighlights, useDeleteHighlight } from '../hooks/useHighlights'
 import { useLibrary } from '../hooks/useLibrary'
+import { useDebounce } from '../hooks/useDebounce'
 import { BookCover } from '../components/books/BookCover'
 import { EmptyState } from '../components/ui/index.jsx'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
-
-function useDebounce(value, delay) {
-  const [debounced, setDebounced] = useState(value)
-  useState(() => {
-    const timer = setTimeout(() => setDebounced(value), delay)
-    return () => clearTimeout(timer)
-  })
-  // Use useCallback to wrap the setter properly
-  return debounced
-}
 
 export function Highlights() {
   const { data: highlights = [], isLoading } = useAllHighlights()
   const { data: books = [] } = useLibrary()
   const deleteHighlight = useDeleteHighlight()
 
-  const [rawQuery, setRawQuery] = useState('')
+  const [query, setQuery] = useState('')
+  const rawQuery = useDebounce(query, 200)
   const [selectedBookId, setSelectedBookId] = useState('all')
-  const [queryDisplay, setQueryDisplay] = useState('')
-
-  // Simple debounce via useCallback pattern
-  const handleQueryChange = useCallback((val) => {
-    setQueryDisplay(val)
-    const timer = setTimeout(() => setRawQuery(val), 200)
-    return () => clearTimeout(timer)
-  }, [])
 
   // Books that have highlights
   const booksWithHighlights = useMemo(() => {
@@ -82,15 +66,15 @@ export function Highlights() {
         <div className="relative flex-1">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
           <input
-            value={queryDisplay}
-            onChange={e => handleQueryChange(e.target.value)}
+            value={query}
+            onChange={e => setQuery(e.target.value)}
             placeholder="Search highlights..."
             className="input pl-9 w-full"
             style={{ fontSize: '16px' }}
           />
-          {queryDisplay && (
+          {query && (
             <button
-              onClick={() => { setQueryDisplay(''); setRawQuery('') }}
+              onClick={() => setQuery('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600"
             >
               <X size={14} />

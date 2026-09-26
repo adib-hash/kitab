@@ -17,9 +17,9 @@ const STATUS_OPTIONS = [
   { value: 'dnf',     label: 'Did Not Finish',      icon: XCircle,      color: 'text-rose-500 dark:text-rose-400' },
 ]
 
-export function QuickActionsSheet({ book, open, onClose }) {
+export function QuickActionsSheet({ book, open, onClose, onOpenForm, onOpenReview }) {
   const updateBook = useUpdateBook()
-  const { setReviewPromptBook } = useUIStore()
+  const setReviewPromptBook = useUIStore(s => s.setReviewPromptBook)
   const [ratingOpen, setRatingOpen]   = useState(false)
   const [statusOpen, setStatusOpen]   = useState(false)
   const [formOpen, setFormOpen]       = useState(false)
@@ -96,14 +96,18 @@ export function QuickActionsSheet({ book, open, onClose }) {
     if (!book.review) setReviewPromptBook({ id: book.id, title: book.title })
   }
 
+  // When the caller owns a BookForm / ReviewModal (BookCard does), hand off to
+  // it so the sheet can be unmounted while closed; otherwise use our own.
   function openForm() {
-    setFormOpen(true)
     onClose()
+    if (onOpenForm) return onOpenForm('details')
+    setFormOpen(true)
   }
 
   function openReview() {
-    setReviewOpen(true)
     onClose()
+    if (onOpenReview) return onOpenReview()
+    setReviewOpen(true)
   }
 
   const currentStatus = STATUS_OPTIONS.find(s => s.value === book.status)

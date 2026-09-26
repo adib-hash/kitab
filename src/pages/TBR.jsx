@@ -235,11 +235,13 @@ function SortableBook({ book }) {
         </div>
       )}
 
-      <QuickActionsSheet
-        book={book}
-        open={quickActionsOpen}
-        onClose={() => setQuickActionsOpen(false)}
-      />
+      {quickActionsOpen && (
+        <QuickActionsSheet
+          book={book}
+          open
+          onClose={() => setQuickActionsOpen(false)}
+        />
+      )}
     </>
   )
 }

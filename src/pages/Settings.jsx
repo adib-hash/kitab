@@ -6,6 +6,7 @@ import { useLibrary, useUpdateBook } from '../hooks/useLibrary'
 import { useTags, useUpdateTag, useDeleteTag, useReadingGoal } from '../hooks/useTags'
 import { Button } from '../components/ui/index.jsx'
 import { useUIStore } from '../store/uiStore'
+import { useShallow } from 'zustand/react/shallow'
 import { buildGoodreadsCSV } from '../lib/utils'
 import { searchBooks } from '../lib/googleBooks'
 import { findCoverUrl } from '../lib/openLibrary'
@@ -492,7 +493,7 @@ export function Settings() {
   const [editName, setEditName] = useState('')
   const [importing, setImporting] = useState(false)
   const [tagsOpen, setTagsOpen] = useState(false)
-  const { librarySlug, setLibrarySlug } = useUIStore()
+  const { librarySlug, setLibrarySlug } = useUIStore(useShallow(s => ({ librarySlug: s.librarySlug, setLibrarySlug: s.setLibrarySlug })))
   const [slugInput, setSlugInput] = useState(librarySlug || '')
   const thisYear = new Date().getFullYear()
   const { data: goal } = useReadingGoal(thisYear)

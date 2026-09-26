@@ -3,6 +3,7 @@ import { LayoutGrid, List, Plus, SlidersHorizontal, SearchX } from 'lucide-react
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLibrary } from '../hooks/useLibrary'
 import { useUIStore } from '../store/uiStore'
+import { useShallow } from 'zustand/react/shallow'
 import { BookCard } from '../components/books/BookCard'
 import { BookRow } from '../components/books/BookRow'
 import { LibraryFilters } from '../components/library/LibraryFilters'
@@ -36,7 +37,10 @@ const SORT_LABELS = {
 
 export function Library() {
   const { data: books = [], isLoading } = useLibrary()
-  const { libraryView, setLibraryView, librarySort, setLibrarySort, libraryFilters, librarySearch } = useUIStore()
+  const { libraryView, setLibraryView, librarySort, setLibrarySort, libraryFilters, librarySearch } = useUIStore(useShallow(s => ({
+    libraryView: s.libraryView, setLibraryView: s.setLibraryView, librarySort: s.librarySort, setLibrarySort: s.setLibrarySort,
+    libraryFilters: s.libraryFilters, librarySearch: s.librarySearch,
+  })))
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [formOpen, setFormOpen] = useState(false)

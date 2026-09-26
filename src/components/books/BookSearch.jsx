@@ -3,19 +3,11 @@ import { Search, Loader2, BookOpen, ArrowRight, ExternalLink } from 'lucide-reac
 import { Modal } from '../ui/index.jsx'
 import { searchCatalog as searchBooks, searchCatalogByISBN as searchByISBN } from '../../lib/bookSearch'
 import { BookCover } from './BookCover'
+import { useDebounce } from '../../hooks/useDebounce'
 
 // @zxing is only needed once someone taps the barcode icon; keep it out of the
 // main bundle (BookSearch is reachable from the always-mounted GlobalSearch).
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal').then(m => ({ default: m.BarcodeScannerModal })))
-
-function useDebounce(value, delay) {
-  const [deb, setDeb] = useState(value)
-  useEffect(() => {
-    const t = setTimeout(() => setDeb(value), delay)
-    return () => clearTimeout(t)
-  }, [value, delay])
-  return deb
-}
 
 // Inline barcode SVG icon — Lucide doesn't have one
 function BarcodeIcon({ size = 18 }) {

@@ -34,8 +34,12 @@ export function useLibrary() {
 
 // ── Fetch single book ──────────────────────────────────────────────────
 export function useBook(id) {
+  const qc = useQueryClient()
   return useQuery({
     queryKey: ['book', id],
+    // The row is almost always already in ['books']; show it while the fresh
+    // fetch runs instead of a skeleton.
+    placeholderData: () => qc.getQueryData(['books'])?.find(b => b.id === id),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('books')

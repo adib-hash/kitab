@@ -11,7 +11,7 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
   const [added, setAdded] = useState(inLibrary)
   const [tagIds, setTagIds] = useState([])
   const addBook = useAddBook()
-  const { librarySlug } = useUIStore()
+  const librarySlug = useUIStore(s => s.librarySlug)
 
   const libbySuffix = book ? encodeURIComponent(`${book.title} ${book.author}`) : ''
   const libbyUrl = librarySlug

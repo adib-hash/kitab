@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Search, X, ChevronDown } from 'lucide-react'
 import { useUIStore } from '../../store/uiStore'
+import { useShallow } from 'zustand/react/shallow'
 import { useTags } from '../../hooks/useTags'
 import { clsx } from 'clsx'
 
@@ -28,7 +29,10 @@ const RATING_OPTIONS = [
 ]
 
 export function LibraryFilters() {
-  const { librarySort, libraryFilters, librarySearch, setLibrarySort, setLibraryFilters, setLibrarySearch, clearLibraryFilters } = useUIStore()
+  const { librarySort, libraryFilters, librarySearch, setLibrarySort, setLibraryFilters, setLibrarySearch, clearLibraryFilters } = useUIStore(useShallow(s => ({
+    librarySort: s.librarySort, libraryFilters: s.libraryFilters, librarySearch: s.librarySearch,
+    setLibrarySort: s.setLibrarySort, setLibraryFilters: s.setLibraryFilters, setLibrarySearch: s.setLibrarySearch, clearLibraryFilters: s.clearLibraryFilters,
+  })))
   const { data: tags = [] } = useTags()
   const [tagsOpen, setTagsOpen] = useState(false)
 
