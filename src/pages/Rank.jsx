@@ -20,6 +20,14 @@ function calcElo(winnerElo, loserElo) {
   }
 }
 
+// Books with ELO defaults if null
+const withElo = b => ({
+  ...b,
+  elo: b.elo ?? 1500,
+  elo_wins: b.elo_wins ?? 0,
+  elo_losses: b.elo_losses ?? 0,
+})
+
 // ── PAIR PICKER ───────────────────────────────────────────────────────────────
 function pickPair(books, seen) {
   const sorted = [...books].sort((a, b) => b.elo - a.elo)
@@ -166,14 +174,7 @@ export function Rank() {
   const [selectedTag, setSelectedTag] = useState(null)
 
   const readBooks = books.filter(b => b.status === 'read')
-
-  // Books with ELO defaults if null
-  const booksWithElo = readBooks.map(b => ({
-    ...b,
-    elo: b.elo ?? 1500,
-    elo_wins: b.elo_wins ?? 0,
-    elo_losses: b.elo_losses ?? 0,
-  }))
+  const booksWithElo = readBooks.map(withElo)
 
   const tagFilteredBooks = selectedTag
     ? booksWithElo.filter(b => b.tags?.some(t => t.id === selectedTag))
@@ -196,7 +197,10 @@ export function Rank() {
 
     const { winnerNew, loserNew } = calcElo(chosenBook.elo, otherBook.elo)
 
-    // Optimistically update pair display, then persist to Supabase
+    // useUpdateBook patches the cache optimistically (and rolls back on error),
+    // so the next pair can be built from the cache rather than from this
+    // render's closure — which used to hold pre-refetch ELOs for books ranked
+    // a pick or two earlier and could overwrite a saved score with a stale one.
     try {
       await Promise.all([
         updateBook.mutateAsync({
@@ -209,15 +213,13 @@ export function Rank() {
         }),
       ])
     } catch {
-      toast.error('Failed to save result — check your connection')
+      // useUpdateBook already showed the error toast and rolled the cache back.
     }
 
     setTimeout(() => {
-      const updatedBooksWithElo = booksWithElo.map(b => {
-        if (b.id === chosenBook.id) return { ...b, elo: winnerNew, elo_wins: (b.elo_wins ?? 0) + 1 }
-        if (b.id === otherBook.id) return { ...b, elo: loserNew, elo_losses: (b.elo_losses ?? 0) + 1 }
-        return b
-      })
+      const updatedBooksWithElo = (qc.getQueryData(['books']) || [])
+        .filter(b => b.status === 'read')
+        .map(withElo)
       const updatedFiltered = selectedTag
         ? updatedBooksWithElo.filter(b => b.tags?.some(t => t.id === selectedTag))
         : updatedBooksWithElo

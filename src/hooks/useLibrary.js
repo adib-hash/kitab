@@ -83,22 +83,27 @@ export function useAddBook() {
       if (error) throw error
 
       if (tagIds.length) {
-        await supabase.from('book_tags').insert(
+        const { error: tagErr } = await supabase.from('book_tags').insert(
           tagIds.map(tag_id => ({ book_id: data.id, tag_id }))
         )
+        if (tagErr) throw tagErr
       }
 
       return data
     },
     onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ['books'] })
       toast.success(`"${data.title}" added to your library`, { id: 'book-added' })
     },
     onError: (err) => toast.error(`Failed to add book: ${err.message}`),
+    // The book row is inserted before the tags, so refetch even on error.
+    onSettled: () => qc.invalidateQueries({ queryKey: ['books'] }),
   })
 }
 
 // ── Update book ────────────────────────────────────────────────────────
+// Optimistic: the cache is patched before the network call, so a rating, a
+// status change or an ELO vote shows instantly and doesn't trigger a refetch
+// of the whole library (with its tags join) on every save. Rolled back on error.
 export function useUpdateBook() {
   const qc = useQueryClient()
   return useMutation({
@@ -112,21 +117,47 @@ export function useUpdateBook() {
 
       if (error) throw error
 
-      // If tags provided, replace them
+      // If tags provided, replace them. Both writes are checked: the old code
+      // ignored a failed insert, which could silently wipe a book's tags.
       if (tagIds !== undefined) {
-        await supabase.from('book_tags').delete().eq('book_id', id)
+        const { error: delErr } = await supabase.from('book_tags').delete().eq('book_id', id)
+        if (delErr) throw delErr
         if (tagIds.length) {
-          await supabase.from('book_tags').insert(
+          const { error: insErr } = await supabase.from('book_tags').insert(
             tagIds.map(tag_id => ({ book_id: id, tag_id }))
           )
+          if (insErr) throw insErr
         }
       }
 
       return data
     },
-    onSuccess: (data) => {
+    onMutate: async ({ id, updates }) => {
+      await qc.cancelQueries({ queryKey: ['books'] })
+      await qc.cancelQueries({ queryKey: ['book', id] })
+      const prevBooks = qc.getQueryData(['books'])
+      const prevBook  = qc.getQueryData(['book', id])
+      if (prevBooks) qc.setQueryData(['books'], prevBooks.map(b => (b.id === id ? { ...b, ...updates } : b)))
+      if (prevBook)  qc.setQueryData(['book', id], { ...prevBook, ...updates })
+      return { prevBooks, prevBook, id }
+    },
+    onError: (err, _vars, ctx) => {
+      if (ctx?.prevBooks) qc.setQueryData(['books'], ctx.prevBooks)
+      if (ctx?.prevBook)  qc.setQueryData(['book', ctx.id], ctx.prevBook)
+      // A sibling mutation may have landed in between; resync with the server.
       qc.invalidateQueries({ queryKey: ['books'] })
-      qc.invalidateQueries({ queryKey: ['book', data.id] })
+      toast.error(`Failed to update: ${err.message}`)
+    },
+    onSuccess: (data, { id, tagIds }) => {
+      // `data` is the bare row (no tags join), so spreading it over the cached
+      // item keeps the flattened `tags` array intact.
+      const merge = row => (row ? { ...row, ...data } : row)
+      qc.setQueryData(['books'], old => (old ? old.map(b => (b.id === id ? merge(b) : b)) : old))
+      qc.setQueryData(['book', id], old => merge(old))
+      if (tagIds !== undefined) {
+        qc.invalidateQueries({ queryKey: ['books'] })
+        qc.invalidateQueries({ queryKey: ['book', id] })
+      }
       // Check goal milestones when a book is marked as read
       if (data.status === 'read') {
         const books = qc.getQueryData(['books']) || []
@@ -139,7 +170,6 @@ export function useUpdateBook() {
         if (goal?.target) checkGoalMilestones(booksRead, goal.target)
       }
     },
-    onError: (err) => toast.error(`Failed to update: ${err.message}`),
   })
 }
 
@@ -165,11 +195,26 @@ export function useReorderTBR() {
   return useMutation({
     mutationFn: async (orderedIds) => {
       // Assign sparse orders: 1000, 2000, 3000...
-      const updates = orderedIds.map((id, i) =>
+      const results = await Promise.all(orderedIds.map((id, i) =>
         supabase.from('books').update({ tbr_order: (i + 1) * 1000 }).eq('id', id)
-      )
-      await Promise.all(updates)
+      ))
+      // Supabase builders resolve to { error } rather than rejecting, so
+      // Promise.all alone never surfaced a failed row.
+      const failed = results.find(r => r.error)
+      if (failed) throw failed.error
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['books'] }),
+    onMutate: async (orderedIds) => {
+      await qc.cancelQueries({ queryKey: ['books'] })
+      const prev = qc.getQueryData(['books'])
+      const pos = new Map(orderedIds.map((id, i) => [id, (i + 1) * 1000]))
+      if (prev) qc.setQueryData(['books'], prev.map(b => (pos.has(b.id) ? { ...b, tbr_order: pos.get(b.id) } : b)))
+      return { prev }
+    },
+    onError: (err, _ids, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['books'], ctx.prev)
+      qc.invalidateQueries({ queryKey: ['books'] })
+      toast.error(`Couldn't save the new order: ${err.message}`)
+    },
+    // No refetch on success: the optimistic order is exactly what was written.
   })
 }

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { Plus, GripVertical, Shuffle, BookOpen, Trash2, Bookmark, ArrowRight } from 'lucide-react'
 import { impactMedium } from '../lib/haptics'
 import {
@@ -295,14 +295,12 @@ export function TBR() {
   const [selectedBook, setSelectedBook] = useState(null)
   const [shufflePick, setShufflePick]   = useState(null)
 
-  const tbrBooks = books
+  // useReorderTBR patches tbr_order in the cache optimistically, so the sorted
+  // list IS the display order — no separate local order to keep in sync (the
+  // old localOrder was never reset, so a book added after a drag didn't render).
+  const tbrBooks = useMemo(() => books
     .filter(b => b.status === 'tbr')
-    .sort((a, b) => (a.tbr_order || 0) - (b.tbr_order || 0))
-
-  const [localOrder, setLocalOrder] = useState(null)
-  const displayBooks = localOrder
-    ? localOrder.map(id => tbrBooks.find(b => b.id === id)).filter(Boolean)
-    : tbrBooks
+    .sort((a, b) => (a.tbr_order || 0) - (b.tbr_order || 0)), [books])
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -312,16 +310,14 @@ export function TBR() {
 
   function handleDragEnd({ active, over }) {
     if (!over || active.id === over.id) return
-    const ids = displayBooks.map(b => b.id)
-    const newOrder = arrayMove(ids, ids.indexOf(active.id), ids.indexOf(over.id))
-    setLocalOrder(newOrder)
-    reorderTBR.mutate(newOrder)
+    const ids = tbrBooks.map(b => b.id)
+    reorderTBR.mutate(arrayMove(ids, ids.indexOf(active.id), ids.indexOf(over.id)))
   }
 
   function handleShuffle(exclude = null) {
-    if (displayBooks.length < 2) return
-    const pool = exclude ? displayBooks.filter(b => b.id !== exclude.id) : displayBooks
-    const candidates = pool.length > 0 ? pool : displayBooks
+    if (tbrBooks.length < 2) return
+    const pool = exclude ? tbrBooks.filter(b => b.id !== exclude.id) : tbrBooks
+    const candidates = pool.length > 0 ? pool : tbrBooks
     setShufflePick(candidates[Math.floor(Math.random() * candidates.length)])
   }
 
@@ -343,7 +339,7 @@ export function TBR() {
         <div className="flex items-center gap-2">
           {tbrBooks.length >= 2 && (
             <button
-              onClick={handleShuffle}
+              onClick={() => handleShuffle()}
               className="p-2 rounded-xl border border-paper-200 dark:border-ink-600 text-ink-500 dark:text-ink-400 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors"
               title="Pick a random book"
             >
@@ -381,9 +377,9 @@ export function TBR() {
         />
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} onDragStart={() => impactMedium()}>
-          <SortableContext items={displayBooks.map(b => b.id)} strategy={verticalListSortingStrategy}>
+          <SortableContext items={tbrBooks.map(b => b.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-2">
-              {displayBooks.map(book => <SortableBook key={book.id} book={book} />)}
+              {tbrBooks.map(book => <SortableBook key={book.id} book={book} />)}
             </div>
           </SortableContext>
         </DndContext>
