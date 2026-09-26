@@ -73,9 +73,16 @@ export function shouldFullSweep() {
  * partial run would be correct here too, but keeping it to full sweeps means one
  * less way for a mid-run failure to corrupt the map.
  */
-export function applyScrapeResult({ bookCounts = {}, seenTitles = [], fullSweep = false }) {
+export function applyScrapeResult({ bookCounts = {}, seenTitles = [], fullSweep = false, excludeTitles = [] }) {
+  // Books whose highlights failed to save must not be recorded as scraped, or
+  // the incremental run would skip them for up to 30 days. excludeTitles are the
+  // raw titles from the highlight rows; bookCounts is keyed by normalized title.
+  const drop = new Set(excludeTitles.map(normalizeTitle))
+  const counts = drop.size
+    ? Object.fromEntries(Object.entries(bookCounts).filter(([k]) => !drop.has(k)))
+    : bookCounts
   const state = getSyncState()
-  const known = { ...state.knownBooks, ...bookCounts }
+  const known = { ...state.knownBooks, ...counts }
 
   if (fullSweep && seenTitles.length > 0) {
     const present = new Set(seenTitles)

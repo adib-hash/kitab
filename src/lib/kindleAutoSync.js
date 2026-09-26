@@ -65,7 +65,7 @@ export async function getBackgroundStatus() {
 
 /** Push a batch of scraped highlights into Supabase via the shared upsert. */
 async function importHighlights(highlights, books) {
-  if (!highlights || highlights.length === 0) return { totalHighlights: 0, unmatched: 0 }
+  if (!highlights || highlights.length === 0) return { totalHighlights: 0, unmatched: 0, failedTitles: [] }
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not logged in')
   return upsertHighlights(user, books, highlights)
@@ -91,6 +91,7 @@ async function drainPending(books) {
     bookCounts: pending.bookCounts,
     seenTitles: pending.seenTitles,
     fullSweep: pending.fullSweep,
+    excludeTitles: result.failedTitles,
   })
   return { ...result, drained: true }
 }
@@ -118,6 +119,7 @@ async function runHeadlessSync(books) {
     bookCounts: scraped.bookCounts,
     seenTitles: scraped.seenTitles,
     fullSweep: config.fullSweep,
+    excludeTitles: result.failedTitles,
   })
   return { ...result, status: 'ok' }
 }

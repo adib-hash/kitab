@@ -78,26 +78,37 @@ export function useKindleSyncFlow() {
             return
           }
 
-          // Record what we covered even when nothing new turned up — that is
-          // what lets the next run skip these books.
-          applyScrapeResult({
+          const highlights = detail.highlights || []
+          const scrape = {
             bookCounts: detail.bookCounts,
             seenTitles: detail.seenTitles,
             fullSweep: config.fullSweep,
-          })
+          }
 
+          // Record what we covered — that is what lets the next run skip these
+          // books — but only AFTER the highlights are safely in Supabase.
+          // Marking first meant a failed import silently skipped those books
+          // for up to 30 days.
+          //
           // The first manual sync is what establishes the Amazon session, so it
           // is also what arms the nightly background task — and every later one
-          // hands it a wider known-book map to skip.
-          configureBackgroundSync({ books })
-
-          const highlights = detail.highlights || []
+          // hands it a wider known-book map to skip. configureBackgroundSync
+          // reads knownBooks, so it must follow applyScrapeResult.
           if (highlights.length === 0) {
+            applyScrapeResult(scrape)
+            configureBackgroundSync({ books })
             toast(detail.visited === 0
               ? 'Already up to date.'
               : 'No new highlights found.')
-          } else {
-            kindleSync.mutate({ highlights })
+            return
+          }
+          try {
+            const { failedTitles = [] } = await kindleSync.mutateAsync({ highlights })
+            applyScrapeResult({ ...scrape, excludeTitles: failedTitles })
+            configureBackgroundSync({ books })
+          } catch {
+            // useKindleSync.onError already showed the toast.
+            saveSyncState({ lastStatus: 'error' })
           }
         }
       })

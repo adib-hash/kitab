@@ -197,8 +197,11 @@ function clippingHash(bookTitle, location, text) {
   return h.toString()
 }
 
-// Shared upsert logic — returns { totalHighlights, unmatched } where totalHighlights
-// is the count of *newly inserted* rows (duplicates silently skipped by ON CONFLICT DO NOTHING)
+// Shared upsert logic — returns { totalHighlights, unmatched, failedTitles }.
+// totalHighlights is the count of *newly inserted* rows (duplicates are silently
+// skipped by ON CONFLICT DO NOTHING). failedTitles lists the raw book titles whose
+// upsert errored; callers must leave those out of the "already scraped" map so
+// the next sync re-opens them. Throws only if every book failed.
 export async function upsertHighlights(user, kitabBooks, highlights) {
   const byBook = {}
   for (const h of highlights) {
@@ -207,12 +210,12 @@ export async function upsertHighlights(user, kitabBooks, highlights) {
   }
 
   let totalHighlights = 0, unmatched = 0
+  const failedTitles = []
   for (const [bookTitle, group] of Object.entries(byBook)) {
     const matchedBookId = matchBook(
       { title: bookTitle, author: group.bookAuthor },
       kitabBooks || []
     )
-    if (!matchedBookId) unmatched++
 
     const rows = group.highlights.map(h => ({
       user_id: user.id,
@@ -230,10 +233,17 @@ export async function upsertHighlights(user, kitabBooks, highlights) {
       .from('highlights')
       .upsert(rows, { onConflict: 'clipping_hash', ignoreDuplicates: true })
       .select('id')
+    if (error) { failedTitles.push(bookTitle); continue }
+    if (!matchedBookId) unmatched++
     // data contains only the rows that were actually inserted (not skipped duplicates)
-    if (!error) totalHighlights += data?.length ?? 0
+    totalHighlights += data?.length ?? 0
   }
-  return { totalHighlights, unmatched }
+
+  const bookCount = Object.keys(byBook).length
+  if (bookCount > 0 && failedTitles.length === bookCount) {
+    throw new Error(`Could not save highlights for ${bookCount} book${bookCount === 1 ? '' : 's'}`)
+  }
+  return { totalHighlights, unmatched, failedTitles }
 }
 
 export function useKindleSync() {
@@ -246,9 +256,11 @@ export function useKindleSync() {
         .from('books').select('id, title, author').eq('user_id', user.id)
       return upsertHighlights(user, kitabBooks, highlights)
     },
-    onSuccess: ({ totalHighlights, unmatched }) => {
-      localStorage.setItem('kindle_last_sync', new Date().toISOString())
-      localStorage.removeItem('kindle_sync_reminder_sent_at')
+    onSuccess: ({ totalHighlights, unmatched, failedTitles = [] }) => {
+      try {
+        localStorage.setItem('kindle_last_sync', new Date().toISOString())
+        localStorage.removeItem('kindle_sync_reminder_sent_at')
+      } catch {}
       qc.invalidateQueries({ queryKey: ['highlights'] })
       qc.invalidateQueries({ queryKey: ['highlight_count'] })
       qc.invalidateQueries({ queryKey: ['highlights_unmatched'] })
@@ -256,6 +268,12 @@ export function useKindleSync() {
       const msg = `${totalHighlights} new highlight${totalHighlights !== 1 ? 's' : ''} imported`
         + (unmatched > 0 ? ` · ${unmatched} unmatched` : '')
       toast.success(msg, { duration: 5000 })
+      if (failedTitles.length) {
+        toast.error(
+          `${failedTitles.length} book${failedTitles.length === 1 ? '' : 's'} could not be saved — will retry next sync`,
+          { duration: 6000 }
+        )
+      }
     },
     onError: (err) => toast.error(err.message),
   })
