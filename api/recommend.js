@@ -1,6 +1,11 @@
 // Vercel Serverless Function — proxies the Discovery recommendation call server-side
 // so API keys are never exposed to the client.
 //
+// Requires a signed-in Kitab user: the client sends its Supabase access token as
+// `Authorization: Bearer <token>` and we verify it against Supabase Auth before
+// spending any model credit. Vercel publishes every file in api/ as a public
+// route, so without this check anyone could run prompts on our keys.
+//
 // Primary model:  Gemini 3.5 Flash (Google Generative Language API, free tier).
 // Fallback model: Claude Haiku 4.5 — used only when GEMINI_API_KEY is not set,
 //                 so the feature never breaks while the Vercel env var rolls out.
@@ -9,12 +14,13 @@
 //   data.content.find(b => b.type === 'text').text
 
 const GEMINI_MODEL = 'gemini-3.5-flash'
+const MAX_PROMPT_CHARS = 20000
 
 export default async function handler(req, res) {
   // CORS — needed for iOS Capacitor (origin: capacitor://localhost)
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   if (req.method === 'OPTIONS') return res.status(200).end()
 
   if (req.method !== 'POST') {
@@ -22,9 +28,17 @@ export default async function handler(req, res) {
   }
 
   const { prompt } = req.body || {}
-  if (!prompt) {
-    return res.status(400).json({ error: `Missing prompt. Received keys: ${Object.keys(req.body || {}).join(', ')}` })
+  if (!prompt || typeof prompt !== 'string') {
+    return res.status(400).json({ error: 'Missing prompt' })
   }
+  if (prompt.length > MAX_PROMPT_CHARS) {
+    return res.status(413).json({ error: 'Prompt too long' })
+  }
+
+  const authEnv = getAuthEnv()
+  if (!authEnv) return res.status(500).json({ error: 'Server auth is not configured' })
+  const user = await verifySupabaseUser(req, authEnv)
+  if (!user) return res.status(401).json({ error: 'Sign in required' })
 
   try {
     let text
@@ -119,15 +133,21 @@ async function callHaiku(prompt, apiKey) {
 }
 
 // --- Caller verification ---
-// Asks Supabase Auth who the bearer token belongs to. Any failure (no token,
-// missing env, network error, expired session) returns null → 401. The anon key
-// is the same public key the frontend ships with; it only identifies the project.
-async function verifySupabaseUser(req) {
-  const auth = req.headers.authorization || ''
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
+// The anon key is the same public key the frontend ships with; it only
+// identifies the project. Missing env is reported as a 500 by the handler so
+// a misconfigured deploy is distinguishable from an unauthenticated call.
+function getAuthEnv() {
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
   const anon = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
-  if (!token || !url || !anon) return null
+  return url && anon ? { url, anon } : null
+}
+
+// Asks Supabase Auth who the bearer token belongs to. Any failure (no token,
+// network error, expired session) returns null → 401.
+async function verifySupabaseUser(req, { url, anon }) {
+  const auth = req.headers.authorization || ''
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
+  if (!token) return null
   try {
     const r = await fetch(`${url}/auth/v1/user`, {
       headers: { apikey: anon, Authorization: `Bearer ${token}` },
