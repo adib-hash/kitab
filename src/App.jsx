@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { QueryClient } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { supabase } from './lib/supabase'
@@ -148,6 +148,23 @@ function ReviewPrompt() {
       )}
     </>
   )
+}
+
+// Widgets link to kitab://library/<id> and kitab://stats. Only kitab://add
+// (the share extension) was handled before, so tapping a widget just opened
+// the app on whatever screen it was last on.
+function DeepLinks() {
+  const navigate = useNavigate()
+  useEffect(() => {
+    const handle = CapacitorApp.addListener('appUrlOpen', ({ url }) => {
+      const m = url.match(/^kitab:\/\/(library|stats|highlights)(?:\/([^/?#]+))?/)
+      if (!m) return
+      if (m[1] === 'library' && m[2]) navigate(`/library/${m[2]}`)
+      else navigate(`/${m[1]}`)
+    })
+    return () => { handle.then(h => h.remove()).catch(() => {}) }
+  }, [navigate])
+  return null
 }
 
 function OfflineBanner() {
@@ -299,6 +316,7 @@ export default function App() {
     >
       <BrowserRouter>
         <OfflineBanner />
+        {session && <DeepLinks />}
         <Routes>
           <Route path="/login" element={<Auth session={session} />} />
           <Route path="/" element={<ProtectedRoute session={session}><Dashboard /></ProtectedRoute>} />
