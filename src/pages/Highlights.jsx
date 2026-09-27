@@ -56,6 +56,14 @@ function quoteSize(text = '') {
   return 'text-[15px] leading-[1.6]'
 }
 
+// Shelf heading steps down for long titles before it has to truncate.
+function headingSize(title = '') {
+  const n = title.length
+  if (n <= 24) return 'text-lg'
+  if (n <= 36) return 'text-base'
+  return 'text-sm'
+}
+
 async function copyHighlight(h) {
   const who = [h.books?.title, h.books?.author].filter(Boolean).join(' · ')
   try {
@@ -243,7 +251,7 @@ export function Highlights() {
                 <button onClick={() => copyHighlight(today)} aria-label="Copy highlight" className="p-2 rounded-lg text-ink-400 dark:text-ink-500 hover:text-teal-600 hover:bg-paper-50 dark:hover:bg-ink-700 transition-colors"><Copy size={16} /></button>
               </div>
             </div>
-            <p className={clsx('font-serif italic text-ink-900 dark:text-paper-50 text-balance', quoteSize(today.text))}>“{today.text.trim()}”</p>
+            <p className={clsx('selectable font-serif italic text-ink-900 dark:text-paper-50 text-balance', quoteSize(today.text))}>“{today.text.trim()}”</p>
             {today.books && (
               <Link to={`/library/${today.book_id}`} className="flex items-center gap-3 group w-fit">
                 <BookCover book={today.books} size="sm" className="flex-shrink-0 !w-9" />
@@ -259,10 +267,18 @@ export function Highlights() {
 
       {/* Book shelf */}
       <section className="space-y-2">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50">{selectedBook ? selectedBook.title : 'All books'}</h2>
+        {/* Fixed-height, single line: a long title steps its size down and then
+            truncates, so choosing a book never pushes the shelf and pages down. */}
+        <div className="flex items-center justify-between gap-3 h-7">
+          <h2
+            title={selectedBook?.title}
+            className={clsx('font-serif font-semibold text-ink-900 dark:text-paper-50 truncate min-w-0',
+              headingSize(selectedBook ? selectedBook.title : 'All books'))}
+          >
+            {selectedBook ? selectedBook.title : 'All books'}
+          </h2>
           {selectedBook && (
-            <Link to={`/library/${selectedBook.id}`} className="text-xs text-teal-700 dark:text-teal-400 font-medium flex items-center gap-1 hover:underline">
+            <Link to={`/library/${selectedBook.id}`} className="flex-shrink-0 text-xs text-teal-700 dark:text-teal-400 font-medium flex items-center gap-1 hover:underline">
               Open book <ArrowUpRight size={14} />
             </Link>
           )}
@@ -420,7 +436,7 @@ function BookPages({ items, resetKey, onCopy, confirmDelete, setConfirmDelete, o
                 {/* The passage */}
                 <div className="flex-1 min-h-0 overflow-y-auto px-7 flex">
                   <div className="my-auto w-full py-3">
-                    <p className={clsx('page-ink', pageSize(h.text))} style={{ fontFamily: PAGE_FONT, textWrap: 'pretty' }}>{h.text.trim()}</p>
+                    <p className={clsx('page-ink selectable', pageSize(h.text))} style={{ fontFamily: PAGE_FONT, textWrap: 'pretty' }}>{h.text.trim()}</p>
                     {showBook && h.books?.author && (
                       <p className="page-muted mt-5 text-right italic text-[15px]" style={{ fontFamily: PAGE_FONT }}>{h.books.author}</p>
                     )}
@@ -490,7 +506,7 @@ function HighlightList({ items, grouped, query, onCopy, confirmDelete, setConfir
           <ol className="space-y-3">
             {g.items.map(h => (
               <li key={h.id} className="group/hl relative rounded-xl bg-white dark:bg-ink-800 border border-paper-200 dark:border-ink-700 px-5 py-4">
-                <p className="font-serif italic text-[15px] leading-relaxed text-ink-900 dark:text-paper-50 pr-8">“{highlightMatch(h.text.trim(), query)}”</p>
+                <p className="selectable font-serif italic text-[15px] leading-relaxed text-ink-900 dark:text-paper-50 pr-8">“{highlightMatch(h.text.trim(), query)}”</p>
                 {h.note && <p className="mt-2 text-sm text-ink-600 dark:text-ink-300 border-l-2 border-amber-400 pl-3">{highlightMatch(h.note, query)}</p>}
                 <div className="mt-3 flex items-center justify-between gap-3">
                   <span className="text-xs text-ink-500 dark:text-ink-400 truncate">
