@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
-import { Quote, Search, X, Shuffle, Copy, Trash2, ChevronLeft, ChevronRight, ArrowUpRight, LayoutList, GalleryHorizontal } from 'lucide-react'
+import { Quote, Search, X, Shuffle, Copy, Trash2, ChevronLeft, ChevronRight, ArrowUpRight, LayoutList, GalleryHorizontal, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { clsx } from 'clsx'
@@ -9,6 +9,8 @@ import { BookCover } from '../components/books/BookCover'
 import { EmptyState } from '../components/ui/index.jsx'
 import { pickDailyHighlight } from '../lib/dailyHighlight'
 import { impactLight } from '../lib/haptics'
+import { JournalFeed, AddToJournal } from '../components/journal/Journal'
+import { useAllNotes } from '../hooks/useNotes'
 
 const EMPTY = []
 
@@ -42,6 +44,9 @@ export function Highlights() {
   const { data: highlights = EMPTY, isLoading } = useAllHighlights()
   const deleteHighlight = useDeleteHighlight()
 
+  const [section, setSection] = useState('passages') // 'passages' | 'journal'
+  const [addOpen, setAddOpen] = useState(false)
+  const { data: notes = EMPTY } = useAllNotes()
   const [view, setView] = useState('cards')        // 'cards' | 'list'
   const [bookId, setBookId] = useState('all')
   const [shuffleSeed, setShuffleSeed] = useState(0)
@@ -128,7 +133,10 @@ export function Highlights() {
     return (
       <div className="space-y-4 pb-8">
         <h1 className="page-title">Highlights</h1>
-        <EmptyState icon={<Quote size={48} />} title="No highlights yet" description="Sync your Kindle highlights and they'll collect here." />
+        <EmptyState icon={<Quote size={48} />} title="No highlights yet"
+          description="Sync your Kindle highlights, or save a passage from a paper book."
+          action={<button onClick={() => setAddOpen(true)} className="btn-primary"><Plus size={16} /> Add a passage or note</button>} />
+        <AddToJournal open={addOpen} onClose={() => setAddOpen(false)} />
       </div>
     )
   }
@@ -140,21 +148,25 @@ export function Highlights() {
         <div>
           <h1 className="page-title">Highlights</h1>
           <p className="text-sm text-ink-500 dark:text-ink-400 mt-0.5 tabular-nums">
-            {highlights.length} passages from {books.length} {books.length === 1 ? 'book' : 'books'}
+            {highlights.length} passages{notes.length ? ` · ${notes.length} ${notes.length === 1 ? 'note' : 'notes'}` : ''} from {books.length} {books.length === 1 ? 'book' : 'books'}
           </p>
         </div>
         <div className="flex items-center gap-1.5">
+          <button onClick={() => setAddOpen(true)} aria-label="Add a note or passage"
+            className="h-9 w-9 flex items-center justify-center rounded-lg bg-teal-700 text-white hover:bg-teal-800 transition-colors">
+            <Plus size={18} />
+          </button>
           <button
             onClick={() => { setSearchOpen(o => !o); if (searchOpen) setQuery('') }}
             aria-label={searchOpen ? 'Close search' : 'Search highlights'}
             aria-pressed={searchOpen}
-            className={clsx('h-9 w-9 flex items-center justify-center rounded-lg border transition-colors',
+            className={clsx('h-9 w-9 flex items-center justify-center rounded-lg border transition-colors', section === 'journal' && 'hidden',
               searchOpen ? 'border-teal-500 text-teal-700 bg-teal-50 dark:bg-teal-900/20 dark:text-teal-400'
                 : 'border-paper-200 dark:border-ink-600 text-ink-500 dark:text-ink-400 hover:bg-paper-50 dark:hover:bg-ink-800')}
           >
             <Search size={16} />
           </button>
-          <div className="flex items-center border border-paper-200 dark:border-ink-600 rounded-lg overflow-hidden">
+          <div className={clsx('flex items-center border border-paper-200 dark:border-ink-600 rounded-lg overflow-hidden', section === 'journal' && 'hidden')}>
             {[['cards', GalleryHorizontal, 'Card view'], ['list', LayoutList, 'List view']].map(([v, Icon, label]) => (
               <button key={v} onClick={() => setView(v)} aria-label={label} aria-pressed={view === v}
                 className={clsx('h-9 w-9 flex items-center justify-center transition-colors',
@@ -167,7 +179,18 @@ export function Highlights() {
         </div>
       </div>
 
-      {searchOpen && (
+      {/* Section switch */}
+      <div role="tablist" aria-label="Highlights sections" className="flex rounded-xl bg-paper-100 dark:bg-ink-800 p-1">
+        {[['passages', 'Highlights'], ['journal', 'Journal']].map(([v, l]) => (
+          <button key={v} role="tab" aria-selected={section === v} onClick={() => { setSection(v); impactLight() }}
+            className={clsx('flex-1 py-2 rounded-lg text-base font-medium transition-colors',
+              section === v ? 'bg-white dark:bg-ink-700 text-ink-900 dark:text-paper-50 shadow-sm' : 'text-ink-500 dark:text-ink-400')}>
+            {l}
+          </button>
+        ))}
+      </div>
+
+      {searchOpen && section === 'passages' && (
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
           <input
@@ -187,7 +210,7 @@ export function Highlights() {
       )}
 
       {/* Today */}
-      {!q && today && (
+      {section === 'passages' && !q && today && (
         <section className="relative overflow-hidden rounded-2xl border border-paper-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-6 pt-5">
           <div aria-hidden="true" className="absolute -top-6 -left-1 font-serif text-[120px] leading-none text-teal-500/10 select-none pointer-events-none">“</div>
           <div className="relative space-y-4">
@@ -236,8 +259,10 @@ export function Highlights() {
         </div>
       </section>
 
-      {/* Deck or list */}
-      {ordered.length === 0 ? (
+      {/* Journal, deck or list */}
+      {section === 'journal' ? (
+        <JournalFeed bookId={bookId} />
+      ) : ordered.length === 0 ? (
         <EmptyState icon={<Search size={40} />} title="No matches" description="Try a different word, or clear the book filter." />
       ) : effectiveView === 'cards' ? (
         <Deck
@@ -262,6 +287,7 @@ export function Highlights() {
           onDelete={remove}
         />
       )}
+      <AddToJournal open={addOpen} onClose={() => setAddOpen(false)} defaultBookId={bookId === 'all' ? null : bookId} />
     </div>
   )
 }
@@ -345,11 +371,11 @@ function Deck({ items, resetKey, onShuffle, shuffled, onCopy, confirmDelete, set
                     <BookCover book={h.books} size="sm" className="flex-shrink-0 !w-8" />
                     <span className="min-w-0">
                       <span className="block text-sm font-semibold text-ink-900 dark:text-paper-50 truncate group-hover:text-teal-700 dark:group-hover:text-teal-400">{h.books.title}</span>
-                      <span className="block text-sm text-ink-500 dark:text-ink-400 truncate">{h.location ? `Loc. ${h.location}` : h.books.author}</span>
+                      <span className="block text-sm text-ink-500 dark:text-ink-400 truncate">{h.location ? `Loc. ${h.location}` : h.page ? `p. ${h.page}` : h.books.author}</span>
                     </span>
                   </Link>
                 ) : (
-                  <span className="flex-1 text-sm text-ink-500 dark:text-ink-400 tabular-nums">{h.location ? `Location ${h.location}` : ''}</span>
+                  <span className="flex-1 text-sm text-ink-500 dark:text-ink-400 tabular-nums">{h.location ? `Location ${h.location}` : h.page ? `Page ${h.page}` : ''}</span>
                 )}
                 {confirmDelete === h.id ? (
                   <div className="flex items-center gap-1.5">

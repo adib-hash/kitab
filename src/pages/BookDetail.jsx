@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Edit2, Trash2, ExternalLink, AlertTriangle, ChevronDown, ChevronUp, PenLine, Highlighter } from 'lucide-react'
+import { ArrowLeft, Edit2, Trash2, ExternalLink, AlertTriangle, ChevronDown, ChevronUp, PenLine } from 'lucide-react'
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import { useBook, useDeleteBook, useUpdateBook, useLibrary } from '../hooks/useLibrary'
-import { useHighlights, useHighlightCount, useDeleteHighlight } from '../hooks/useHighlights'
+import { BookJournal } from '../components/journal/Journal'
 import { useUIStore } from '../store/uiStore'
 import { BookCover } from '../components/books/BookCover'
 import { StarRating } from '../components/books/StarRating'
@@ -20,7 +20,6 @@ export function BookDetail() {
   const navigate = useNavigate()
   const { state: navState } = useLocation()
   const { data: book, isLoading } = useBook(id)
-  const { data: hlCount = 0 } = useHighlightCount(id)
   const { data: allBooks = [] } = useLibrary()
   const deleteBook = useDeleteBook()
   const updateBook = useUpdateBook()
@@ -280,7 +279,7 @@ export function BookDetail() {
         </div>
       )}
 
-      <HighlightsSection bookId={id} count={hlCount} autoOpen={!!navState?.openHighlights} />
+      <BookJournal book={book} focus={!!navState?.openHighlights} />
 
       {similar.length > 0 && (
         <div>
@@ -339,64 +338,3 @@ export function BookDetail() {
   )
 }
 
-// ── Highlights section ─────────────────────────────────────────────────────
-function HighlightsSection({ bookId, count, autoOpen = false }) {
-  const [open, setOpen] = useState(autoOpen)
-  useEffect(() => { if (autoOpen) setOpen(true) }, [autoOpen])
-  const { data: highlights = [], isLoading } = useHighlights(open ? bookId : null)
-  const deleteHighlight = useDeleteHighlight()
-
-  if (count === 0) return null
-
-  return (
-    <div className="card p-6">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between group"
-      >
-        <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50 flex items-center gap-2">
-          <Highlighter size={18} className="text-teal-500" />
-          Kindle Highlights
-          <span className="text-sm font-normal text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-0.5 rounded-full">
-            {count}
-          </span>
-        </h2>
-        <span className="text-ink-400 group-hover:text-ink-600 dark:group-hover:text-ink-300 transition-colors">
-          {open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-        </span>
-      </button>
-
-      {open && (
-        <div className="mt-4 space-y-3">
-          {isLoading ? (
-            [...Array(3)].map((_, i) => <div key={i} className="h-16 skeleton rounded-xl" />)
-          ) : (
-            highlights.map(h => (
-              <div key={h.id} className="rounded-xl border-l-4 border-teal-500 bg-paper-50 dark:bg-ink-800 p-4 relative">
-                <button
-                  onClick={() => deleteHighlight.mutate(h.id)}
-                  title="Delete highlight"
-                  className="absolute top-2 right-2 p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-rose-500 transition-colors"
-                  aria-label="Delete highlight"
-                >
-                  <Trash2 size={13} />
-                </button>
-                <p className="text-sm text-ink-900 dark:text-paper-50 leading-relaxed italic pr-6">
-                  "{h.text}"
-                </p>
-                {h.note && (
-                  <p className="text-sm text-ink-500 dark:text-ink-400 mt-2 pt-2 border-t border-paper-200 dark:border-ink-700">
-                    {h.note}
-                  </p>
-                )}
-                {h.location && (
-                  <p className="text-sm text-ink-400 mt-1">Loc. {h.location}</p>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
