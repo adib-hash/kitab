@@ -179,7 +179,7 @@ export function NoteEntry({ note, bookId, quote }) {
           </div>
         </div>
       ) : (
-        <p className="text-sm text-ink-800 dark:text-paper-100 whitespace-pre-wrap leading-relaxed">{note.body}</p>
+        <p className="selectable text-sm text-ink-800 dark:text-paper-100 whitespace-pre-wrap leading-relaxed">{note.body}</p>
       )}
       {!editing && (
         <div className="flex items-center gap-3 justify-between">
@@ -210,7 +210,7 @@ export function HighlightEntry({ h, book, notes = EMPTY, showDate = true }) {
   return (
     <div className="space-y-2">
       <div className="group/hl rounded-xl border border-paper-200 dark:border-ink-700 bg-white dark:bg-ink-800 border-l-[3px] border-l-teal-500 px-4 py-3 space-y-2">
-        <p className="font-serif italic text-[15px] leading-relaxed text-ink-900 dark:text-paper-50">“{h.text.trim()}”</p>
+        <p className="selectable font-serif italic text-[15px] leading-relaxed text-ink-900 dark:text-paper-50">“{h.text.trim()}”</p>
         {h.note && (
           <p className="text-sm text-ink-600 dark:text-ink-300"><span className="text-xs font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500 mr-1.5">Kindle note</span>{h.note}</p>
         )}

@@ -50,6 +50,24 @@
 
   .dark body { @apply bg-ink-900 text-paper-50; }
 
+  /* ── Phones: interface text isn't selectable, like a native app ──
+     A long-press opens the quick-actions sheet at 0.38 s; if the finger stays
+     down, iOS then starts selecting whatever is under it (the sheet's title and
+     author), which stutters. Reading text (passages, notes, reviews,
+     descriptions) opts back in with .selectable so it can still be copied. */
+  @media (hover: none) and (pointer: coarse) {
+    body {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+    input, textarea, [contenteditable="true"], .selectable, .selectable * {
+      -webkit-user-select: text;
+      user-select: text;
+      -webkit-touch-callout: default;
+    }
+  }
+
   /* ── Prevent iOS auto-zoom on focused inputs (requires font-size >= 16px) ── */
   input, select, textarea {
     font-size: 16px;

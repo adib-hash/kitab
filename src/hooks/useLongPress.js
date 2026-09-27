@@ -16,6 +16,7 @@ export function useLongPress(onLongPress, threshold = 380) {
     fired.current = false
     timerRef.current = setTimeout(() => {
       fired.current = true
+      window.getSelection?.()?.removeAllRanges() // drop any selection iOS began during the hold
       onLongPress(e)
     }, threshold)
   }, [onLongPress, threshold])

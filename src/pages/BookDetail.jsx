@@ -237,7 +237,7 @@ export function BookDetail() {
             </div>
           </div>
           {(!book.review_spoiler || spoilerRevealed) ? (
-            <div className="prose prose-sm prose-stone dark:prose-invert max-w-none">
+            <div className="selectable prose prose-sm prose-stone dark:prose-invert max-w-none">
               <ReactMarkdown>{book.review}</ReactMarkdown>
             </div>
           ) : (
@@ -268,7 +268,7 @@ export function BookDetail() {
               {descOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
             </span>
           </button>
-          <p className={"text-sm text-ink-700 dark:text-ink-300 leading-relaxed " + (descOpen ? "" : "line-clamp-3")}>
+          <p className={"selectable text-sm text-ink-700 dark:text-ink-300 leading-relaxed " + (descOpen ? "" : "line-clamp-3")}>
             {book.description}
           </p>
           {!descOpen && book.description.length > 200 && (
