@@ -1,3 +1,8 @@
+## v3.0.2 — 2026-09-26
+
+### Fixed
+- **Toasts no longer get stuck on iPhone.** The toast library pauses a toast's countdown while a mouse pointer is over it and resumes when it leaves. On iPhone, tapping a toast sends the "enter" but never the "leave", so a tapped toast (for example "Book removed from library" after deleting from TBR) paused and stayed on screen. Any toast still showing 1.5 seconds past its normal lifetime is now dismissed, and tapping a toast dismisses it straight away. Buttons inside a toast, like "Edit" after adding a book, still work.
+
 ## v3.0.1 — 2026-09-26
 
 ### Changed
