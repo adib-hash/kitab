@@ -619,7 +619,7 @@ export function Settings() {
         </button>
         <div>
           <h1 className="page-title">Settings</h1>
-          <p className="text-xs text-ink-400 dark:text-ink-400 mt-0.5">Kitab · v3.0.1</p>
+          <p className="text-xs text-ink-400 dark:text-ink-400 mt-0.5">Kitab · v3.0.2</p>
         </div>
       </div>
 

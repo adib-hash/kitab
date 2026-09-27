@@ -2,7 +2,7 @@
 
 Your personal reading life, beautifully organized. Track books you've read, manage your TBR pile, rate and review, sync Kindle highlights, rank your favorites, and discover what to read next -- available as a web app and native iOS app at [kitab.ihsan.build](https://kitab.ihsan.build).
 
-**Current version:** v3.0.1
+**Current version:** v3.0.2
 
 ---
 

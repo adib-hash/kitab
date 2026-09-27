@@ -1,6 +1,6 @@
 # Kitab — Claude Code Handoff Document
 
-> This document is written for Claude Code running in the terminal. Reflects the actual codebase as of v3.0.1.
+> This document is written for Claude Code running in the terminal. Reflects the actual codebase as of v3.0.2.
 
 ---
 
@@ -9,7 +9,7 @@
 Kitab (Arabic/Urdu for "book") is a personal reading tracker web app + iOS native app built by Adib. It is intentionally a personal tool — not a product for others — built iteratively with Claude as an active development partner.
 
 **Live URL:** https://kitab.ihsan.build  
-**Current version:** v3.0.1  
+**Current version:** v3.0.2  
 **Stack:** React + Vite, Supabase (auth + DB), Tailwind CSS v3, Vercel, Capacitor iOS
 
 ---
