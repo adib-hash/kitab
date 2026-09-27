@@ -19,11 +19,18 @@ struct HighlightProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<HighlightEntry>) -> Void) {
-        let highlight = SharedDataProvider.highlightOfDay
-        let entry = HighlightEntry(date: Date(), highlight: highlight)
-        // Refresh every 4 hours
-        let nextUpdate = Calendar.current.date(byAdding: .hour, value: 4, to: Date())!
-        completion(Timeline(entries: [entry], policy: .after(nextUpdate)))
+        // One entry now, then one at each of the next three midnights, so the
+        // quote changes daily even if the app isn't opened.
+        let cal = Calendar.current
+        let startOfToday = cal.startOfDay(for: Date())
+        var entries = [HighlightEntry(date: Date(), highlight: SharedDataProvider.highlightOfDay)]
+        for offset in 1...3 {
+            if let day = cal.date(byAdding: .day, value: offset, to: startOfToday) {
+                entries.append(HighlightEntry(date: day, highlight: SharedDataProvider.highlight(for: day) ?? SharedDataProvider.highlightOfDay))
+            }
+        }
+        let refresh = cal.date(byAdding: .day, value: 3, to: startOfToday) ?? Date().addingTimeInterval(86_400)
+        completion(Timeline(entries: entries, policy: .after(refresh)))
     }
 }
 
@@ -39,12 +46,14 @@ struct HighlightMediumView: View {
         if let highlight = entry.highlight {
             VStack(alignment: .leading, spacing: 0) {
                 // Quote text
+                // Pool entries are capped at 220 characters, so shrinking the
+                // type a little always fits the whole quote. No ellipsis.
                 Text("\u{201C}\(highlight.text)\u{201D}")
-                    .font(.system(size: 13, weight: .regular, design: .serif))
+                    .font(.system(size: highlight.text.count > 150 ? 14 : 16, weight: .regular, design: .serif))
                     .italic()
                     .foregroundColor(.primary)
-                    .lineLimit(4)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(6)
+                    .minimumScaleFactor(0.75)
 
                 Spacer(minLength: 6)
 
@@ -52,7 +61,7 @@ struct HighlightMediumView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 1) {
                         Text(highlight.bookTitle)
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(.teal)
                             .lineLimit(1)
 

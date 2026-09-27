@@ -24,8 +24,22 @@ struct SharedDataProvider {
         decode("readingGoal")
     }
 
+    /// Today's highlight. Must match pickDailyHighlight() in
+    /// src/lib/dailyHighlight.js: index = local days-since-epoch % pool size,
+    /// so the widget, the notification and the app all show the same quote.
     static var highlightOfDay: WidgetHighlight? {
-        decode("highlightOfDay")
+        highlight(for: Date()) ?? decode("highlightOfDay")
+    }
+
+    static func highlight(for date: Date) -> WidgetHighlight? {
+        let pool: [WidgetHighlight] = decode("highlightPool") ?? []
+        guard !pool.isEmpty else { return nil }
+        let comps = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        var utc = Calendar(identifier: .gregorian)
+        utc.timeZone = TimeZone(identifier: "UTC")!
+        guard let midnightUTC = utc.date(from: comps) else { return pool.first }
+        let day = Int(floor(midnightUTC.timeIntervalSince1970 / 86_400))
+        return pool[((day % pool.count) + pool.count) % pool.count]
     }
 
     static var tbrNext: [WidgetTBRBook] {

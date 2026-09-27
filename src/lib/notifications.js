@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core'
 import { LocalNotifications } from '@capacitor/local-notifications'
+import { pickDailyHighlight } from './dailyHighlight'
 
 const native = () => Capacitor.isNativePlatform()
 const SETTINGS_KEY = 'kitab_notification_settings'
@@ -20,7 +21,8 @@ const defaultSettings = {
 // Notification IDs (stable, so we can cancel/replace)
 const IDS = {
   READING_REMINDER: 1001,
-  HIGHLIGHT_OF_DAY: 1002,
+  HIGHLIGHT_OF_DAY: 1002,        // legacy repeating notification, cancelled on reschedule
+  HIGHLIGHT_WEEK_BASE: 1100,     // 1100-1106: the next seven daily highlights
   KINDLE_SYNC_REMINDER: 1003,
   GOAL_MILESTONE: 1010, // 1010-1013 for 25/50/75/100%
   BOOK_ANNIVERSARY_BASE: 2000, // 2000+ for anniversaries
@@ -109,47 +111,51 @@ export async function cancelReadingReminder() {
   } catch {}
 }
 
-/**
- * Schedule highlight of the day notification.
- * @param {Object} params
- * @param {string} params.text - Highlight text (full, no truncation)
- * @param {string} params.bookTitle - Book title
- * @param {string} [params.highlightId] - Highlight ID for deep linking
- * @param {string} [params.bookId] - Book ID for deep linking
- * @param {number} params.hour - Hour to fire
- * @param {number} params.minute - Minute to fire
- */
-export async function scheduleHighlightOfDay({ text, bookTitle, highlightId, bookId, hour, minute }) {
-  if (!native()) return
-  try {
-    await LocalNotifications.cancel({ notifications: [{ id: IDS.HIGHLIGHT_OF_DAY }] })
+const HIGHLIGHT_IDS = [IDS.HIGHLIGHT_OF_DAY, ...Array.from({ length: 7 }, (_, i) => IDS.HIGHLIGHT_WEEK_BASE + i)]
 
-    await LocalNotifications.schedule({
-      notifications: [{
-        id: IDS.HIGHLIGHT_OF_DAY,
-        title: `From ${bookTitle}`,
-        body: text,
-        schedule: {
-          on: { hour, minute },
-          repeats: true,
-          allowWhileIdle: true,
-        },
+/**
+ * Schedule the next seven "highlight of the day" notifications.
+ *
+ * This used to be one repeating notification whose text was fixed at schedule
+ * time, so the same quote arrived every morning until the app was next opened,
+ * and long passages were cut off mid-sentence on the lock screen. Now each day
+ * gets its own one-shot notification with that day's pick (the same one the
+ * widget and Dashboard show), and only highlights short enough to read in full
+ * are used. Re-run on every app open, so the week keeps rolling forward.
+ */
+export async function scheduleHighlightWeek({ highlights, hour, minute }) {
+  if (!native() || !highlights?.length) return
+  try {
+    await LocalNotifications.cancel({ notifications: HIGHLIGHT_IDS.map(id => ({ id })) })
+    const now = new Date()
+    const notifications = []
+    for (let i = 0; i < 7; i++) {
+      const at = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i, hour, minute)
+      if (at <= now) continue
+      const h = pickDailyHighlight(highlights, at)
+      if (!h) continue
+      notifications.push({
+        id: IDS.HIGHLIGHT_WEEK_BASE + i,
+        title: h.books?.title || 'From your highlights',
+        body: `\u201C${h.text.trim()}\u201D`,
+        schedule: { at, allowWhileIdle: true },
         sound: 'default',
-        extra: highlightId && bookId ? { highlightId, bookId } : undefined,
-      }],
-    })
+        extra: h.book_id ? { highlightId: h.id, bookId: h.book_id } : undefined,
+      })
+    }
+    if (notifications.length) await LocalNotifications.schedule({ notifications })
   } catch (e) {
-    console.warn('Failed to schedule highlight notification:', e)
+    console.warn('Failed to schedule highlight notifications:', e)
   }
 }
 
 /**
- * Cancel highlight of the day notification.
+ * Cancel all highlight-of-the-day notifications.
  */
 export async function cancelHighlightOfDay() {
   if (!native()) return
   try {
-    await LocalNotifications.cancel({ notifications: [{ id: IDS.HIGHLIGHT_OF_DAY }] })
+    await LocalNotifications.cancel({ notifications: HIGHLIGHT_IDS.map(id => ({ id })) })
   } catch {}
 }
 
@@ -291,15 +297,11 @@ export async function rescheduleAllNotifications({ books = [], highlights = [], 
     await cancelReadingReminder()
   }
 
-  // Highlight of the day — pass IDs so tapping navigates to the book
+  // Highlight of the day — a week of one-shot notifications, each carrying the
+  // book id so tapping opens the book.
   if (settings.highlightOfDay && highlights.length > 0) {
-    const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % highlights.length
-    const h = highlights[dayIndex]
-    await scheduleHighlightOfDay({
-      text: h.text,
-      bookTitle: h.books?.title || 'Your Library',
-      highlightId: h.id,
-      bookId: h.book_id,
+    await scheduleHighlightWeek({
+      highlights,
       hour: settings.highlightHour,
       minute: settings.highlightMinute,
     })

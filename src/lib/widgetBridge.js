@@ -1,4 +1,5 @@
 import { Capacitor, registerPlugin } from '@capacitor/core'
+import { dailyHighlightPool, pickDailyHighlight } from './dailyHighlight'
 
 const KitabDataBridge = registerPlugin('KitabDataBridge')
 
@@ -40,18 +41,17 @@ export async function syncWidgetData({ books = [], goal = null, highlights = [] 
       ? { year: thisYear, target: goal.target, current: booksReadThisYear }
       : null
 
-    // Random highlight of the day (seeded by date so it's stable within a day)
-    let highlightOfDay = null
-    if (highlights.length > 0) {
-      const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % highlights.length
-      const h = highlights[dayIndex]
-      highlightOfDay = {
-        text: h.text,
-        bookTitle: h.books?.title || 'Unknown',
-        bookAuthor: h.books?.author || '',
-        bookId: h.book_id,
-      }
-    }
+    // Highlight of the day. The widget gets the whole short-highlight pool and
+    // picks by date itself, so it changes at midnight without the app open.
+    const toWidget = h => ({
+      text: h.text,
+      bookTitle: h.books?.title || 'Unknown',
+      bookAuthor: h.books?.author || '',
+      bookId: h.book_id,
+    })
+    const today = pickDailyHighlight(highlights)
+    const highlightOfDay = today ? toWidget(today) : null
+    const highlightPool = dailyHighlightPool(highlights).slice(0, 200).map(toWidget)
 
     // Top 5 TBR books
     const tbrNext = books
@@ -92,6 +92,7 @@ export async function syncWidgetData({ books = [], goal = null, highlights = [] 
 
     const payload = {
       currentlyReading,
+      highlightPool,
       tbrNext,
       yearStats,
       topRanked,

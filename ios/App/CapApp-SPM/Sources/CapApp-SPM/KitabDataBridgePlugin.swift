@@ -55,6 +55,15 @@ public class KitabDataBridgePlugin: CAPPlugin, CAPBridgedPlugin {
             }
         }
 
+        // Short highlights the widget rotates through by day, so it keeps
+        // changing even when the app isn't opened.
+        if let pool = call.getArray("highlightPool") {
+            if let jsonData = try? JSONSerialization.data(withJSONObject: pool),
+               let jsonString = String(data: jsonData, encoding: .utf8) {
+                defaults.set(jsonString, forKey: "highlightPool")
+            }
+        }
+
         if let tbrNext = call.getArray("tbrNext") {
             if let jsonData = try? JSONSerialization.data(withJSONObject: tbrNext),
                let jsonString = String(data: jsonData, encoding: .utf8) {
