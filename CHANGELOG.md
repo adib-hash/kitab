@@ -1,3 +1,12 @@
+## v3.0.1 — 2026-09-26
+
+### Changed
+- **Text and controls are back to their earlier size.** v2.12 raised every small label in the app from 12px to 14px (137 places, plus the shared styles for section labels, tags, status pills, small buttons and stat captions). On the phone that made the whole interface feel oversized. Those changes are reversed. The screens added since then (Highlights, the Journal, the Rank card, the year filter) were built at the larger size and have been brought down one step to match. The Library header's four controls are back to 32px.
+- **The bottom bar sits where iOS puts it.** Its content is now 49 points tall with 11px labels, the same proportions as a native tab bar, so the icons and labels no longer float above the bottom edge. It had grown to 60 points when the labels went to 14px.
+
+### Fixed
+- **Version numbers match everywhere.** The app, `package.json`, the README, the project notes and the iOS app now all say 3.0.1 (the iOS app said 1.0 until today).
+
 ## v3.0.0 — 2026-09-26
 
 The Commonplace Book. Each book now holds what it meant to you, not just that you read it.

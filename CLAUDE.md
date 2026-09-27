@@ -1,6 +1,6 @@
 # Kitab — Claude Code Handoff Document
 
-> This document is written for Claude Code running in the terminal. Reflects the actual codebase as of v2.12.0.
+> This document is written for Claude Code running in the terminal. Reflects the actual codebase as of v3.0.1.
 
 ---
 
@@ -9,7 +9,7 @@
 Kitab (Arabic/Urdu for "book") is a personal reading tracker web app + iOS native app built by Adib. It is intentionally a personal tool — not a product for others — built iteratively with Claude as an active development partner.
 
 **Live URL:** https://kitab.ihsan.build  
-**Current version:** v2.12.0  
+**Current version:** v3.0.1  
 **Stack:** React + Vite, Supabase (auth + DB), Tailwind CSS v3, Vercel, Capacitor iOS
 
 ---
@@ -214,7 +214,8 @@ Things that will bite you:
 Every deploy must:
 1. Update `CHANGELOG.md` — prepend new entry following existing format
 2. Update version string in `src/pages/Settings.jsx` — appears once as `Kitab · vX.X.X`
-3. Commit and push
+3. Keep the other copies in step: `package.json` `version`, `README.md` and this file's "Current version", and the iOS `MARKETING_VERSION` (all targets) in `ios/App/App.xcodeproj/project.pbxproj`. Bump the iOS `CURRENT_PROJECT_VERSION` to a higher date-based number (`YYYYMMDDNN`) for every TestFlight upload.
+4. Commit and push
 
 ---
 
