@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Compass, Trash2, ChevronDown, ChevronUp, RefreshCw,
          Sparkles, Loader2 } from 'lucide-react'
@@ -191,6 +192,7 @@ export function Discover() {
       })
     } catch (err) {
       console.error('Regenerate failed:', err)
+      toast.error(err.message || 'Couldn’t get new recommendations. Please try again.')
     } finally {
       setRegeneratingId(null)
     }

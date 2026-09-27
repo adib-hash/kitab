@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Loader2, Sparkles } from 'lucide-react'
 import { searchBooks } from '../../lib/googleBooks'
+import { findVerifiedMatch, filterUnseen } from '../../lib/recVerify'
 import { API_BASE } from '../../lib/bookSearch'
 import { supabase } from '../../lib/supabase'
 
@@ -76,22 +77,12 @@ Rules:
 - The "why" must be specific, not generic ("you'll love the world-building" is bad; "the same slow-burn dread as McCarthy but set in modern Tokyo" is good)`
 }
 
-// Verify a Claude-returned book exists in Google Books and enrich with metadata.
-// Returns null if no credible match is found — caller must filter these out.
+// Verify a recommended book exists in Google Books and enrich it with metadata.
+// Returns null if no credible match is found; the caller filters these out.
+// The matching rules live in lib/recVerify.js (tested against real model output).
 async function enrichBook(book) {
   try {
-    const query = `intitle:"${book.title}" inauthor:"${book.author}"`
-    const results = await searchBooks(query, 5)
-    if (!results.length) return null
-
-    // Find a credible match: title must overlap significantly
-    const titleWords = book.title.toLowerCase().split(/\s+/).filter(w => w.length > 2)
-    const match = results.find(r => {
-      const rTitle = r.title.toLowerCase()
-      const hits = titleWords.filter(w => rTitle.includes(w))
-      return hits.length >= Math.ceil(titleWords.length * 0.5)
-    })
-
+    const match = await findVerifiedMatch(book, searchBooks)
     if (!match) return null
 
     return {
@@ -157,17 +148,11 @@ export async function generateRecommendations(userText, libraryBooks, sessions, 
 
   const enriched = (await Promise.all(books.map(enrichBook))).filter(Boolean)
 
-  // Post-enrichment dedup: remove books that match library titles after normalization.
-  // This catches cases where Claude recommends a book with a slightly different title
-  // form than what's in the library (e.g. subtitles, punctuation differences).
-  const normalize = s => s?.toLowerCase().replace(/[^a-z0-9]/g, '') || ''
-  const libraryNormalized = new Set(
-    libraryBooks.map(b => normalize(b.title))
-  )
-  const filtered = enriched.filter(b => !libraryNormalized.has(normalize(b.title)))
+  // Drop books already in the library or recommended in an earlier session (see recVerify.js).
+  const filtered = filterUnseen(enriched, libraryBooks, sessions)
 
   if (filtered.length === 0) {
-    throw new Error('None of the suggested books could be verified. Please try again.')
+    throw new Error('Couldn’t find any new books you haven’t seen. Please try again.')
   }
 
   return filtered
