@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
+import { isYearTag } from '../lib/utils'
 
 export function useTags() {
   return useQuery({
@@ -14,7 +15,7 @@ export function useTags() {
         .eq('user_id', user.id)
         .order('name')
       if (error) throw error
-      return data
+      return data.filter(t => !isYearTag(t.name)) // year comes from date_finished now
     },
     staleTime: 1000 * 60 * 10,
   })

@@ -2,6 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import { checkGoalMilestones } from '../lib/notifications'
+import { isYearTag } from '../lib/utils'
+
+// Year tags are superseded by date_finished; drop them from every book's tags.
+const flattenTags = row => (row.book_tags || []).map(bt => bt.tags).filter(t => t && !isYearTag(t.name))
 
 // ── Fetch all books with their tags ──────────────────────────────────────
 export function useLibrary() {
@@ -25,7 +29,7 @@ export function useLibrary() {
       // Flatten tags
       return books.map(b => ({
         ...b,
-        tags: b.book_tags?.map(bt => bt.tags).filter(Boolean) || [],
+        tags: flattenTags(b),
       }))
     },
     staleTime: 1000 * 60 * 5,
@@ -51,7 +55,7 @@ export function useBook(id) {
         .single()
 
       if (error) throw error
-      return { ...data, tags: data.book_tags?.map(bt => bt.tags).filter(Boolean) || [] }
+      return { ...data, tags: flattenTags(data) }
     },
     enabled: !!id,
   })

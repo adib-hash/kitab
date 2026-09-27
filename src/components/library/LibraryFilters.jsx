@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Search, X, ChevronDown } from 'lucide-react'
 import { useUIStore } from '../../store/uiStore'
 import { useShallow } from 'zustand/react/shallow'
 import { useTags } from '../../hooks/useTags'
+import { useLibrary } from '../../hooks/useLibrary'
+import { finishedYears } from '../../lib/utils'
 import { clsx } from 'clsx'
 
 const SORT_OPTIONS = [
@@ -34,9 +36,11 @@ export function LibraryFilters() {
     setLibrarySort: s.setLibrarySort, setLibraryFilters: s.setLibraryFilters, setLibrarySearch: s.setLibrarySearch, clearLibraryFilters: s.clearLibraryFilters,
   })))
   const { data: tags = [] } = useTags()
+  const { data: books = [] } = useLibrary()
+  const years = useMemo(() => finishedYears(books), [books])
   const [tagsOpen, setTagsOpen] = useState(false)
 
-  const hasActiveFilters = libraryFilters.status.length > 0 || libraryFilters.tags.length > 0 || libraryFilters.ratingMin !== null
+  const hasActiveFilters = libraryFilters.status.length > 0 || libraryFilters.tags.length > 0 || libraryFilters.ratingMin !== null || !!libraryFilters.year
   const activeTagCount = libraryFilters.tags.length
 
   function toggleStatus(status) {
@@ -102,6 +106,29 @@ export function LibraryFilters() {
           ))}
         </div>
       </div>
+
+      {/* Year finished — derived from the finish date, no tag needed */}
+      {years.length > 0 && (
+        <div>
+          <label className="section-label block mb-1.5">Year finished</label>
+          <div className="flex flex-wrap gap-1.5">
+            {[null, ...years].map(y => (
+              <button
+                key={y ?? 'any'}
+                onClick={() => setLibraryFilters({ year: y })}
+                className={clsx(
+                  'px-2.5 py-1 rounded-full text-sm font-medium transition-colors border tabular-nums',
+                  (libraryFilters.year ?? null) === y
+                    ? 'bg-teal-700 text-white border-teal-700'
+                    : 'bg-white dark:bg-ink-800 border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-400 hover:border-teal-400'
+                )}
+              >
+                {y ?? 'Any'}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Minimum rating filter */}
       <div>

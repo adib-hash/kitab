@@ -7,7 +7,7 @@ export const useUIStore = create(
       // Library view
       libraryView: 'grid', // 'grid' | 'list'
       librarySort: 'date_finished_desc',
-      libraryFilters: { status: [], tags: [], ratingMin: null },
+      libraryFilters: { status: [], tags: [], ratingMin: null, year: null },
       librarySearch: '',
 
       // Sidebar
@@ -26,7 +26,7 @@ export const useUIStore = create(
       setLibraryView: (view) => set({ libraryView: view }),
       setLibrarySort: (sort) => set({ librarySort: sort }),
       setLibraryFilters: (filters) => set({ libraryFilters: { ...get().libraryFilters, ...filters } }),
-      clearLibraryFilters: () => set({ libraryFilters: { status: [], tags: [], ratingMin: null } }),
+      clearLibraryFilters: () => set({ libraryFilters: { status: [], tags: [], ratingMin: null, year: null } }),
       setLibrarySearch: (search) => set({ librarySearch: search }),
       toggleSidebar: () => set({ sidebarOpen: !get().sidebarOpen }),
       toggleDarkMode: () => {

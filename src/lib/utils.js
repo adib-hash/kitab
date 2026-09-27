@@ -34,6 +34,20 @@ export function daysBetween(start, end) {
   } catch { return null }
 }
 
+// Four-digit tags ("2024", "2025") were a manual stand-in for "year finished".
+// The year now comes from date_finished, so these tags are hidden everywhere.
+export function isYearTag(name) {
+  return /^\d{4}$/.test(String(name || '').trim())
+}
+
+/** Four-digit years that have at least one finished book, newest first. */
+export function finishedYears(books) {
+  return [...new Set(
+    books.filter(b => b.status === 'read' && b.date_finished)
+      .map(b => parseInt(b.date_finished.slice(0, 4), 10))
+  )].sort((a, b) => b - a)
+}
+
 export function pluralize(count, word, plural) {
   return `${count} ${count === 1 ? word : (plural || word + 's')}`
 }
@@ -53,8 +67,12 @@ export function computeStats(books) {
     ? (rated.reduce((sum, b) => sum + parseFloat(b.rating), 0) / rated.length).toFixed(1)
     : null
 
-  // Total pages
+  // Total pages, and average length of the books that have a page count
   const totalPages = allRead.reduce((sum, b) => sum + (b.page_count || 0), 0)
+  const withPageCount = allRead.filter(b => b.page_count)
+  const avgPages = withPageCount.length
+    ? Math.round(withPageCount.reduce((sum, b) => sum + b.page_count, 0) / withPageCount.length)
+    : null
 
   // Books per month — uses date_finished (stored as YYYY-MM-01)
   const monthCounts = {}
@@ -76,7 +94,7 @@ export function computeStats(books) {
   const tagCounts = {}
   allRead.forEach(b => {
     (b.tags || []).forEach(tag => {
-      if (tag?.name) {
+      if (tag?.name && !isYearTag(tag.name)) {
         tagCounts[tag.name] = (tagCounts[tag.name] || 0) + 1
       }
     })
@@ -100,6 +118,7 @@ export function computeStats(books) {
   return {
     totalRead: allRead.length,
     totalPages,
+    avgPages,
     avgRating: avgRating ? parseFloat(avgRating) : null,
     booksPerMonth,
     tagBreakdown,

@@ -55,10 +55,11 @@ export function Library() {
     if (libraryFilters.status.length > 0) result = result.filter(b => libraryFilters.status.includes(b.status))
     if (libraryFilters.tags.length > 0) result = result.filter(b => libraryFilters.tags.every(tagId => b.tags?.some(t => t.id === tagId)))
     if (libraryFilters.ratingMin) result = result.filter(b => (b.rating || 0) >= libraryFilters.ratingMin)
+    if (libraryFilters.year) result = result.filter(b => b.date_finished && parseInt(b.date_finished.slice(0, 4), 10) === libraryFilters.year)
     return applySort(result, librarySort)
   }, [books, librarySearch, libraryFilters, librarySort])
 
-  const activeFilterCount = libraryFilters.status.length + libraryFilters.tags.length + (libraryFilters.ratingMin ? 1 : 0)
+  const activeFilterCount = libraryFilters.status.length + libraryFilters.tags.length + (libraryFilters.ratingMin ? 1 : 0) + (libraryFilters.year ? 1 : 0)
 
   function handleSearchSelect(book) { setSelectedBook(book); setFormOpen(true) }
 

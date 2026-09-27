@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Target, BookOpen, FileText, Star, Bookmark, Maximize2, Minimize2, BookMarked, XCircle, BarChart2, CheckCircle, Users } from 'lucide-react'
+import { Target, BookOpen, FileText, Star, Bookmark, Maximize2, Minimize2, BookMarked, XCircle, BarChart2, CheckCircle, Users, Ruler } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { useLibrary } from '../hooks/useLibrary'
 import { useReadingGoal, useSetReadingGoal } from '../hooks/useTags'
@@ -115,7 +115,7 @@ export function Stats() {
             <StatCard label="Books Read" value={stats.totalRead} icon={<BookOpen size={18} />} sub={yearLabel} />
             <StatCard label="Pages Read" value={stats.totalPages.toLocaleString()} icon={<FileText size={18} />} sub={yearLabel} />
             <StatCard label="Avg Rating" value={stats.avgRating ? `${stats.avgRating} / 5` : null} icon={<Star size={18} />} sub={yearLabel} />
-            <StatCard label="On TBR" value={tbrCount} icon={<Bookmark size={18} />} sub="total" />
+            <StatCard label="Avg Length" value={stats.avgPages ? stats.avgPages.toLocaleString() : null} icon={<Ruler size={18} />} sub={`pages per book · ${yearLabel}`} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -141,6 +141,7 @@ export function Stats() {
             )}
             <StatCard label="Currently Reading" value={books.filter(b => b.status === 'reading').length} icon={<BookMarked size={18} />} />
             <StatCard label="Did Not Finish" value={books.filter(b => b.status === 'dnf').length} icon={<XCircle size={18} />} />
+            <StatCard label="On TBR" value={tbrCount} icon={<Bookmark size={18} />} sub="total" />
           </div>
 
           {/* Reading goal — only shown for specific year, not "All time" */}

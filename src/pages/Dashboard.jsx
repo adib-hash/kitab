@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, BookOpen, ArrowRight, Target, Settings, Star, FileText, Bookmark, CheckCircle, Moon, Sun, RefreshCw, Zap, AlertCircle, Loader2, CalendarHeart } from 'lucide-react'
+import { Plus, BookOpen, ArrowRight, Target, Settings, Star, FileText, CheckCircle, Moon, Sun, RefreshCw, Zap, AlertCircle, Loader2, CalendarHeart, Ruler } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Capacitor } from '@capacitor/core'
 import { useLibrary } from '../hooks/useLibrary'
@@ -17,6 +17,7 @@ import { useUIStore } from '../store/uiStore'
 import { useShallow } from 'zustand/react/shallow'
 import { syncWidgetData } from '../lib/widgetBridge'
 import { rescheduleAllNotifications } from '../lib/notifications'
+import { pickDailyHighlight } from '../lib/dailyHighlight'
 
 // A stable default: `= []` creates a new array on every render while a query
 // is still loading, which re-ran the widget/notification sync effect below on
@@ -36,13 +37,11 @@ export function Dashboard() {
   const [highlightIdx, setHighlightIdx] = useState(0)
   const [highlightExpanded, setHighlightExpanded] = useState(false)
 
-  // Date-seeded highlight — same highlight all day, changes each day
+  // Today's highlight — the same pick the widget and the notification use.
   useEffect(() => {
-    if (allHighlights.length > 0) {
-      const seed = [...new Date().toISOString().slice(0, 10)].reduce((a, c) => a + c.charCodeAt(0), 0)
-      setHighlightIdx(seed % allHighlights.length)
-    }
-  }, [allHighlights.length])
+    const today = pickDailyHighlight(allHighlights)
+    if (today) setHighlightIdx(Math.max(0, allHighlights.indexOf(today)))
+  }, [allHighlights])
 
   const highlight = allHighlights.length > 0
     ? allHighlights[highlightIdx % allHighlights.length]
@@ -285,7 +284,7 @@ export function Dashboard() {
             <StatCard label="Books Read" value={yearStats.totalRead} icon={<BookOpen size={18} />} sub={String(thisYear)} />
             <StatCard label="Pages Read" value={yearStats.totalPages.toLocaleString()} icon={<FileText size={18} />} sub={String(thisYear)} />
             <StatCard label="Avg Rating" value={yearStats.avgRating ? `${yearStats.avgRating} / 5` : null} icon={<Star size={18} />} sub={String(thisYear)} />
-            <StatCard label="On TBR" value={books.filter(b=>b.status==='tbr').length} icon={<Bookmark size={18} />} sub="total" />
+            <StatCard label="Avg Length" value={yearStats.avgPages ? yearStats.avgPages.toLocaleString() : null} icon={<Ruler size={18} />} sub={`pages per book · ${thisYear}`} />
           </div>
         </section>
       )}
