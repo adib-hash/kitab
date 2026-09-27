@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
+import { enqueue, isOfflineError, pendingRows } from '../lib/outbox'
 
 // ── Kindle scraper ────────────────────────────────────────────────────────
 // The scraper itself lives in public/kindle-scraper.js so the native background
@@ -34,7 +35,8 @@ export function useHighlights(bookId) {
         .eq('book_id', bookId)
         .order('location', { ascending: true, nullsFirst: false })
       if (error) throw error
-      return data
+      const ids = new Set(data.map(h => h.id))
+      return [...data, ...pendingRows('highlight.insert', r => r.book_id === bookId).filter(p => !ids.has(p.id))]
     },
     staleTime: 1000 * 60 * 10,
   })
@@ -83,9 +85,53 @@ export function useDeleteHighlight() {
       qc.invalidateQueries({ queryKey: ['highlights'] })
       qc.invalidateQueries({ queryKey: ['highlight_count'] })
       qc.setQueryData(['all_highlights'], old => (old ? old.filter(h => h.id !== id) : old))
+      qc.invalidateQueries({ queryKey: ['book_notes'] })   // attached notes are deleted by the FK cascade
+      qc.invalidateQueries({ queryKey: ['all_notes'] })
       toast.success('Highlight deleted')
     },
     onError: (err) => toast.error(`Failed: ${err.message}`),
+  })
+}
+
+/**
+ * Save a highlight typed by hand (paper books). Same table as Kindle highlights,
+ * with source 'manual' and an optional page, so it joins the daily rotation,
+ * the widget, search and the deck automatically. Works offline via the outbox.
+ */
+export function useAddTypedHighlight() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ row, book }) => {
+      const { data: { session } } = await supabase.auth.getSession()
+      const { error } = await supabase.from('highlights').insert({ ...row, user_id: session?.user?.id })
+      if (!error) return { ...row }
+      if (isOfflineError(error)) {
+        enqueue('highlight.insert', row, { books: book })
+        return { ...row, _pending: true }
+      }
+      throw error
+    },
+    onMutate: async ({ row, book }) => {
+      await qc.cancelQueries({ queryKey: ['highlights', row.book_id] })
+      const prev = qc.getQueryData(['highlights', row.book_id])
+      const prevAll = qc.getQueryData(['all_highlights'])
+      const optimistic = { ...row, books: book }
+      qc.setQueryData(['highlights', row.book_id], old => [...(old || []), optimistic])
+      qc.setQueryData(['all_highlights'], old => (old ? [...old, optimistic] : old))
+      return { prev, prevAll }
+    },
+    onError: (err, { row }, ctx) => {
+      qc.setQueryData(['highlights', row.book_id], ctx?.prev)
+      if (ctx?.prevAll) qc.setQueryData(['all_highlights'], ctx.prevAll)
+      toast.error(`Couldn't save the highlight: ${err.message}`)
+    },
+    onSuccess: (saved, { row }) => {
+      const patch = list => list?.map(h => (h.id === row.id ? { ...h, ...saved } : h))
+      qc.setQueryData(['highlights', row.book_id], patch)
+      qc.setQueryData(['all_highlights'], patch)
+      qc.invalidateQueries({ queryKey: ['highlight_count', row.book_id] })
+      toast.success(saved._pending ? "Saved on this device. It'll sync when you're back online." : 'Highlight saved', { id: 'hl-saved' })
+    },
   })
 }
 
@@ -95,10 +141,11 @@ export function useAllHighlights() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('highlights')
-        .select('id, text, note, location, book_id, books(id, title, author, cover_url)')
+        .select('id, text, note, location, page, source, synced_at, highlighted_at, book_id, books(id, title, author, cover_url)')
         .not('book_id', 'is', null)
       if (error) throw error
-      return data || []
+      const ids = new Set((data || []).map(h => h.id))
+      return [...(data || []), ...pendingRows('highlight.insert').filter(p => !ids.has(p.id))]
     },
     staleTime: 1000 * 60 * 15,
   })
