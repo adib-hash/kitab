@@ -9,13 +9,18 @@
 // Primary model:  Gemini 3.8 Flash with light thinking (Google Generative Language API).
 //                  Chosen by the Sep 2026 bake-off (scripts/rec-bakeoff.mjs): better picks
 //                  and fewer invented books than 3.5 Flash, same ~3 s wait, under half the cost.
-// Fallback model: Claude Haiku 4.5 — used only when GEMINI_API_KEY is not set,
-//                 so the feature never breaks while the Vercel env var rolls out.
+// Fallback model: Claude Opus 5.5 at low effort, used when Gemini errors (e.g. "high
+//                 demand") or returns something unreadable, or when GEMINI_API_KEY is
+//                 unset. In the bake-off it made no invented books and ranked among the
+//                 best lists; it's slower (~10 s) and pricier, but it rarely runs.
+//                 Replaced Claude Haiku 4.5, which came last on quality.
 //
-// Returns the Anthropic Messages shape the client already parses:
+// Whichever model answers, the text is normalised into a clean JSON array of
+// recommendations and returned in the Anthropic Messages shape the client parses:
 //   data.content.find(b => b.type === 'text').text
 
 const GEMINI_MODEL = 'gemini-3.8-flash'
+const CLAUDE_MODEL = 'claude-opus-5-5'
 const MAX_PROMPT_CHARS = 20000
 
 export default async function handler(req, res) {
@@ -43,21 +48,20 @@ export default async function handler(req, res) {
   if (!user) return res.status(401).json({ error: 'Sign in required' })
 
   try {
-    let text
+    let books
     if (process.env.GEMINI_API_KEY) {
       try {
-        text = await callGemini(prompt, process.env.GEMINI_API_KEY)
+        books = normalizeRecs(await callGemini(prompt, process.env.GEMINI_API_KEY))
       } catch (gemErr) {
-        // Gemini overloaded/errored at runtime (e.g. "high demand") — fall back to
-        // Claude Haiku so recommendations don't break during a Gemini spike.
-        // Previously we only fell back when GEMINI_API_KEY was entirely unset.
+        // Gemini busy, erroring, or unreadable: answer with Claude instead.
         if (!process.env.ANTHROPIC_API_KEY) throw gemErr
-        text = await callHaiku(prompt, process.env.ANTHROPIC_API_KEY)
+        books = normalizeRecs(await callClaude(prompt, process.env.ANTHROPIC_API_KEY))
       }
     } else {
-      text = await callHaiku(prompt, process.env.ANTHROPIC_API_KEY)
+      books = normalizeRecs(await callClaude(prompt, process.env.ANTHROPIC_API_KEY))
     }
 
+    const text = JSON.stringify(books)
     return res.status(200).json({ content: [{ type: 'text', text }] })
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message })
@@ -75,6 +79,10 @@ async function callGemini(prompt, apiKey) {
       temperature: 1,
       maxOutputTokens: 8192,
       thinkingConfig: { thinkingLevel: 'low' },
+      // Constrain the answer to the exact shape the app reads, so it can't come
+      // back as malformed JSON.
+      responseMimeType: 'application/json',
+      responseSchema: REC_SCHEMA,
     },
   }
 
@@ -101,8 +109,11 @@ async function callGemini(prompt, apiKey) {
   return text
 }
 
-// --- Claude Haiku 4.5 (fallback when GEMINI_API_KEY is unset) ---
-async function callHaiku(prompt, apiKey) {
+// --- Claude Opus 5.5 (fallback) ---
+// Adaptive thinking at low effort, the setting tested in the bake-off. Opus 5.5
+// can't turn thinking off; effort is the control. Thinking tokens count toward
+// max_tokens, hence the headroom.
+async function callClaude(prompt, apiKey) {
   if (!apiKey) {
     const e = new Error('No model API key configured')
     e.status = 500
@@ -116,8 +127,10 @@ async function callHaiku(prompt, apiKey) {
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1500,
+      model: CLAUDE_MODEL,
+      max_tokens: 16000,
+      thinking: { type: 'adaptive' },
+      output_config: { effort: 'low' },
       messages: [{ role: 'user', content: prompt }],
     }),
   })
@@ -127,9 +140,62 @@ async function callHaiku(prompt, apiKey) {
     e.status = resp.status
     throw e
   }
+  if (data.stop_reason === 'refusal') throw new Error('The model declined this request')
   const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('')
   if (!text.trim()) throw new Error('Empty response from Anthropic')
   return text
+}
+
+// --- Response shape ---
+const REC_SCHEMA = {
+  type: 'ARRAY',
+  items: {
+    type: 'OBJECT',
+    properties: {
+      title: { type: 'STRING' },
+      author: { type: 'STRING' },
+      published_year: { type: 'INTEGER', nullable: true },
+      genre_hint: { type: 'STRING' },
+      why: { type: 'STRING' },
+    },
+    required: ['title', 'author', 'published_year', 'genre_hint', 'why'],
+    propertyOrdering: ['title', 'author', 'published_year', 'genre_hint', 'why'],
+  },
+}
+
+// Turns a model's answer into a clean array of recommendations. Accepts a JSON
+// array (optionally in a ```json fence or with stray text around it), an object
+// wrapping the array, or one JSON object per line, all of which models produced
+// in the bake-off. Throws if nothing usable is found, which triggers the fallback.
+export function normalizeRecs(text) {
+  const raw = String(text || '').replace(/```(?:json)?/g, '').trim()
+  let items = tryParse(raw)
+  if (items && !Array.isArray(items)) items = Object.values(items).find(Array.isArray) || null
+  if (!items) {
+    const start = raw.indexOf('['), end = raw.lastIndexOf(']')
+    if (start !== -1 && end > start) items = tryParse(raw.slice(start, end + 1))
+  }
+  if (!Array.isArray(items)) items = (raw.match(/\{[^{}]*\}/g) || []).map(tryParse).filter(Boolean)
+
+  const books = items
+    .filter(b => b && typeof b.title === 'string' && b.title.trim() && typeof b.author === 'string' && b.author.trim())
+    .map(b => ({
+      title: b.title.trim(),
+      author: b.author.trim(),
+      published_year: Number.isInteger(b.published_year) ? b.published_year : null,
+      genre_hint: typeof b.genre_hint === 'string' ? b.genre_hint : '',
+      why: typeof b.why === 'string' ? b.why : '',
+    }))
+  if (!books.length) throw new Error('The recommendation service returned an unreadable answer')
+  return books
+}
+
+function tryParse(s) {
+  try {
+    return JSON.parse(s)
+  } catch {
+    return null
+  }
 }
 
 // --- Caller verification ---
