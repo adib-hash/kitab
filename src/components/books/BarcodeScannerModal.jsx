@@ -20,14 +20,17 @@ export function BarcodeScannerModal({ open, onClose, onDetect }) {
     let consecutiveCount = 0
 
     const hints = new Map()
-    hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.EAN_13, BarcodeFormat.EAN_8])
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.EAN_13, BarcodeFormat.EAN_8, BarcodeFormat.UPC_A])
+    hints.set(DecodeHintType.TRY_HARDER, true)
 
     async function startReader() {
       try {
         const reader = new BrowserMultiFormatReader(hints)
 
         await reader.decodeFromConstraints(
-          { video: { facingMode: 'environment' } },
+          // Ask for HD: at the 640x480 default, an ISBN's bars are too thin to
+          // decode unless the book is held uncomfortably close.
+          { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } } },
           videoRef.current,
           (result, err) => {
             if (stopped) return
@@ -49,11 +52,7 @@ export function BarcodeScannerModal({ open, onClose, onDetect }) {
       } catch (err) {
         if (!stopped) {
           console.error('Scanner error:', err)
-          if (err?.name === 'NotAllowedError' || err?.message?.includes('Permission')) {
-            setPermissionDenied(true)
-          } else {
-            setPermissionDenied(true)
-          }
+          setPermissionDenied(true)
         }
       }
     }

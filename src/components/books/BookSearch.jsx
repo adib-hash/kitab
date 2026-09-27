@@ -4,6 +4,12 @@ import { Modal } from '../ui/index.jsx'
 import { searchCatalog as searchBooks, searchCatalogByISBN as searchByISBN } from '../../lib/bookSearch'
 import { BookCover } from './BookCover'
 import { useDebounce } from '../../hooks/useDebounce'
+import { Capacitor, registerPlugin } from '@capacitor/core'
+import toast from 'react-hot-toast'
+
+// Native AVFoundation scanner (ios/App/CapApp-SPM/.../KitabScannerPlugin.swift).
+// The in-WebView @zxing scanner below is kept for the web app and as a fallback.
+const KitabScanner = registerPlugin('KitabScanner')
 
 // @zxing is only needed once someone taps the barcode icon; keep it out of the
 // main bundle (BookSearch is reachable from the always-mounted GlobalSearch).
@@ -72,6 +78,22 @@ export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '
     onClose()
   }
 
+  async function openScanner() {
+    if (!Capacitor.isNativePlatform()) { setScannerOpen(true); return }
+    try {
+      const res = await KitabScanner.scan()
+      if (res?.status === 'ok' && res.code) return handleBarcodeScan(res.code)
+      if (res?.status === 'denied') {
+        toast.error('Kitab needs camera access to scan. Turn it on in Settings, then Kitab.', { duration: 5000 })
+        return
+      }
+      if (res?.status === 'cancelled') return
+      setScannerOpen(true) // 'unavailable': fall back to the web scanner
+    } catch {
+      setScannerOpen(true) // older native build without the plugin
+    }
+  }
+
   async function handleBarcodeScan(isbn) {
     setScanLookingUp(true)
     setQuery(isbn)
@@ -110,7 +132,7 @@ export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '
               ? <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 animate-spin" />
               : <button
                   type="button"
-                  onClick={() => setScannerOpen(true)}
+                  onClick={openScanner}
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-ink-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
                   aria-label="Scan barcode"
                 >
