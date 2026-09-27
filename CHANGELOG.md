@@ -1,3 +1,9 @@
+## v3.0.3 — 2026-09-26
+
+### Changed
+- **Every modal opens at the same height.** Modals used to centre themselves between the header and the bottom bar, so where one appeared depended on how much was in it: tall ones like Edit Book sat just under the header, while short ones (Add a Book, Add to your journal, Remove book?, the review prompt, the share preview, the TBR shuffle pick) floated mid-screen. Add a Book was the worst case: it opened with the keyboard covering its lower third, then jumped up the screen as search results arrived. All of them now open with their top edge on the same line just under the header and grow downward, so nothing moves while you type. Measured at iPhone size: nine modals whose tops ranged from 72 to 287 pixels now all start at 72.
+- The share preview and the TBR shuffle pick now use the app's standard modal instead of their own copies, so they get the same backdrop, close button and scroll behaviour as the rest.
+
 ## v3.0.2 — 2026-09-26
 
 ### Fixed
