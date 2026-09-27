@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, BookOpen, BookMarked, Star, Tag, FileText, CheckCircle, XCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, BookOpen, BookMarked, Star, Tag, FileText, CheckCircle, XCircle, ChevronDown, ChevronUp, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUpdateBook } from '../../hooks/useLibrary'
 import { useUIStore } from '../../store/uiStore'
@@ -119,6 +119,7 @@ export function QuickActionsSheet({ book, open, onClose, onOpenForm, onOpenRevie
             <motion.div
               className="fixed inset-0 z-[300] bg-black/50"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
               onClick={onClose}
             />
 
@@ -126,7 +127,7 @@ export function QuickActionsSheet({ book, open, onClose, onOpenForm, onOpenRevie
               className="fixed bottom-0 left-0 right-0 z-[310] bg-white dark:bg-ink-900 rounded-t-2xl shadow-2xl"
               style={{ maxHeight: '90vh', overflowY: 'auto' }}
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              transition={{ type: 'tween', duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
             >
               <div className="flex justify-center pt-3 pb-1">
                 <div className="w-10 h-1 rounded-full bg-paper-300 dark:bg-ink-600" />
@@ -183,8 +184,13 @@ export function QuickActionsSheet({ book, open, onClose, onOpenForm, onOpenRevie
 
                 {!datePicking && (
                   <>
+                    {/* Status row and its options form one panel when open, so the
+                        highlighted row and the list below it read as one object
+                        instead of two overlapping boxes. */}
+                    <div className={statusOpen ? 'rounded-xl bg-paper-50 dark:bg-ink-800 overflow-hidden mb-1' : ''}>
                     <button
                       onClick={() => { setStatusOpen(s => !s); setRatingOpen(false) }}
+                      aria-expanded={statusOpen}
                       className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-paper-50 dark:hover:bg-ink-800 transition-colors active:bg-paper-100 dark:active:bg-ink-700"
                     >
                       {currentStatus && (
@@ -199,44 +205,31 @@ export function QuickActionsSheet({ book, open, onClose, onOpenForm, onOpenRevie
                       }
                     </button>
 
-                    <AnimatePresence>
-                      {statusOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="mx-4 mb-2 rounded-xl overflow-hidden border border-paper-100 dark:border-ink-700 divide-y divide-paper-100 dark:divide-ink-700">
-                            {STATUS_OPTIONS.map(opt => {
-                              const isActive = book.status === opt.value
-                              return (
-                                <button
-                                  key={opt.value}
-                                  onClick={() => !isActive && handleStatusChange(opt.value)}
-                                  disabled={isActive}
-                                  className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
-                                    isActive
-                                      ? 'bg-paper-50 dark:bg-ink-800 cursor-default'
-                                      : 'hover:bg-paper-50 dark:hover:bg-ink-800 active:bg-paper-100'
-                                  }`}
-                                >
-                                  <opt.icon size={16} className={`flex-shrink-0 ${opt.color}`} />
-                                  <span className="flex-1 text-left font-medium text-ink-800 dark:text-paper-100">
-                                    {opt.label}
-                                  </span>
-                                  {isActive && (
-                                    <span className="text-xs font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wide">
-                                      Current
-                                    </span>
-                                  )}
-                                </button>
-                              )
-                            })}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                    {statusOpen && (
+                      <div className="border-t border-paper-200 dark:border-ink-700">
+                        {STATUS_OPTIONS.map(opt => {
+                          const isActive = book.status === opt.value
+                          return (
+                            <button
+                              key={opt.value}
+                              onClick={() => !isActive && handleStatusChange(opt.value)}
+                              disabled={isActive}
+                              aria-current={isActive}
+                              className={`w-full flex items-center gap-3 pl-12 pr-4 py-3 text-sm transition-colors ${
+                                isActive ? 'cursor-default' : 'active:bg-paper-100 dark:active:bg-ink-700'
+                              }`}
+                            >
+                              <opt.icon size={16} className={`flex-shrink-0 ${opt.color}`} />
+                              <span className="flex-1 text-left font-medium text-ink-800 dark:text-paper-100">
+                                {opt.label}
+                              </span>
+                              {isActive && <Check size={16} className="text-teal-600 dark:text-teal-400 flex-shrink-0" aria-hidden="true" />}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                    </div>
 
                     <button
                       onClick={openForm}
@@ -268,18 +261,11 @@ export function QuickActionsSheet({ book, open, onClose, onOpenForm, onOpenRevie
                       </span>
                     </button>
 
-                    <AnimatePresence>
-                      {ratingOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden px-5 pb-3"
-                        >
-                          <StarRating value={book.rating} onChange={handleRate} size="lg" />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                    {ratingOpen && (
+                      <div className="px-5 pb-3">
+                        <StarRating value={book.rating} onChange={handleRate} size="lg" />
+                      </div>
+                    )}
                   </>
                 )}
 
