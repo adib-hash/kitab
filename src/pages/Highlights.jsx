@@ -24,10 +24,10 @@ const locNumber = loc => {
 // pull quote and a long paragraph still fits the card without clipping.
 function quoteSize(text = '') {
   const n = text.length
-  if (n <= 90) return 'text-[26px] leading-[1.35]'
-  if (n <= 180) return 'text-[22px] leading-[1.45]'
-  if (n <= 360) return 'text-[19px] leading-[1.55]'
-  return 'text-[17px] leading-[1.6]'
+  if (n <= 90) return 'text-[22px] leading-[1.35]'
+  if (n <= 180) return 'text-[19px] leading-[1.45]'
+  if (n <= 360) return 'text-[17px] leading-[1.55]'
+  return 'text-[15px] leading-[1.6]'
 }
 
 async function copyHighlight(h) {
@@ -147,7 +147,7 @@ export function Highlights() {
       <div className="flex items-end justify-between gap-3">
         <div>
           <h1 className="page-title">Highlights</h1>
-          <p className="text-sm text-ink-500 dark:text-ink-400 mt-0.5 tabular-nums">
+          <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5 tabular-nums">
             {highlights.length} passages{notes.length ? ` · ${notes.length} ${notes.length === 1 ? 'note' : 'notes'}` : ''} from {books.length} {books.length === 1 ? 'book' : 'books'}
           </p>
         </div>
@@ -183,7 +183,7 @@ export function Highlights() {
       <div role="tablist" aria-label="Highlights sections" className="flex rounded-xl bg-paper-100 dark:bg-ink-800 p-1">
         {[['passages', 'Highlights'], ['journal', 'Journal']].map(([v, l]) => (
           <button key={v} role="tab" aria-selected={section === v} onClick={() => { setSection(v); impactLight() }}
-            className={clsx('flex-1 py-2 rounded-lg text-base font-medium transition-colors',
+            className={clsx('flex-1 py-2 rounded-lg text-sm font-medium transition-colors',
               section === v ? 'bg-white dark:bg-ink-700 text-ink-900 dark:text-paper-50 shadow-sm' : 'text-ink-500 dark:text-ink-400')}>
             {l}
           </button>
@@ -226,8 +226,8 @@ export function Highlights() {
               <Link to={`/library/${today.book_id}`} className="flex items-center gap-3 group w-fit">
                 <BookCover book={today.books} size="sm" className="flex-shrink-0 !w-9" />
                 <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-teal-700 dark:text-teal-400 group-hover:underline">{today.books.title}</span>
-                  {today.books.author && <span className="block text-sm text-ink-500 dark:text-ink-400">{today.books.author}</span>}
+                  <span className="block text-xs font-semibold text-teal-700 dark:text-teal-400 group-hover:underline">{today.books.title}</span>
+                  {today.books.author && <span className="block text-xs text-ink-500 dark:text-ink-400">{today.books.author}</span>}
                 </span>
               </Link>
             )}
@@ -240,7 +240,7 @@ export function Highlights() {
         <div className="flex items-baseline justify-between">
           <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50">{selectedBook ? selectedBook.title : 'All books'}</h2>
           {selectedBook && (
-            <Link to={`/library/${selectedBook.id}`} className="text-sm text-teal-700 dark:text-teal-400 font-medium flex items-center gap-1 hover:underline">
+            <Link to={`/library/${selectedBook.id}`} className="text-xs text-teal-700 dark:text-teal-400 font-medium flex items-center gap-1 hover:underline">
               Open book <ArrowUpRight size={14} />
             </Link>
           )}
@@ -295,12 +295,12 @@ export function Highlights() {
 function ShelfItem({ active, onClick, label, count, children }) {
   return (
     <button onClick={onClick} aria-pressed={active} aria-label={`${label}, ${count} highlights`}
-      className="relative flex-shrink-0 w-[68px] text-left group focus:outline-none">
+      className="relative flex-shrink-0 w-[60px] text-left group focus:outline-none">
       <div className={clsx('rounded-md transition-all duration-150',
         active ? 'ring-2 ring-teal-500 ring-offset-2 ring-offset-paper-50 dark:ring-offset-ink-900 -translate-y-0.5' : 'opacity-80 group-hover:opacity-100')}>
         {children}
       </div>
-      <span className="absolute -top-1.5 -right-1.5 min-w-6 h-6 px-1.5 rounded-full bg-ink-900 dark:bg-paper-50 text-paper-50 dark:text-ink-900 text-sm font-semibold leading-none flex items-center justify-center tabular-nums shadow">
+      <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 rounded-full bg-ink-900 dark:bg-paper-50 text-paper-50 dark:text-ink-900 text-xs font-semibold leading-none flex items-center justify-center tabular-nums shadow">
         {count}
       </span>
     </button>
@@ -358,8 +358,8 @@ function Deck({ items, resetKey, onShuffle, shuffled, onCopy, confirmDelete, set
                 <div className="my-auto w-full space-y-4">
                   <p className={clsx('font-serif italic text-ink-900 dark:text-paper-50', quoteSize(h.text))}>“{h.text.trim()}”</p>
                   {h.note && (
-                    <p className="text-base text-ink-600 dark:text-ink-300 border-l-2 border-amber-400 pl-3">
-                      <span className="block text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500 mb-0.5">Your note</span>
+                    <p className="text-sm text-ink-600 dark:text-ink-300 border-l-2 border-amber-400 pl-3">
+                      <span className="block text-xs font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500 mb-0.5">Your note</span>
                       {h.note}
                     </p>
                   )}
@@ -370,17 +370,17 @@ function Deck({ items, resetKey, onShuffle, shuffled, onCopy, confirmDelete, set
                   <Link to={`/library/${h.book_id}`} className="flex items-center gap-2.5 min-w-0 flex-1 group">
                     <BookCover book={h.books} size="sm" className="flex-shrink-0 !w-8" />
                     <span className="min-w-0">
-                      <span className="block text-sm font-semibold text-ink-900 dark:text-paper-50 truncate group-hover:text-teal-700 dark:group-hover:text-teal-400">{h.books.title}</span>
-                      <span className="block text-sm text-ink-500 dark:text-ink-400 truncate">{h.location ? `Loc. ${h.location}` : h.page ? `p. ${h.page}` : h.books.author}</span>
+                      <span className="block text-xs font-semibold text-ink-900 dark:text-paper-50 truncate group-hover:text-teal-700 dark:group-hover:text-teal-400">{h.books.title}</span>
+                      <span className="block text-xs text-ink-500 dark:text-ink-400 truncate">{h.location ? `Loc. ${h.location}` : h.page ? `p. ${h.page}` : h.books.author}</span>
                     </span>
                   </Link>
                 ) : (
-                  <span className="flex-1 text-sm text-ink-500 dark:text-ink-400 tabular-nums">{h.location ? `Location ${h.location}` : h.page ? `Page ${h.page}` : ''}</span>
+                  <span className="flex-1 text-xs text-ink-500 dark:text-ink-400 tabular-nums">{h.location ? `Location ${h.location}` : h.page ? `Page ${h.page}` : ''}</span>
                 )}
                 {confirmDelete === h.id ? (
                   <div className="flex items-center gap-1.5">
-                    <button onClick={() => setConfirmDelete(null)} className="text-sm px-2.5 py-1.5 rounded-lg text-ink-600 dark:text-ink-300 hover:bg-paper-100 dark:hover:bg-ink-700">Keep</button>
-                    <button onClick={() => onDelete(h)} className="text-sm px-2.5 py-1.5 rounded-lg bg-rose-600 text-white font-medium">Delete</button>
+                    <button onClick={() => setConfirmDelete(null)} className="text-xs px-2.5 py-1.5 rounded-lg text-ink-600 dark:text-ink-300 hover:bg-paper-100 dark:hover:bg-ink-700">Keep</button>
+                    <button onClick={() => onDelete(h)} className="text-xs px-2.5 py-1.5 rounded-lg bg-rose-600 text-white font-medium">Delete</button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-0.5">
@@ -401,7 +401,7 @@ function Deck({ items, resetKey, onShuffle, shuffled, onCopy, confirmDelete, set
           <ChevronLeft size={18} />
         </button>
         <div className="flex flex-col items-center gap-1.5 min-w-0 flex-1">
-          <span className="text-sm text-ink-500 dark:text-ink-400 tabular-nums" aria-live="polite">{index + 1} of {items.length}</span>
+          <span className="text-xs text-ink-500 dark:text-ink-400 tabular-nums" aria-live="polite">{index + 1} of {items.length}</span>
           <div className="h-1 w-full max-w-[12rem] rounded-full bg-paper-200 dark:bg-ink-700 overflow-hidden">
             <div className="h-full bg-teal-600 dark:bg-teal-500 rounded-full transition-[width] duration-200" style={{ width: `${((index + 1) / items.length) * 100}%` }} />
           </div>
@@ -412,7 +412,7 @@ function Deck({ items, resetKey, onShuffle, shuffled, onCopy, confirmDelete, set
         </button>
       </div>
       <div className="flex justify-center">
-        <button onClick={onShuffle} className={clsx('inline-flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-full border transition-colors',
+        <button onClick={onShuffle} className={clsx('inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors',
           shuffled ? 'border-teal-500 text-teal-700 bg-teal-50 dark:bg-teal-900/20 dark:text-teal-400' : 'border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-300 hover:bg-paper-50 dark:hover:bg-ink-800')}>
           <Shuffle size={14} /> {shuffled ? 'Shuffle again' : 'Shuffle'}
         </button>
@@ -442,7 +442,7 @@ function HighlightList({ items, grouped, query, onCopy, confirmDelete, setConfir
 
   return (
     <div className="space-y-8">
-      {query && <p className="text-sm text-ink-500 dark:text-ink-400 tabular-nums">{items.length} {items.length === 1 ? 'match' : 'matches'}</p>}
+      {query && <p className="text-xs text-ink-500 dark:text-ink-400 tabular-nums">{items.length} {items.length === 1 ? 'match' : 'matches'}</p>}
       {groups.map(g => (
         <section key={g.key} className="space-y-3">
           {g.book && (
@@ -450,24 +450,24 @@ function HighlightList({ items, grouped, query, onCopy, confirmDelete, setConfir
               <BookCover book={g.book} size="sm" className="flex-shrink-0 !w-9" />
               <span className="min-w-0 flex-1">
                 <span className="block font-serif font-semibold text-ink-900 dark:text-paper-50 truncate group-hover:text-teal-700 dark:group-hover:text-teal-400">{g.book.title}</span>
-                {g.book.author && <span className="block text-sm text-ink-500 dark:text-ink-400 truncate">{g.book.author}</span>}
+                {g.book.author && <span className="block text-xs text-ink-500 dark:text-ink-400 truncate">{g.book.author}</span>}
               </span>
-              <span className="text-sm text-ink-500 dark:text-ink-400 tabular-nums">{g.items.length}</span>
+              <span className="text-xs text-ink-500 dark:text-ink-400 tabular-nums">{g.items.length}</span>
             </Link>
           )}
           <ol className="space-y-3">
             {g.items.map(h => (
               <li key={h.id} className="group/hl relative rounded-xl bg-white dark:bg-ink-800 border border-paper-200 dark:border-ink-700 px-5 py-4">
-                <p className="font-serif italic text-[17px] leading-relaxed text-ink-900 dark:text-paper-50 pr-8">“{highlightMatch(h.text.trim(), query)}”</p>
-                {h.note && <p className="mt-2 text-base text-ink-600 dark:text-ink-300 border-l-2 border-amber-400 pl-3">{highlightMatch(h.note, query)}</p>}
+                <p className="font-serif italic text-[15px] leading-relaxed text-ink-900 dark:text-paper-50 pr-8">“{highlightMatch(h.text.trim(), query)}”</p>
+                {h.note && <p className="mt-2 text-sm text-ink-600 dark:text-ink-300 border-l-2 border-amber-400 pl-3">{highlightMatch(h.note, query)}</p>}
                 <div className="mt-3 flex items-center justify-between gap-3">
-                  <span className="text-sm text-ink-500 dark:text-ink-400 truncate">
+                  <span className="text-xs text-ink-500 dark:text-ink-400 truncate">
                     {!grouped && h.books?.title ? `${h.books.title}${h.location ? ` · Loc. ${h.location}` : ''}` : (h.location ? `Location ${h.location}` : '')}
                   </span>
                   {confirmDelete === h.id ? (
                     <span className="flex items-center gap-1.5">
-                      <button onClick={() => setConfirmDelete(null)} className="text-sm px-2.5 py-1 rounded-lg text-ink-600 dark:text-ink-300 hover:bg-paper-100 dark:hover:bg-ink-700">Keep</button>
-                      <button onClick={() => onDelete(h)} className="text-sm px-2.5 py-1 rounded-lg bg-rose-600 text-white font-medium">Delete</button>
+                      <button onClick={() => setConfirmDelete(null)} className="text-xs px-2.5 py-1 rounded-lg text-ink-600 dark:text-ink-300 hover:bg-paper-100 dark:hover:bg-ink-700">Keep</button>
+                      <button onClick={() => onDelete(h)} className="text-xs px-2.5 py-1 rounded-lg bg-rose-600 text-white font-medium">Delete</button>
                     </span>
                   ) : (
                     <span className="flex items-center gap-0.5 md:opacity-0 md:group-hover/hl:opacity-100 transition-opacity">

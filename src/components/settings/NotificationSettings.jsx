@@ -49,7 +49,7 @@ function ToggleRow({ icon, label, description, enabled, onToggle, children }) {
         </div>
       </div>
       {description && (
-        <p className="text-sm text-ink-500 dark:text-ink-400 mt-1 ml-9">{description}</p>
+        <p className="text-xs text-ink-500 dark:text-ink-400 mt-1 ml-9">{description}</p>
       )}
       {children}
     </div>
@@ -62,11 +62,11 @@ function TimeSelect({ hour, minute, onChange, label }) {
 
   return (
     <div className="flex items-center gap-2 mt-2 ml-9">
-      <span className="text-sm text-ink-500 dark:text-ink-400">{label}</span>
+      <span className="text-xs text-ink-500 dark:text-ink-400">{label}</span>
       <select
         value={hour}
         onChange={(e) => onChange(Number(e.target.value), minute)}
-        className="text-sm bg-paper-100 dark:bg-ink-700 text-ink-800 dark:text-ink-200 rounded-lg px-2 py-1.5 border-0 appearance-none"
+        className="text-xs bg-paper-100 dark:bg-ink-700 text-ink-800 dark:text-ink-200 rounded-lg px-2 py-1.5 border-0 appearance-none"
         style={{ fontSize: '16px' }}
       >
         {hours.map(h => (
@@ -133,7 +133,7 @@ export function NotificationSettings({ books = [], highlights = [], goal = null 
       </h2>
 
       {!hasPermission && anyEnabled && (
-        <p className="text-sm text-amber-600 dark:text-amber-400 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20">
+        <p className="text-xs text-amber-600 dark:text-amber-400 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20">
           Notifications are disabled in system settings.
         </p>
       )}

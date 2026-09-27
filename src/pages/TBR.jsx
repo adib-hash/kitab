@@ -160,12 +160,12 @@ function SortableBook({ book }) {
           isRight ? 'bg-teal-600' : isLeft ? 'bg-rose-600' : 'bg-paper-200 dark:bg-ink-700'
         }`}>
           {isRight && (
-            <span className="text-white text-sm font-bold flex items-center gap-1.5">
+            <span className="text-white text-xs font-bold flex items-center gap-1.5">
               <BookOpen size={14} /> Start Reading
             </span>
           )}
           {isLeft && (
-            <span className="text-white text-sm font-bold ml-auto flex items-center gap-1.5">
+            <span className="text-white text-xs font-bold ml-auto flex items-center gap-1.5">
               <Trash2 size={14} /> Remove
             </span>
           )}
@@ -200,9 +200,9 @@ function SortableBook({ book }) {
               <p className="font-medium text-sm text-ink-900 dark:text-paper-50 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors truncate leading-snug">
                 {book.title}
               </p>
-              <p className="text-sm text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
+              <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
               {book.tbr_note && (
-                <p className="text-sm italic text-ink-400 dark:text-ink-500 truncate mt-0.5">{book.tbr_note}</p>
+                <p className="text-[11px] italic text-ink-400 dark:text-ink-500 truncate mt-0.5">{book.tbr_note}</p>
               )}
             </div>
           </Link>
@@ -214,7 +214,7 @@ function SortableBook({ book }) {
         <div className={`flex items-center justify-between px-4 py-2.5 rounded-b-xl -mt-1 ${
           confirming === 'right' ? 'bg-teal-600' : 'bg-rose-600'
         }`}>
-          <span className="text-white text-sm font-semibold flex items-center gap-1.5">
+          <span className="text-white text-xs font-semibold flex items-center gap-1.5">
             {confirming === 'right'
               ? <><BookOpen size={13} /> Start reading this book?</>
               : <><Trash2 size={13} /> Remove from library entirely?</>}
@@ -222,13 +222,13 @@ function SortableBook({ book }) {
           <div className="flex gap-2">
             <button
               onClick={cancelAction}
-              className="text-white/70 text-sm px-2.5 py-1 rounded-lg border border-white/30 hover:bg-white/10"
+              className="text-white/70 text-xs px-2.5 py-1 rounded-lg border border-white/30 hover:bg-white/10"
             >
               Cancel
             </button>
             <button
               onClick={confirming === 'right' ? confirmRight : confirmLeft}
-              className="text-white text-sm px-2.5 py-1 rounded-lg bg-white/25 hover:bg-white/35 font-semibold"
+              className="text-white text-xs px-2.5 py-1 rounded-lg bg-white/25 hover:bg-white/35 font-semibold"
             >
               Confirm
             </button>
@@ -253,7 +253,7 @@ function ShufflePickModal({ book, onClose, onShuffleAgain }) {
     <div className="fixed inset-0 z-[400] flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div className="relative bg-white dark:bg-ink-800 rounded-2xl shadow-2xl p-6 max-w-xs w-full text-center">
-        <p className="text-sm font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-widest mb-3">
+        <p className="text-xs font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-widest mb-3">
           Your Next Read
         </p>
         <div className="flex justify-center mb-4">
@@ -262,7 +262,7 @@ function ShufflePickModal({ book, onClose, onShuffleAgain }) {
         <p className="font-serif font-semibold text-lg text-ink-900 dark:text-paper-50 leading-snug">{book.title}</p>
         <p className="text-sm text-ink-500 dark:text-ink-400 mt-1 mb-1">{book.author}</p>
         {book.tbr_note && (
-          <p className="text-sm italic text-ink-400 dark:text-ink-500 mb-4">{book.tbr_note}</p>
+          <p className="text-xs italic text-ink-400 dark:text-ink-500 mb-4">{book.tbr_note}</p>
         )}
         <Link
           to={`/library/${book.id}`}
@@ -280,7 +280,7 @@ function ShufflePickModal({ book, onClose, onShuffleAgain }) {
         </button>
         <button
           onClick={onClose}
-          className="mt-2 block w-full text-sm text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 py-1"
+          className="mt-2 block w-full text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 py-1"
         >
           Dismiss
         </button>
@@ -335,7 +335,7 @@ export function TBR() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">To Be Read</h1>
-          <p className="text-sm text-ink-500 dark:text-ink-400 mt-0.5">
+          <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">
             {isLoading ? '...' : `${tbrBooks.length} ${tbrBooks.length === 1 ? 'book' : 'books'} on your shelf`}
           </p>
         </div>
@@ -357,7 +357,7 @@ export function TBR() {
 
       {/* Swipe hint */}
       {tbrBooks.length > 1 && (
-        <p className="text-sm text-ink-400 dark:text-ink-500 text-center">
+        <p className="text-xs text-ink-400 dark:text-ink-500 text-center">
           Swipe right to start · swipe left to remove · hold for options
         </p>
       )}

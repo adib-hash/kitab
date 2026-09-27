@@ -110,7 +110,7 @@ export function BookDetail() {
           {book.status === 'reading' && book.page_count && book.current_page && (
             <div className="mt-3">
               <ProgressBar value={book.current_page} max={book.page_count} className="h-2" />
-              <p className="text-sm text-ink-500 mt-1 text-center">
+              <p className="text-xs text-ink-500 mt-1 text-center">
                 Page {book.current_page} of {book.page_count}
               </p>
             </div>
@@ -179,12 +179,12 @@ export function BookDetail() {
                 : `https://www.amazon.com/s?k=${encodeURIComponent((book.title || '') + ' ' + (book.author || ''))}&i=stripbooks`
               }
               target="_blank" rel="noopener noreferrer"
-              className="btn-ghost text-sm"
+              className="btn-ghost text-xs"
             >
               <ExternalLink size={12} /> Amazon
             </a>
             {wikiUrl && (
-              <a href={wikiUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost text-sm">
+              <a href={wikiUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost text-xs">
                 <ExternalLink size={12} /> Wikipedia
               </a>
             )}
@@ -192,7 +192,7 @@ export function BookDetail() {
               <a
                 href={`https://libbyapp.com/search/${librarySlug}/search/query-${encodeURIComponent((book.title || '') + ' ' + (book.author || ''))}/page-1`}
                 target="_blank" rel="noopener noreferrer"
-                className="btn-ghost text-sm"
+                className="btn-ghost text-xs"
               >
                 <ExternalLink size={12} /> Check Libby
               </a>
@@ -221,7 +221,7 @@ export function BookDetail() {
               {book.review_spoiler && (
                 <button
                   onClick={() => setSpoilerRevealed(r => !r)}
-                  className="flex items-center gap-1 text-amber-600 text-sm font-medium"
+                  className="flex items-center gap-1 text-amber-600 text-xs font-medium"
                 >
                   <AlertTriangle size={13} />
                   Spoilers
@@ -230,7 +230,7 @@ export function BookDetail() {
               )}
               <button
                 onClick={() => setReviewModalOpen(true)}
-                className="text-sm text-teal-600 dark:text-teal-400 hover:underline font-medium"
+                className="text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium"
               >
                 Edit
               </button>
@@ -244,7 +244,7 @@ export function BookDetail() {
             <p className="text-sm text-ink-400 italic">Review hidden — click to reveal</p>
           )}
           {book.updated_at && (
-            <p className="text-sm text-ink-400 mt-3">Updated {formatDate(book.updated_at)}</p>
+            <p className="text-xs text-ink-400 mt-3">Updated {formatDate(book.updated_at)}</p>
           )}
         </div>
       ) : (
@@ -272,7 +272,7 @@ export function BookDetail() {
             {book.description}
           </p>
           {!descOpen && book.description.length > 200 && (
-            <button onClick={() => setDescOpen(true)} className="mt-2 text-sm text-teal-600 dark:text-teal-400 hover:underline font-medium">
+            <button onClick={() => setDescOpen(true)} className="mt-2 text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium">
               Show more
             </button>
           )}

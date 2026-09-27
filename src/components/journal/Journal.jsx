@@ -89,7 +89,7 @@ export function Composer({ book, highlightId = null, allowPassage = true, autoFo
         <div role="tablist" className="inline-flex rounded-lg bg-paper-100 dark:bg-ink-900 p-0.5">
           {[['note', 'Note'], ['passage', 'Passage']].map(([v, l]) => (
             <button key={v} type="button" role="tab" aria-selected={mode === v} onClick={() => setMode(v)}
-              className={clsx('px-3 py-1 rounded-md text-sm font-medium transition-colors',
+              className={clsx('px-3 py-1 rounded-md text-xs font-medium transition-colors',
                 mode === v ? 'bg-white dark:bg-ink-700 text-ink-900 dark:text-paper-50 shadow-sm' : 'text-ink-500 dark:text-ink-400')}>
               {l}
             </button>
@@ -110,7 +110,7 @@ export function Composer({ book, highlightId = null, allowPassage = true, autoFo
         style={{ fontSize: '16px' }}
       />
       <div className="flex items-center gap-2">
-        <label className="flex items-center gap-1.5 text-sm text-ink-500 dark:text-ink-400">
+        <label className="flex items-center gap-1.5 text-xs text-ink-500 dark:text-ink-400">
           Page
           <input
             value={page}
@@ -124,7 +124,7 @@ export function Composer({ book, highlightId = null, allowPassage = true, autoFo
         </label>
         <span className="flex-1" />
         {onDone && highlightId && (
-          <button type="button" onClick={onDone} className="text-sm px-3 py-1.5 rounded-lg text-ink-500 dark:text-ink-400 hover:bg-paper-100 dark:hover:bg-ink-700">Cancel</button>
+          <button type="button" onClick={onDone} className="text-xs px-3 py-1.5 rounded-lg text-ink-500 dark:text-ink-400 hover:bg-paper-100 dark:hover:bg-ink-700">Cancel</button>
         )}
         <button type="submit" disabled={!text.trim() || busy} className="btn-primary !py-1.5 disabled:opacity-40">
           {mode === 'passage' && !highlightId ? 'Save passage' : 'Save note'}
@@ -137,14 +137,14 @@ export function Composer({ book, highlightId = null, allowPassage = true, autoFo
 // ── Entries ─────────────────────────────────────────────────────────────────
 function PendingMark({ item }) {
   if (!item._pending) return null
-  return <span className="inline-flex items-center gap-1 text-sm text-amber-700 dark:text-amber-400"><CloudOff size={13} /> Waiting to sync</span>
+  return <span className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400"><CloudOff size={13} /> Waiting to sync</span>
 }
 
 function ConfirmDelete({ onKeep, onDelete, label = 'Delete' }) {
   return (
     <span className="flex items-center gap-1.5">
-      <button type="button" onClick={onKeep} className="text-sm px-2.5 py-1 rounded-lg text-ink-600 dark:text-ink-300 hover:bg-paper-100 dark:hover:bg-ink-700">Keep</button>
-      <button type="button" onClick={onDelete} className="text-sm px-2.5 py-1 rounded-lg bg-rose-600 text-white font-medium">{label}</button>
+      <button type="button" onClick={onKeep} className="text-xs px-2.5 py-1 rounded-lg text-ink-600 dark:text-ink-300 hover:bg-paper-100 dark:hover:bg-ink-700">Keep</button>
+      <button type="button" onClick={onDelete} className="text-xs px-2.5 py-1 rounded-lg bg-rose-600 text-white font-medium">{label}</button>
     </span>
   )
 }
@@ -167,23 +167,23 @@ export function NoteEntry({ note, bookId, quote }) {
 
   return (
     <div className="rounded-xl border-l-[3px] border-amber-400 bg-amber-50/60 dark:bg-amber-500/[0.07] px-4 py-3 space-y-2">
-      {quote && <p className="text-sm font-serif italic text-ink-500 dark:text-ink-400 line-clamp-2">“{quote}”</p>}
+      {quote && <p className="text-xs font-serif italic text-ink-500 dark:text-ink-400 line-clamp-2">“{quote}”</p>}
       {editing ? (
         <div className="space-y-2">
           <textarea value={body} onChange={e => { setBody(e.target.value); autosize(e.target) }} ref={autosize} autoFocus
             className="w-full resize-none rounded-lg px-3 py-2 bg-white dark:bg-ink-900 border border-paper-200 dark:border-ink-600 text-ink-900 dark:text-paper-50 focus:outline-none focus:ring-2 focus:ring-teal-500"
             style={{ fontSize: '16px' }} aria-label="Edit note" />
           <div className="flex justify-end gap-2">
-            <button type="button" onClick={() => { setEditing(false); setBody(note.body) }} className="text-sm px-3 py-1.5 rounded-lg text-ink-500 hover:bg-paper-100 dark:hover:bg-ink-700">Cancel</button>
+            <button type="button" onClick={() => { setEditing(false); setBody(note.body) }} className="text-xs px-3 py-1.5 rounded-lg text-ink-500 hover:bg-paper-100 dark:hover:bg-ink-700">Cancel</button>
             <button type="button" onClick={save} className="btn-primary !py-1.5">Save</button>
           </div>
         </div>
       ) : (
-        <p className="text-base text-ink-800 dark:text-paper-100 whitespace-pre-wrap leading-relaxed">{note.body}</p>
+        <p className="text-sm text-ink-800 dark:text-paper-100 whitespace-pre-wrap leading-relaxed">{note.body}</p>
       )}
       {!editing && (
         <div className="flex items-center gap-3 justify-between">
-          <span className="flex items-center gap-3 text-sm text-ink-500 dark:text-ink-400 tabular-nums">
+          <span className="flex items-center gap-3 text-xs text-ink-500 dark:text-ink-400 tabular-nums">
             <span>{fmtDay(note.created_at)}{note.page ? ` · p. ${note.page}` : ''}</span>
             <PendingMark item={note} />
           </span>
@@ -210,12 +210,12 @@ export function HighlightEntry({ h, book, notes = EMPTY, showDate = true }) {
   return (
     <div className="space-y-2">
       <div className="group/hl rounded-xl border border-paper-200 dark:border-ink-700 bg-white dark:bg-ink-800 border-l-[3px] border-l-teal-500 px-4 py-3 space-y-2">
-        <p className="font-serif italic text-[17px] leading-relaxed text-ink-900 dark:text-paper-50">“{h.text.trim()}”</p>
+        <p className="font-serif italic text-[15px] leading-relaxed text-ink-900 dark:text-paper-50">“{h.text.trim()}”</p>
         {h.note && (
-          <p className="text-base text-ink-600 dark:text-ink-300"><span className="text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500 mr-1.5">Kindle note</span>{h.note}</p>
+          <p className="text-sm text-ink-600 dark:text-ink-300"><span className="text-xs font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500 mr-1.5">Kindle note</span>{h.note}</p>
         )}
         <div className="flex items-center justify-between gap-3">
-          <span className="flex items-center gap-3 text-sm text-ink-500 dark:text-ink-400 tabular-nums">
+          <span className="flex items-center gap-3 text-xs text-ink-500 dark:text-ink-400 tabular-nums">
             <span>{h.source === 'manual' ? 'Typed' : 'Kindle'}{where(h) ? ` · ${where(h)}` : ''}{showDate ? ` · ${fmtDay(whenOf(h))}` : ''}</span>
             <PendingMark item={h} />
           </span>
@@ -249,7 +249,7 @@ function KindleCluster({ items, book, notesByHighlight, header }) {
       {header}
       {shown.map(h => <HighlightEntry key={h.id} h={h} book={book} notes={notesByHighlight.get(h.id)} showDate={false} />)}
       {items.length > 3 && (
-        <button type="button" onClick={() => setOpen(o => !o)} className="text-sm font-medium text-teal-700 dark:text-teal-400 flex items-center gap-1">
+        <button type="button" onClick={() => setOpen(o => !o)} className="text-xs font-medium text-teal-700 dark:text-teal-400 flex items-center gap-1">
           <ChevronDown size={15} className={clsx('transition-transform', open && 'rotate-180')} />
           {open ? 'Show fewer' : `Show all ${items.length}`}
         </button>
@@ -319,7 +319,7 @@ export function BookJournal({ book, focus = false }) {
     <section ref={sectionRef} className="space-y-4 scroll-mt-20" aria-labelledby="journal-h">
       <div className="flex items-baseline justify-between">
         <h2 id="journal-h" className="font-serif text-xl font-semibold text-ink-900 dark:text-paper-50">Journal</h2>
-        {count > 0 && <span className="text-sm text-ink-500 dark:text-ink-400 tabular-nums">{highlights.length} {highlights.length === 1 ? 'highlight' : 'highlights'} · {notes.length} {notes.length === 1 ? 'note' : 'notes'}</span>}
+        {count > 0 && <span className="text-xs text-ink-500 dark:text-ink-400 tabular-nums">{highlights.length} {highlights.length === 1 ? 'highlight' : 'highlights'} · {notes.length} {notes.length === 1 ? 'note' : 'notes'}</span>}
       </div>
 
       <Composer book={book} />
@@ -327,7 +327,7 @@ export function BookJournal({ book, focus = false }) {
       {(hlLoading || notesLoading) ? (
         <div className="space-y-2">{[...Array(2)].map((_, i) => <div key={i} className="h-20 skeleton rounded-xl" />)}</div>
       ) : entries.length === 0 && !book.review ? (
-        <p className="text-base text-ink-500 dark:text-ink-400 py-2">Nothing here yet. Notes and passages you save, and Kindle highlights once synced, collect here.</p>
+        <p className="text-sm text-ink-500 dark:text-ink-400 py-2">Nothing here yet. Notes and passages you save, and Kindle highlights once synced, collect here.</p>
       ) : (
         <ol className="space-y-5">
           {entries.map(e => (
@@ -336,18 +336,18 @@ export function BookJournal({ book, focus = false }) {
               {e.kind === 'highlight' && <HighlightEntry h={e.item} book={book} notes={notesByHighlight.get(e.item.id)} />}
               {e.kind === 'cluster' && (
                 <KindleCluster items={e.items} book={book} notesByHighlight={notesByHighlight}
-                  header={<p className="text-sm text-ink-500 dark:text-ink-400">{e.items.length} Kindle {e.items.length === 1 ? 'highlight' : 'highlights'} · synced {fmtDay(e.when)}</p>} />
+                  header={<p className="text-xs text-ink-500 dark:text-ink-400">{e.items.length} Kindle {e.items.length === 1 ? 'highlight' : 'highlights'} · synced {fmtDay(e.when)}</p>} />
               )}
             </li>
           ))}
           {book.review && (
             <li className="rounded-xl bg-paper-100 dark:bg-ink-800/60 px-4 py-3 flex items-start gap-3">
               <PenLine size={16} className="text-ink-400 mt-1 flex-shrink-0" />
-              <p className="text-base text-ink-700 dark:text-ink-300 line-clamp-3"><span className="font-semibold text-ink-900 dark:text-paper-50">Your review · </span>{book.review}</p>
+              <p className="text-sm text-ink-700 dark:text-ink-300 line-clamp-3"><span className="font-semibold text-ink-900 dark:text-paper-50">Your review · </span>{book.review}</p>
             </li>
           )}
           {finished && (
-            <li className="flex items-center gap-2 text-sm text-ink-500 dark:text-ink-400">
+            <li className="flex items-center gap-2 text-xs text-ink-500 dark:text-ink-400">
               <CheckCircle2 size={16} className="text-emerald-500" /> Finished {formatDateShort(book.date_finished)}
             </li>
           )}
@@ -385,7 +385,7 @@ export function JournalFeed({ bookId = 'all' }) {
 
   if (a || b) return <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-24 skeleton rounded-xl" />)}</div>
   if (!months.groups.length) {
-    return <p className="text-base text-ink-500 dark:text-ink-400 py-6 text-center">No journal entries yet. Tap the plus button to write a note or save a passage.</p>
+    return <p className="text-sm text-ink-500 dark:text-ink-400 py-6 text-center">No journal entries yet. Tap the plus button to write a note or save a passage.</p>
   }
 
   const BookLine = ({ id, suffix }) => {
@@ -394,7 +394,7 @@ export function JournalFeed({ bookId = 'all' }) {
     return (
       <Link to={`/library/${id}`} className="flex items-center gap-2.5 group w-fit max-w-full">
         <BookCover book={bk} size="sm" className="flex-shrink-0 !w-7" />
-        <span className="min-w-0 text-sm">
+        <span className="min-w-0 text-xs">
           <span className="font-semibold text-ink-900 dark:text-paper-50 group-hover:text-teal-700 dark:group-hover:text-teal-400">{bk.title}</span>
           {suffix && <span className="text-ink-500 dark:text-ink-400"> · {suffix}</span>}
         </span>
@@ -456,7 +456,7 @@ export function AddToJournal({ open, onClose, defaultBookId = null }) {
           </select>
         </label>
         {book ? <Composer key={book.id} book={book} onDone={onClose} /> : (
-          <p className="text-base text-ink-500 dark:text-ink-400 flex items-center gap-2"><BookOpen size={16} /> Add a book to your library first.</p>
+          <p className="text-sm text-ink-500 dark:text-ink-400 flex items-center gap-2"><BookOpen size={16} /> Add a book to your library first.</p>
         )}
       </div>
     </Modal>

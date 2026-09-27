@@ -99,7 +99,7 @@ export function Sidebar({ onSearch }) {
             <span className="flex-1 text-sm text-left">Search...</span>
           )}
           {!collapsed && (
-            <kbd className="text-sm text-ink-400 border border-paper-200 dark:border-ink-600 rounded px-1 font-mono">⌘K</kbd>
+            <kbd className="text-[10px] text-ink-400 border border-paper-200 dark:border-ink-600 rounded px-1 font-mono">⌘K</kbd>
           )}
         </button>
       </div>
@@ -119,7 +119,7 @@ export function Sidebar({ onSearch }) {
                 <button
                   key={tag.id}
                   onClick={() => { setLibraryFilters({ tags: [tag.id] }); navigate('/library') }}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-ink-600 dark:text-ink-400 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-ink-600 dark:text-ink-400 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors text-left"
                 >
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: tag.color || '#0F766E' }} />
                   <span className="truncate">{tag.name}</span>

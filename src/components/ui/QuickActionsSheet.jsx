@@ -135,7 +135,7 @@ export function QuickActionsSheet({ book, open, onClose, onOpenForm, onOpenRevie
               <div className="flex items-center gap-3 px-5 py-3 border-b border-paper-100 dark:border-ink-700">
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm text-ink-900 dark:text-paper-50 truncate">{book.title}</p>
-                  <p className="text-sm text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
+                  <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{book.author}</p>
                 </div>
                 <button
                   onClick={onClose}
@@ -151,7 +151,7 @@ export function QuickActionsSheet({ book, open, onClose, onOpenForm, onOpenRevie
                 {datePicking && (
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-3">
                     <p className="text-sm font-semibold text-ink-800 dark:text-paper-100 mb-1">When did you finish?</p>
-                    <p className="text-sm text-ink-500 dark:text-ink-400 mb-3">Defaults to this month — change if needed.</p>
+                    <p className="text-xs text-ink-500 dark:text-ink-400 mb-3">Defaults to this month — change if needed.</p>
                     <div className="flex gap-2 mb-4">
                       <select
                         value={finishMonth}
@@ -175,7 +175,7 @@ export function QuickActionsSheet({ book, open, onClose, onOpenForm, onOpenRevie
                     <button onClick={confirmFinished} disabled={updateBook.isPending} className="btn-primary w-full mb-2">
                       {updateBook.isPending ? 'Saving…' : 'Confirm'}
                     </button>
-                    <button onClick={skipFinishedDate} className="w-full text-sm text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 py-1 text-center transition-colors">
+                    <button onClick={skipFinishedDate} className="w-full text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 py-1 text-center transition-colors">
                       Skip — don't set a date
                     </button>
                   </motion.div>
@@ -226,7 +226,7 @@ export function QuickActionsSheet({ book, open, onClose, onOpenForm, onOpenRevie
                                     {opt.label}
                                   </span>
                                   {isActive && (
-                                    <span className="text-sm font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wide">
+                                    <span className="text-xs font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wide">
                                       Current
                                     </span>
                                   )}

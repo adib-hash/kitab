@@ -37,7 +37,7 @@ function CoverThumb({ book, inLibrary, onClick }) {
           <span className="font-serif text-lg font-bold text-white/80 leading-none">
             {book.title?.slice(0, 2).toUpperCase()}
           </span>
-          <span className="font-serif text-sm font-semibold text-white/70 leading-snug line-clamp-2">
+          <span className="font-serif text-[10px] font-semibold text-white/70 leading-snug line-clamp-2">
             {book.title}
           </span>
         </div>
@@ -46,7 +46,7 @@ function CoverThumb({ book, inLibrary, onClick }) {
       {/* Genre badge */}
       {book.genre_hint && (
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent pt-4 pb-1.5 px-1.5">
-          <span className="text-sm text-white/90 font-medium leading-none">{book.genre_hint}</span>
+          <span className="text-[9px] text-white/90 font-medium leading-none">{book.genre_hint}</span>
         </div>
       )}
 
@@ -75,8 +75,8 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
             <p className="text-sm text-ink-700 dark:text-ink-300 font-medium">"{session.query}"</p>
           )}
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-sm text-ink-400">{timeAgo(session.created_at)}</span>
-            <span className="text-sm text-ink-400">{books.length} pick{books.length !== 1 ? 's' : ''}</span>
+            <span className="text-xs text-ink-400">{timeAgo(session.created_at)}</span>
+            <span className="text-xs text-ink-400">{books.length} pick{books.length !== 1 ? 's' : ''}</span>
           </div>
         </div>
         <div className="flex items-center gap-1 ml-2 flex-shrink-0">
@@ -108,10 +108,10 @@ function SessionCard({ session, libraryTitles, onBookClick, onDelete, onDeleteBo
                 inLibrary={libraryTitles.has(book.title?.toLowerCase().trim())}
                 onClick={() => onBookClick(book)}
               />
-              <p className="text-sm text-ink-600 dark:text-ink-400 mt-1.5 leading-snug line-clamp-2 font-medium">
+              <p className="text-[11px] text-ink-600 dark:text-ink-400 mt-1.5 leading-snug line-clamp-2 font-medium">
                 {book.title}
               </p>
-              <p className="text-sm text-ink-400 leading-snug line-clamp-1">{book.author}</p>
+              <p className="text-[10px] text-ink-400 leading-snug line-clamp-1">{book.author}</p>
             </div>
           ))}
         </div>
@@ -246,7 +246,7 @@ export function Discover() {
             />
           </div>
           {sessions.length > 0 && (
-            <p className="text-sm text-ink-400 text-center">
+            <p className="text-xs text-ink-400 text-center">
               {sessions.length} session{sessions.length !== 1 ? 's' : ''} · {sessions.reduce((n, s) => n + (s.books?.length || 0), 0)} recommendations
             </p>
           )}
@@ -266,7 +266,7 @@ export function Discover() {
               >
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-serif text-base font-semibold text-ink-900 dark:text-paper-50">Find your next read</h2>
-                  <button onClick={() => setShowFlow(false)} className="text-sm text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors">
+                  <button onClick={() => setShowFlow(false)} className="text-xs text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors">
                     cancel
                   </button>
                 </div>

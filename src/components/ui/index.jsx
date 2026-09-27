@@ -15,7 +15,7 @@ export function Button({ variant = 'primary', size = 'md', className, children, 
       'bg-rose-600 text-white hover:bg-rose-700': variant === 'danger',
     },
     {
-      'px-2.5 py-1.5 text-sm': size === 'sm',
+      'px-2.5 py-1.5 text-xs': size === 'sm',
       'px-4 py-2 text-sm': size === 'md',
       'px-5 py-2.5 text-base': size === 'lg',
     },
@@ -142,7 +142,7 @@ export function EmptyState({ icon, title, description, action }) {
     <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
       <div className="mb-4 opacity-40 text-ink-400">{icon || <BookOpen size={48} />}</div>
       <h3 className="font-serif text-xl font-semibold text-ink-700 dark:text-ink-300 mb-2">{title}</h3>
-      {description && <p className="text-base text-ink-500 dark:text-ink-400 max-w-sm mb-6">{description}</p>}
+      {description && <p className="text-sm text-ink-500 dark:text-ink-400 max-w-sm mb-6">{description}</p>}
       {action}
     </div>
   )
@@ -177,7 +177,7 @@ export function StatCard({ label, value, sub, icon }) {
         {icon && <span className="text-xl opacity-40">{icon}</span>}
       </div>
       <p className="font-serif text-3xl font-semibold text-ink-900 dark:text-paper-50">{value ?? '—'}</p>
-      {sub && <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">{sub}</p>}
     </div>
   )
 }

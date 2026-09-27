@@ -69,7 +69,7 @@ export function Library() {
       <div className="flex items-center justify-between gap-2">
         <div>
           <h1 className="page-title">Library</h1>
-          <p className="text-sm text-ink-500 dark:text-ink-400 mt-0.5">
+          <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">
             {isLoading ? '...' : `${filtered.length} ${filtered.length === 1 ? 'book' : 'books'}`}
           </p>
         </div>
@@ -79,11 +79,11 @@ export function Library() {
             onClick={() => setFiltersOpen(!filtersOpen)}
             aria-label="Filters"
             aria-expanded={filtersOpen}
-            className={`h-9 w-9 flex items-center justify-center rounded-lg border transition-colors relative ${activeFilterCount > 0 ? 'border-teal-500 text-teal-700 bg-teal-50 dark:bg-teal-900/20' : 'border-paper-200 dark:border-ink-600 text-ink-500 dark:text-ink-400 hover:bg-paper-50 dark:hover:bg-ink-800'}`}
+            className={`h-8 w-8 flex items-center justify-center rounded-lg border transition-colors relative ${activeFilterCount > 0 ? 'border-teal-500 text-teal-700 bg-teal-50 dark:bg-teal-900/20' : 'border-paper-200 dark:border-ink-600 text-ink-500 dark:text-ink-400 hover:bg-paper-50 dark:hover:bg-ink-800'}`}
           >
             <SlidersHorizontal size={16} />
             {activeFilterCount > 0 && (
-              <span className="absolute -top-2 -right-2 min-w-5 h-5 px-1 bg-teal-600 text-white text-sm leading-none rounded-full flex items-center justify-center">
+              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-teal-600 text-white text-[10px] rounded-full flex items-center justify-center">
                 {activeFilterCount}
               </span>
             )}
@@ -93,7 +93,7 @@ export function Library() {
             value={librarySort}
             onChange={e => setLibrarySort(e.target.value)}
             aria-label="Sort books"
-            className="border border-paper-200 dark:border-ink-600 rounded-lg px-2 h-9 bg-white dark:bg-ink-800 text-ink-600 dark:text-ink-400"
+            className="border border-paper-200 dark:border-ink-600 rounded-lg px-2 h-8 bg-white dark:bg-ink-800 text-ink-600 dark:text-ink-400"
             style={{ fontSize: '16px' }}
           >
             {Object.entries(SORT_LABELS).map(([value, label]) => (
@@ -103,16 +103,16 @@ export function Library() {
           {/* View toggle */}
           <div className="flex items-center border border-paper-200 dark:border-ink-600 rounded-lg overflow-hidden">
             <button onClick={() => setLibraryView('grid')} aria-label="Grid view" aria-pressed={libraryView === 'grid'}
-              className={`h-9 w-9 flex items-center justify-center transition-colors ${libraryView === 'grid' ? 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'hover:bg-paper-50 dark:hover:bg-ink-800 text-ink-500 dark:text-ink-400'}`}>
+              className={`h-8 w-8 flex items-center justify-center transition-colors ${libraryView === 'grid' ? 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'hover:bg-paper-50 dark:hover:bg-ink-800 text-ink-500 dark:text-ink-400'}`}>
               <LayoutGrid size={16} />
             </button>
             <button onClick={() => setLibraryView('list')} aria-label="List view" aria-pressed={libraryView === 'list'}
-              className={`h-9 w-9 flex items-center justify-center transition-colors ${libraryView === 'list' ? 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'hover:bg-paper-50 dark:hover:bg-ink-800 text-ink-500 dark:text-ink-400'}`}>
+              className={`h-8 w-8 flex items-center justify-center transition-colors ${libraryView === 'list' ? 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'hover:bg-paper-50 dark:hover:bg-ink-800 text-ink-500 dark:text-ink-400'}`}>
               <List size={16} />
             </button>
           </div>
           {/* Add button */}
-          <button onClick={() => setSearchOpen(true)} className="btn-primary h-9" aria-label="Add book">
+          <button onClick={() => setSearchOpen(true)} className="btn-primary h-8 !py-0" aria-label="Add book">
             <Plus size={16} />
             <span className="hidden sm:inline">Add Book</span>
           </button>
