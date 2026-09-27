@@ -155,8 +155,17 @@ async function gen() {
 }
 
 // ---------------- verify (production pipeline) ----------------
+// Bake-offs make hundreds of lookups. They use their own Google Books key so they
+// can't spend the app's daily quota (the Sep 2026 runs exhausted it and broke
+// Discover for a day). Create a second key in Google Cloud and put it in .env.local.
+function bakeoffGoogleKey() {
+  const key = process.env.BAKEOFF_GOOGLE_BOOKS_API_KEY
+  if (!key) throw new Error('Set BAKEOFF_GOOGLE_BOOKS_API_KEY in .env.local (a key separate from the app\'s)')
+  return key
+}
+
 async function gbSearch(q, maxResults) {
-  const params = new URLSearchParams({ q, maxResults, printType: 'books', key: process.env.VITE_GOOGLE_BOOKS_API_KEY })
+  const params = new URLSearchParams({ q, maxResults, printType: 'books', key: bakeoffGoogleKey() })
   for (let a = 0; a < 5; a++) {
     const res = await fetch(`https://www.googleapis.com/books/v1/volumes?${params}`)
     if (res.ok) { const j = await res.json(); return (j.items || []).map(x => ({ title: x.volumeInfo?.title || '', author: x.volumeInfo?.authors?.join(', ') || 'Unknown Author' })) }
@@ -331,7 +340,6 @@ function report() {
   const base = stats.find(s => s.v.id === 'base')
   const best = [...stats].sort((a, b) => b.crit.overall - a.crit.overall)[0]
   const rounds = Object.values(judged).filter(x => x.scores).length
-  const maxOverall = Math.max(...stats.map(s => s.crit.overall))
 
   const rows = stats.map(s => `<tr class="${s === best ? 'is-best' : ''}${s === base ? ' is-base' : ''}">
     <td><div class="model">${esc(s.v.label)}${s === base ? ' <span class="chip slate">Live today</span>' : ''}</div><div class="sub">${esc(s.v.note)}</div></td>

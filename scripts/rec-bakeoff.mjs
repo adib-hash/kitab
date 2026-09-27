@@ -12,7 +12,7 @@
 //
 // Input: scripts/rec-bakeoff-data.json (library, tags, past sessions), exported
 // from Supabase. It and every output file hold personal data and are gitignored.
-// Keys come from .env.local: GEMINI_API_KEY, ANTHROPIC_API_KEY, VITE_GOOGLE_BOOKS_API_KEY.
+// Keys come from .env.local: GEMINI_API_KEY, ANTHROPIC_API_KEY, BAKEOFF_GOOGLE_BOOKS_API_KEY (a Google Books key separate from the app's).
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -249,8 +249,17 @@ export function parseRecs(text) {
   }
 }
 
+// Bake-offs make hundreds of lookups. They use their own Google Books key so they
+// can't spend the app's daily quota (the Sep 2026 runs exhausted it and broke
+// Discover for a day). Create a second key in Google Cloud and put it in .env.local.
+function bakeoffGoogleKey() {
+  const key = process.env.BAKEOFF_GOOGLE_BOOKS_API_KEY
+  if (!key) throw new Error('Set BAKEOFF_GOOGLE_BOOKS_API_KEY in .env.local (a key separate from the app\'s)')
+  return key
+}
+
 async function googleSearch(q) {
-  const params = new URLSearchParams({ q, maxResults: 5, printType: 'books', key: process.env.VITE_GOOGLE_BOOKS_API_KEY })
+  const params = new URLSearchParams({ q, maxResults: 5, printType: 'books', key: bakeoffGoogleKey() })
   for (let attempt = 0; attempt < 4; attempt++) {
     const res = await fetch(`https://www.googleapis.com/books/v1/volumes?${params}`)
     if (res.ok) {

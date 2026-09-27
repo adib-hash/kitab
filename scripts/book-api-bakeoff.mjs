@@ -43,7 +43,9 @@ function loadEnv() {
   } catch { return {} }
 }
 const env = loadEnv()
-const GOOGLE_KEY = env.VITE_GOOGLE_BOOKS_API_KEY || process.env.VITE_GOOGLE_BOOKS_API_KEY
+// Own key (or none, which uses Google's anonymous quota), never the app's: bake-offs
+// can exhaust a daily quota. See bakeoffGoogleKey in rec-bakeoff.mjs.
+const GOOGLE_KEY = env.BAKEOFF_GOOGLE_BOOKS_API_KEY || process.env.BAKEOFF_GOOGLE_BOOKS_API_KEY
 const HC_TOKEN = env.HARDCOVER_API_TOKEN || process.env.HARDCOVER_API_TOKEN
 
 // ── rate limiters (serialized per provider with a minimum gap) ─────────────────

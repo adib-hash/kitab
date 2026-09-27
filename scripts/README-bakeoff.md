@@ -23,7 +23,7 @@ Flags: `--limit N`, `--full`, `--curated-only`, `--library-only`, `--cover-size 
 
 ## Credentials (read from `.env.local`, never committed)
 
-- `VITE_GOOGLE_BOOKS_API_KEY` — already present (used by the app).
+- `BAKEOFF_GOOGLE_BOOKS_API_KEY` — optional, a Google Books key separate from the app's. Never point bake-offs at the app's key: hundreds of lookups can exhaust its daily quota, which breaks Discover.
 - `HARDCOVER_API_TOKEN` — free token from hardcover.app → Settings → Hardcover API.
   **Expires yearly (resets Jan 1)** — if the Hardcover column goes blank, refresh it.
   Without it, the harness runs Google + Open Library and marks Hardcover "no token".
