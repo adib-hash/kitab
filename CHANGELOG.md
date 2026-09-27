@@ -1,3 +1,8 @@
+## v3.0.6 — 2026-09-27
+
+### Changed
+- **Better Discover recommendations.** Discover now asks Gemini 3.8 Flash, with a little thinking time, instead of Gemini 3.5 Flash. In a bake-off of ten models on nine of your real Discover requests, two blinded judges rated its lists clearly better (6.9 against 5.3 out of 10), and it invented or misattributed 1 book in 144 picks instead of 3. It answers just as fast, in about 3 seconds, at under half the cost per request. The Claude Haiku fallback for when Gemini is busy is unchanged.
+
 ## v3.0.5 — 2026-09-27
 
 ### Added
