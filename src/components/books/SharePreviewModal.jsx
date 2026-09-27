@@ -3,6 +3,7 @@ import { ExternalLink, Search } from 'lucide-react'
 import { BookCover } from './BookCover'
 import { useAddBook } from '../../hooks/useLibrary'
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
+import { STATUS } from '../../lib/utils'
 import { searchCatalog as searchBooks, searchCatalogByISBN as searchByISBN, API_BASE } from '../../lib/bookSearch'
 
 // ── URL parsing ───────────────────────────────────────────────────────────────
@@ -124,11 +125,7 @@ function getHostname(url) {
 
 // ── Status pills ──────────────────────────────────────────────────────────────
 
-const STATUS_OPTIONS = [
-  { value: 'tbr',     label: 'Want to Read' },
-  { value: 'reading', label: 'Reading' },
-  { value: 'read',    label: 'Read' },
-]
+const STATUS_OPTIONS = ['tbr', 'reading', 'read'].map(value => ({ value, label: STATUS[value].label }))
 
 // ── Shimmer loading skeleton ──────────────────────────────────────────────────
 

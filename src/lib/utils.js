@@ -152,12 +152,18 @@ export function buildGoodreadsCSV(books, tags) {
   return rows
 }
 
-export const STATUS_LABELS = {
-  read: 'Read',
-  tbr: 'To Be Read',
-  reading: 'Currently Reading',
-  dnf: 'Did Not Finish',
+// The one status vocabulary. Every label, dot, pill and icon colour for a book
+// status comes from here, so they can't drift apart again (they had: "Finished"
+// vs "Read", an amber TBR pill beside a blue TBR dot, a blue Reading pill beside
+// a teal Reading dot). Class names are literal so Tailwind keeps them.
+export const STATUS = {
+  reading: { label: 'Currently Reading', short: 'Reading',   dot: 'bg-teal-500',    text: 'text-teal-600 dark:text-teal-400',       hex: '#14B8A6', pill: 'status-reading' },
+  tbr:     { label: 'To Be Read',        short: 'TBR',       dot: 'bg-amber-500',   text: 'text-amber-600 dark:text-amber-400',     hex: '#F59E0B', pill: 'status-tbr' },
+  read:    { label: 'Read',              short: 'Read',      dot: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400', hex: '#10B981', pill: 'status-read' },
+  dnf:     { label: 'Did Not Finish',    short: 'DNF',       dot: 'bg-rose-500',    text: 'text-rose-500 dark:text-rose-400',       hex: '#F43F5E', pill: 'status-dnf' },
 }
+
+export const STATUS_LABELS = Object.fromEntries(Object.entries(STATUS).map(([k, v]) => [k, v.label]))
 
 export const STATUS_ORDER = ['reading', 'read', 'tbr', 'dnf']
 

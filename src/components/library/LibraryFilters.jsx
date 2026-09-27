@@ -4,7 +4,7 @@ import { useUIStore } from '../../store/uiStore'
 import { useShallow } from 'zustand/react/shallow'
 import { useTags } from '../../hooks/useTags'
 import { useLibrary } from '../../hooks/useLibrary'
-import { finishedYears } from '../../lib/utils'
+import { finishedYears, STATUS } from '../../lib/utils'
 import { clsx } from 'clsx'
 
 const SORT_OPTIONS = [
@@ -17,11 +17,8 @@ const SORT_OPTIONS = [
   { value: 'page_count_desc', label: 'Pages (most)' },
 ]
 
-const STATUS_OPTIONS = [
-  { value: 'read', label: 'Read' },
-  { value: 'reading', label: 'Currently Reading' },
-  { value: 'dnf', label: 'Did Not Finish' },
-]
+// TBR books live on the TBR tab, so the Library filter offers the other three.
+const STATUS_OPTIONS = ['read', 'reading', 'dnf'].map(value => ({ value, label: STATUS[value].label }))
 
 const RATING_OPTIONS = [
   { label: 'Any', value: null },

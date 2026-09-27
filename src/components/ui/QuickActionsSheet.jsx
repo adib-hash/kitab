@@ -9,13 +9,12 @@ import { BookForm } from '../books/BookForm'
 import { ReviewModal } from '../books/ReviewModal'
 import toast from 'react-hot-toast'
 import { impactMedium, notifySuccess, notifyWarning } from '../../lib/haptics'
+import { STATUS } from '../../lib/utils'
 
-const STATUS_OPTIONS = [
-  { value: 'reading', label: 'Currently Reading', icon: BookOpen,     color: 'text-teal-600 dark:text-teal-400' },
-  { value: 'tbr',     label: 'To Be Read',         icon: BookMarked,   color: 'text-blue-500 dark:text-blue-400' },
-  { value: 'read',    label: 'Finished',            icon: CheckCircle,  color: 'text-emerald-600 dark:text-emerald-400' },
-  { value: 'dnf',     label: 'Did Not Finish',      icon: XCircle,      color: 'text-rose-500 dark:text-rose-400' },
-]
+const STATUS_ICONS = { reading: BookOpen, tbr: BookMarked, read: CheckCircle, dnf: XCircle }
+const STATUS_OPTIONS = ['reading', 'tbr', 'read', 'dnf'].map(value => ({
+  value, label: STATUS[value].label, icon: STATUS_ICONS[value], color: STATUS[value].text,
+}))
 
 export function QuickActionsSheet({ book, open, onClose, onOpenForm, onOpenReview }) {
   const updateBook = useUpdateBook()
