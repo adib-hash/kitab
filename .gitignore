@@ -18,3 +18,5 @@ scripts/bakeoff-library.json
 # rec LLM bake-off (personal data + generated output)
 scripts/rec-bakeoff-*.json
 REC-BAKEOFF-REPORT.html
+scripts/rec-prompt-*.json
+REC-PROMPT-BAKEOFF.html

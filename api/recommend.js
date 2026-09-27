@@ -147,7 +147,7 @@ async function callClaude(prompt, apiKey) {
 }
 
 // --- Response shape ---
-const REC_SCHEMA = {
+export const REC_SCHEMA = {
   type: 'ARRAY',
   items: {
     type: 'OBJECT',

@@ -136,11 +136,12 @@ const writeJSON = (f, v) => fs.writeFileSync(f, JSON.stringify(v, null, 1))
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
 // ---------------- model calls (mirror api/recommend.js) ----------------
-async function callGemini(cfg, prompt, { json = false, maxOut } = {}) {
+async function callGemini(cfg, prompt, { json = false, maxOut, schema } = {}) {
   const generationConfig = { temperature: 1, maxOutputTokens: maxOut || (cfg.thinking === 'off' ? 4096 : 8192) }
   if (cfg.thinking === 'off') generationConfig.thinkingConfig = { thinkingBudget: 0 }
   else if (cfg.thinking) generationConfig.thinkingConfig = { thinkingLevel: cfg.thinking }
   if (json) generationConfig.responseMimeType = 'application/json'
+  if (schema) Object.assign(generationConfig, { responseMimeType: 'application/json', responseSchema: schema })
   const t0 = performance.now()
   const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${cfg.model}:generateContent`, {
     method: 'POST',
