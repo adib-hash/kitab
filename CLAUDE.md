@@ -1,246 +1,31 @@
-# Kitab — Claude Code Handoff Document
+# Kitab
 
-> This document is written for Claude Code running in the terminal. Reflects the actual codebase as of v3.0.2.
+Personal reading tracker: web app plus a Capacitor iOS app with widgets and a share extension. Live at kitab.ihsan.build (Vercel, deploys on push to `main`). Supabase project `kitab` (`tlallvcrogadqgtzuoko`). **Current version:** v3.0.2
 
----
+This file lists only what isn't obvious from the code. Read the code and query the live schema (Supabase MCP) for everything else.
 
-## 1. What is Kitab?
+## Releasing
+- Bump every copy of the version together: `CHANGELOG.md` entry, `Kitab · vX.Y.Z` in `src/pages/Settings.jsx`, `package.json` and the two root entries of `package-lock.json`, `README.md`, this file, and `MARKETING_VERSION` (all six targets) in `ios/App/App.xcodeproj/project.pbxproj`.
+- iOS `CURRENT_PROJECT_VERSION` (all targets) must increase for every TestFlight upload; use a date-based `YYYYMMDDNN`.
+- iOS release: `npm run build && npx cap sync ios`, then archive with `xcodebuild` into `~/Library/Developer/Xcode/Archives/<date>/`. Only the upload needs Adib.
 
-Kitab (Arabic/Urdu for "book") is a personal reading tracker web app + iOS native app built by Adib. It is intentionally a personal tool — not a product for others — built iteratively with Claude as an active development partner.
+## Traps
+- **Dates.** `date_finished` is `YYYY-MM-01` (month precision). Never `new Date(date_finished)` (it shifts January into the prior year in US time zones); parse with `slice` / `parseInt`. The year a book was read comes from `date_finished`; four-digit year tags are hidden by `isYearTag` and must not come back.
+- **Native plugins.** Capacitor 8 auto-loads only npm plugins. Kitab's own Swift plugins (`KitabDataBridge` for widgets, `KindleSync`, `KitabScanner`) are registered in `KitabBridgeViewController.capacitorDidLoad()`; add any new native plugin there. The startup log prints "Kitab native plugins registered".
+- **API routes are public URLs.** `/api/recommend` requires a Supabase bearer token; `/api/resolve-url` is host-allowlisted. Client calls must use `API_BASE` from `src/lib/bookSearch.js` (relative `/api` paths 404 on iOS).
+- **One status vocabulary.** Labels and colours come only from `STATUS` in `src/lib/utils.js`.
+- **One daily highlight.** `src/lib/dailyHighlight.js` (180 characters or fewer, indexed by local day) feeds the Dashboard, Highlights page and notification, and `ios/App/KitabWidgets/SharedDataProvider.swift` mirrors it. Change both together.
+- **Optimistic cache.** `useUpdateBook` and `useReorderTBR` patch `['books']` before the network call. Read "latest" state from the query cache, not from render closures (Rank depends on this).
+- **Offline writes.** Notes and typed highlights go through `src/lib/outbox.js` (client ids, ordered replay). Only inserts are queued.
+- **Type scale.** Original scale: `text-xs` captions and labels, `text-sm` body and buttons, inputs 16px. A 14px-floor sweep made the phone UI feel oversized and was reversed in v3.0.1; don't reapply it.
+- **Toasts.** `ToastWatchdog` in `Layout.jsx` exists because iOS taps pause react-hot-toast indefinitely; keep it.
+- **Scroll lock.** Use `useBodyScrollLock` (`position: fixed`), never `overflow: hidden`.
 
-**Live URL:** https://kitab.ihsan.build  
-**Current version:** v3.0.2  
-**Stack:** React + Vite, Supabase (auth + DB), Tailwind CSS v3, Vercel, Capacitor iOS
+## Kindle sync
+- There is no Kindle API. `public/kindle-scraper.js` drives a logged-in read.amazon.com session in a WKWebView. The manual path (`useKindleSyncFlow.js`) opens a visible browser, which is where the Amazon sign-in happens. The automatic path (`KindleSyncPlugin.swift` + `src/lib/kindleAutoSync.js`) runs offscreen: a nightly `BGProcessingTask` plus a foreground fallback.
+- Scrapes are incremental via `src/lib/kindleSyncState.js`. `normalize()` is copied in `kindle-scraper.js`, `useHighlights.js` and `kindleSyncState.js` (`normalizeTitle`) and must stay identical.
+- Order matters: import to Supabase, then `applyScrapeResult` (with `excludeTitles` for failed books), then `configureBackgroundSync`. Native `getPending` doesn't clear the payload; `ackPending` does, after a successful import.
+- The headless webview must share `WKWebsiteDataStore.default()` with `@capgo/inappbrowser` and stay attached at alpha 0.01 (hidden or alpha 0 throttles its timers). `BGTaskScheduler.register()` must stay in `AppDelegate`.
 
----
-
-## 2. Repository & Deployment
-
-| Thing | Value |
-|---|---|
-| Local repo | `~/Documents/claude\ code/kitab` (lowercase 'c' in 'code') |
-| Vercel project | Auto-deploys on `git push` to main |
-| Supabase project | Managed via Supabase dashboard / MCP |
-| Domain | `kitab.ihsan.build` (Namecheap DNS → Vercel) |
-
-**Deploy workflow:**
-```bash
-git add src/ CHANGELOG.md
-git commit -m "feat: description"
-git push
-# Then for iOS:
-npm run build && npx cap sync ios
-```
-
----
-
-## 3. Project Structure
-
-```
-~/Documents/claude code/kitab/
-├── api/                         # Vercel serverless (every file here is a public route)
-│   ├── book-search.js           # Hardcover-first catalog search, Google Books fallback
-│   ├── recommend.js             # Discovery recommendations: Gemini 3.5 Flash, Claude Haiku fallback; requires a Supabase session
-│   └── resolve-url.js           # Follows Amazon/Goodreads share links (allowlisted), extracts og:title
-├── public/
-│   ├── favicon.svg              # Teal "K" lettermark (same artwork as resources/icon.svg)
-│   ├── pwa-192.png, pwa-512.png, apple-touch-icon.png  # PWA/home-screen icons, generated from resources/icon.png with `sips`
-│   └── kindle-scraper.js        # The Kindle notebook scraper; injected by manual AND background sync
-├── src/
-│   ├── components/
-│   │   ├── books/
-│   │   │   ├── BarcodeScannerModal.jsx  # ISBN camera scanner (@zxing); lazy-loaded
-│   │   │   ├── BookCard.jsx     # Grid card; status dot top-left for non-read books; sheet/form mounted only when open
-│   │   │   ├── BookCover.jsx    # Cover image with SVG fallback spine; native filesystem cache
-│   │   │   ├── BookForm.jsx     # Add/edit modal; tbr_note field when status=tbr
-│   │   │   ├── BookRow.jsx      # List-view row for Library
-│   │   │   ├── BookSearch.jsx   # Add-a-book search modal (calls /api/book-search)
-│   │   │   ├── ReviewModal.jsx  # Standalone review editor with localStorage draft
-│   │   │   ├── SharePreviewModal.jsx  # iOS share extension: resolve a shared URL to a book
-│   │   │   ├── StarRating.jsx
-│   │   │   ├── StatusBadge.jsx
-│   │   │   └── TagInput.jsx
-│   │   ├── journal/
-│   │   │   └── Journal.jsx      # Commonplace Book: Composer, HighlightEntry, NoteEntry, BookJournal (book page), JournalFeed (Highlights tab), AddToJournal
-│   │   ├── discover/
-│   │   │   ├── QueryFlow.jsx    # Prompt input + generateRecommendations() (calls /api/recommend with the session token)
-│   │   │   └── RecDetailModal.jsx  # Recommendation detail + add to TBR
-│   │   ├── layout/
-│   │   │   ├── Layout.jsx       # App shell — sidebar + bottom nav
-│   │   │   ├── Sidebar.jsx      # Desktop nav (includes Highlights link)
-│   │   │   └── BottomNav.jsx    # Mobile bottom nav (5 tabs)
-│   │   ├── library/
-│   │   │   └── LibraryFilters.jsx  # Status + ratingMin + tags filter panel
-│   │   ├── search/
-│   │   │   └── GlobalSearch.jsx  # ⌘K full-library search overlay
-│   │   ├── settings/
-│   │   │   └── NotificationSettings.jsx  # iOS local-notification toggles
-│   │   └── ui/
-│   │       ├── index.jsx         # Button, Modal, Skeleton, BookCardSkeleton, EmptyState, ProgressBar, StatCard, Divider
-│   │       └── QuickActionsSheet.jsx  # Long-press sheet (status, rating, tags, review)
-│   ├── hooks/
-│   │   ├── useBodyScrollLock.js # Shared scroll-lock hook (Modal, QuickActionsSheet, GlobalSearch, SharePreviewModal)
-│   │   ├── useDebounce.js       # Shared debounce (BookSearch, Highlights search)
-│   │   ├── useHighlights.js     # Highlights queries + upsertHighlights() shared by manual and auto Kindle sync
-│   │   ├── useKindleAutoSync.js # Kicks the invisible daily Kindle sync once per session
-│   │   ├── useKindleSyncFlow.js # Manual Kindle sync via the visible in-app browser
-│   │   ├── useLibrary.js        # CRUD for books (useBook, useAddBook, useUpdateBook [optimistic], useDeleteBook, useReorderTBR)
-│   │   ├── useLongPress.js      # Long press gesture hook
-│   │   ├── useNotes.js          # book_notes CRUD (useBookNotes, useAllNotes, useAddNote, useUpdateNote, useDeleteNote)
-│   │   ├── useNetworkStatus.js  # Online/offline state (native + web)
-│   │   ├── useRecommendations.js # Discover sessions CRUD (recommendations table)
-│   │   └── useTags.js           # Tags CRUD + useReadingGoal + useSetReadingGoal
-│   ├── lib/
-│   │   ├── bookSearch.js        # Client for /api/book-search; exports API_BASE used by every api/ caller
-│   │   ├── coverCache.js        # Native filesystem cover cache
-│   │   ├── covers.js            # sizeCoverUrl() — right-size cover URLs per display slot
-│   │   ├── googleBooks.js       # Google Books search — Discover enrichment + Enrich Library only
-│   │   ├── haptics.js           # Capacitor haptics wrappers (impactLight/Medium, notifySuccess/Warning)
-│   │   ├── kindleAutoSync.js    # Automatic daily Kindle sync (drain nightly payload / headless scrape)
-│   │   ├── kindleSyncState.js   # Which Kindle books have been scraped; builds scraper config
-│   │   ├── notifications.js     # Local notifications (iOS)
-│   │   ├── offlineQueue.js      # Reconnect listener — flushes the outbox, then invalidates queries
-│   │   ├── outbox.js            # Offline outbox for notes and typed highlights (client ids, replay in order)
-│   │   ├── dailyHighlight.js    # The one "highlight of the day" rule (≤180 chars, local day index); mirrored in the widget
-│   │   ├── openLibrary.js       # findCoverUrl() — Open Library cover fallback
-│   │   ├── supabase.js          # Supabase client
-│   │   ├── utils.js             # computeStats(), formatDate(), daysBetween(), pluralize(), STATUS_LABELS
-│   │   └── widgetBridge.js      # iOS widget data sync
-│   ├── pages/                   # All but Auth and Dashboard are React.lazy (see App.jsx)
-│   │   ├── Auth.jsx
-│   │   ├── Dashboard.jsx        # Today's highlight (date-seeded), reading goal, stats, "this month in past years" card
-│   │   ├── Library.jsx          # Grid/list view, filters, inline sort select
-│   │   ├── BookDetail.jsx       # Full book page at /library/:id; styled delete confirm modal; wiki_url cache
-│   │   ├── Highlights.jsx       # All highlights at /highlights; search + book filter + grouped view
-│   │   ├── Stats.jsx            # Year selector (dynamic from data + "All time") + topAuthor
-│   │   ├── TBR.jsx              # Drag-to-reorder; swipe right=start, left=remove; tbr_note shown
-│   │   ├── Discover.jsx         # Prompt-driven recommendation sessions
-│   │   ├── Rank.jsx             # ELO pairwise ranking; tag filter chips
-│   │   └── Settings.jsx         # Libby, enrich, import/export, tags, Kindle sync, notifications, logout
-│   ├── store/
-│   │   └── uiStore.js           # Zustand: darkMode, libraryView, librarySort, libraryFilters (incl. ratingMin), librarySearch, librarySlug
-│   └── App.jsx                  # Routes + ProtectedRoute (Suspense inside Layout) + throttled query-cache persister
-├── CHANGELOG.md
-└── index.html
-```
-
----
-
-## 4. Supabase Schema
-
-### `books` table
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid | PK |
-| user_id | uuid | FK → auth.users |
-| title | text | |
-| author | text | |
-| status | text | `'tbr'`, `'reading'`, `'read'`, `'dnf'` |
-| rating | int | 1–5, nullable |
-| review | text | Markdown |
-| review_spoiler | bool | |
-| page_count | int | nullable |
-| current_page | int | nullable |
-| date_finished | text | `YYYY-MM-01` (month+year only) |
-| date_started | text | Legacy |
-| published_year | int | nullable |
-| description | text | nullable |
-| cover_url | text | nullable |
-| google_books_id | text | nullable |
-| tbr_order | int | nullable (drag-to-reorder) |
-| tbr_note | text | nullable — "Why this book?" free text (max 120 chars in UI) |
-| wiki_url | text | nullable — cached Wikipedia URL (avoids repeat API calls) |
-| elo | int | nullable — ELO rank score (default 1500 in UI) |
-| elo_wins | int | nullable |
-| elo_losses | int | nullable |
-| created_at | timestamptz | |
-| updated_at | timestamptz | |
-
-### `highlights`
-Kindle and typed highlights. `source` is `'kindle'` (default) or `'manual'` (typed for paper books); `page` is set for typed ones, `location` for Kindle. `clipping_hash` (unique, nullable) is the Kindle dedupe key; typed highlights leave it null.
-
-### `book_notes` (v3.0)
-`id, user_id (default auth.uid()), book_id → books ON DELETE CASCADE, highlight_id → highlights ON DELETE CASCADE (null = standalone note), body (≤5000), page, created_at, updated_at`. RLS: own rows only; insert also requires the book to be yours. Migration: `supabase/migrations/20260926_commonplace_book.sql`.
-
-### `tags` + `book_tags` + `reading_goals` — see existing schema
-
----
-
-## 5. Key Architectural Decisions
-
-### Tailwind dark mode
-`dark:` classes are fully safe with Vite + Tailwind v3 JIT — classes included in build as long as they appear literally in source files. Do NOT use inline styles or MutationObserver to work around dark mode. Write `dark:text-paper-50`, `dark:bg-ink-800`, etc. directly.
-
-### Scroll lock
-All overlays (Modal, QuickActionsSheet, GlobalSearch) use the `useBodyScrollLock(active)` hook from `src/hooks/useBodyScrollLock.js`. It uses `position: fixed` + scroll save/restore — never `overflow: hidden`.
-
-### Date storage
-`date_finished` stored as `YYYY-MM-01`. Never use `new Date(dateStr)` — use `parseInt(dateStr.slice(0, 4))` for year.
-
-### Wikipedia caching
-BookDetail resolves Wikipedia URL via API, then saves to `book.wiki_url` via `updateBook.mutate()`. On subsequent loads it skips the API call if `book.wiki_url` is populated.
-
-### Kindle sync (added v2.11.0)
-
-There is no Kindle API. Syncing works by driving a logged-in Amazon session at
-`read.amazon.com/notebook` and scraping it. That session lives only in the app's
-`WKWebsiteDataStore.default()` cookie jar, so **a server cron can never do this** —
-Vercel has no way to be the user at Amazon.
-
-Three pieces:
-
-| Piece | Where | Role |
-|---|---|---|
-| Scraper | `public/kindle-scraper.js` | The only copy. Read by the JS app via `fetch`, and by Swift from `Bundle.main/public/`. Config comes in on `window.__KITAB_SYNC_CONFIG`. |
-| Manual path | `useKindleSyncFlow.js` | Visible `@capgo/inappbrowser`. This is where you sign in to Amazon. |
-| Automatic path | `KindleSyncPlugin.swift` + `lib/kindleAutoSync.js` | Offscreen `WKWebView`, no UI. Nightly `BGProcessingTask` plus a foreground fallback when iOS skips the night. |
-
-Things that will bite you:
-
-- **The scrape is incremental.** `lib/kindleSyncState.js` remembers `{ normalizedTitle: highlightCount }`. A run only opens books that are new or marked `reading`, plus a full sweep every 30 days. `normalize()` is duplicated in three files (`kindle-scraper.js`, `useHighlights.js`, `kindleSyncState.js`) and **must stay identical** — if it drifts, every book looks new and runs go back to taking minutes.
-- **The headless webview inherits the Amazon login for free** because `@capgo/inappbrowser` builds its webview with a plain `WKWebViewConfiguration()` (default persistent data store). Don't switch either side to a non-persistent store.
-- **It's attached to the window at `alpha 0.01`, not hidden.** WebKit throttles timers in a webview it thinks is offscreen, and the scraper is almost all `setTimeout`. `hidden = true` or `alpha = 0` will stall it.
-- **Background scraping never touches Supabase.** Results are parked in the App Group; JS drains them on launch (`getPending`), runs the existing `upsertHighlights`, and only then calls `ackPending` to clear the file. Never clear on read — a failed import on launch would lose the night's scrape. This keeps auth on one side only — don't be tempted to move the upsert into Swift.
-- `BGTaskScheduler.register()` must happen before `didFinishLaunchingWithOptions` returns, which is why it's in `AppDelegate`, not the plugin's `load()`.
-- iOS decides when `BGProcessingTask` actually runs. It is best-effort, not a guarantee — the foreground fallback in `kindleAutoSync.js` is what makes "daily" true.
-
-### ratingMin filter
-`libraryFilters.ratingMin` is in the Zustand store. LibraryFilters.jsx shows "Any / 3+ / 4+ / 4.5+" pills. Library.jsx filters by `(b.rating || 0) >= ratingMin`.
-
----
-
-## 6. Version Convention
-
-Every deploy must:
-1. Update `CHANGELOG.md` — prepend new entry following existing format
-2. Update version string in `src/pages/Settings.jsx` — appears once as `Kitab · vX.X.X`
-3. Keep the other copies in step: `package.json` `version`, `README.md` and this file's "Current version", and the iOS `MARKETING_VERSION` (all targets) in `ios/App/App.xcodeproj/project.pbxproj`. Bump the iOS `CURRENT_PROJECT_VERSION` to a higher date-based number (`YYYYMMDDNN`) for every TestFlight upload.
-4. Commit and push
-
----
-
-## 7. iOS Capacitor Notes
-
-- Sync after code changes: `npm run build && npx cap sync ios`, then rebuild in Xcode
-- Inputs must have `style={{ fontSize: '16px' }}` (iOS auto-zoom prevention)
-- `useBodyScrollLock` handles scroll lock — never `overflow: hidden`
-- Haptics: `impactLight/Medium`, `notifySuccess/Warning` from `src/lib/haptics.js`
-- `@capacitor/haptics` fire-and-forget — no-ops on web
-
----
-
-## 8. API Keys & External Services
-
-All secrets in Vercel environment variables — never hardcoded.
-
-| Variable | Used in | Purpose |
-|---|---|---|
-| `VITE_SUPABASE_URL` | Frontend + `api/recommend.js` | Supabase client; server-side caller verification |
-| `VITE_SUPABASE_ANON_KEY` | Frontend + `api/recommend.js` | Supabase client; server-side caller verification |
-| `VITE_GOOGLE_BOOKS_API_KEY` | Frontend (`src/lib/googleBooks.js`) | Discover enrichment + Enrich Library |
-| `GEMINI_API_KEY` | `api/recommend.js` | Discovery recommendations — primary model (Gemini 3.5 Flash) |
-| `ANTHROPIC_API_KEY` | `api/recommend.js` | Claude Haiku fallback when Gemini is unset or errors |
-| `HARDCOVER_API_TOKEN` | `api/book-search.js` | Hardcover catalog search (primary) |
-| `GOOGLE_BOOKS_API_KEY` | `api/book-search.js` | Google Books fallback (reads `VITE_GOOGLE_BOOKS_API_KEY` too) |
-
-The Amazon session for Kindle sync lives only in the iOS app's `WKWebsiteDataStore` — there is no token to store.
+## Database
+Migrations live in `supabase/migrations/`. `highlights.source` is `'kindle'` or `'manual'` (typed, with an optional `page`). `book_notes` holds per-book notes, optionally attached to a highlight; RLS limits rows to the owner and the owner's books.
