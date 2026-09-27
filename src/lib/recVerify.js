@@ -9,7 +9,11 @@
 // the title words AND an author surname, so invented books and wrong-author picks
 // still get dropped.
 
-const fold = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+// Lowercase, strip accents, and spell out letters that accent-stripping misses
+// (Sigurðardóttir -> sigurdardottir, Nesbø -> nesbo).
+const LETTERS = { ð: 'd', þ: 'th', ø: 'o', æ: 'ae', œ: 'oe', ß: 'ss', ł: 'l', đ: 'd', ı: 'i' }
+const fold = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/[ðþøæœßłđı]/g, c => LETTERS[c])
 
 const STOPWORDS = new Set(['the', 'and', 'for', 'with', 'from', 'into', 'but', 'not', 'our', 'your'])
 const tokens = s => fold(s).replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean)
@@ -39,9 +43,29 @@ function surnames(author) {
     .filter(s => s && s.length > 1)
 }
 
+// Whole-word comparison with hyphens dropped, so "Brodesser-Akner" matches itself
+// and a surname can't match inside a longer name.
 export function authorMatches(author, candidateAuthor) {
-  const cand = fold(candidateAuthor)
-  return surnames(author).some(s => cand.includes(s))
+  const words = new Set(fold(candidateAuthor).split(/[\s,;&]+/).map(w => w.replace(/[^a-z]/g, '')).filter(Boolean))
+  return surnames(author).some(s => words.has(s))
+}
+
+// Discover's check. Tries Kitab's own search proxy first (api/book-search:
+// Hardcover, cached at the edge), which also handles co-authors and subtitles
+// well, and only then Google Books. Google's key has a daily query limit shared
+// with the rest of the app, so most checks should never reach it.
+//   catalog(query, max) -> [{ title, author, ... }]  (searchCatalog in the app)
+//   google(query, max)  -> [{ title, author, ... }]  (searchBooks in the app)
+export async function verifyRecommendation(book, { catalog, google }) {
+  if (!book?.title || !book?.author) return null
+  try {
+    const results = await catalog(`${mainTitle(book.title)} ${book.author}`, 10)
+    const hit = results.find(r => titleMatches(book.title, r.title) && authorMatches(book.author, r.author))
+    if (hit) return hit
+  } catch {
+    // proxy unreachable: fall through to Google
+  }
+  return findVerifiedMatch(book, google)
 }
 
 export async function findVerifiedMatch(book, search) {
