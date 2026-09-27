@@ -39,14 +39,14 @@ export function BottomNav() {
             to={item.path}
             onClick={e => handleNavTap(e, item.path, active)}
             className={clsx(
-              'flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors',
+              'flex-1 flex flex-col items-center justify-start gap-1 pt-2 pb-1 transition-colors',
               active
                 ? 'text-teal-700 dark:text-teal-400'
                 : 'text-ink-400 dark:text-ink-500'
             )}
           >
             <item.icon size={22} strokeWidth={active ? 2.5 : 1.8} />
-            <span className="text-sm font-medium">{item.label}</span>
+            <span className="text-[11px] leading-none font-medium tracking-tight">{item.label}</span>
           </Link>
         )
       })}
