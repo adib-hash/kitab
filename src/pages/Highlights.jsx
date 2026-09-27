@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
-import { Quote, Search, X, Shuffle, Copy, Trash2, ChevronLeft, ChevronRight, ArrowUpRight, LayoutList, GalleryHorizontal, Plus } from 'lucide-react'
+import { Quote, Search, X, Shuffle, Copy, Trash2, ArrowUpRight, LayoutList, BookOpen, Plus, MoreHorizontal } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { clsx } from 'clsx'
@@ -13,6 +13,32 @@ import { JournalFeed, AddToJournal } from '../components/journal/Journal'
 import { useAllNotes } from '../hooks/useNotes'
 
 const EMPTY = []
+
+// Chosen once per app launch, so "All books" opens on a fresh random page every
+// time Kitab is opened, but stays put while you move around the app.
+const SESSION_SEED = Math.floor(Math.random() * 1e9) + 1
+
+function seededShuffle(list, seed) {
+  const out = [...list]
+  let s = seed
+  const rand = () => ((s = (s * 1103515245 + 12345) % 2147483648) / 2147483648)
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
+}
+
+// Passages are set like a printed page, so type steps down with length.
+// EB Garamond has a small x-height, hence sizes a notch above the old deck.
+const PAGE_FONT = "'EB Garamond', 'Iowan Old Style', Palatino, Georgia, serif"
+function pageSize(text = '') {
+  const n = text.length
+  if (n <= 90) return 'text-[25px] leading-[1.4]'
+  if (n <= 180) return 'text-[22px] leading-[1.45]'
+  if (n <= 360) return 'text-[19px] leading-[1.5]'
+  return 'text-[17px] leading-[1.55]'
+}
 
 // Kindle locations arrive as strings ("1234", "Loc. 1,234", "Page 12").
 const locNumber = loc => {
@@ -49,7 +75,6 @@ export function Highlights() {
   const { data: notes = EMPTY } = useAllNotes()
   const [view, setView] = useState('cards')        // 'cards' | 'list'
   const [bookId, setBookId] = useState('all')
-  const [shuffleSeed, setShuffleSeed] = useState(0)
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const q = useDebounce(query, 200).trim().toLowerCase()
@@ -68,7 +93,7 @@ export function Highlights() {
     return [...map.values()].sort((a, b) => b.count - a.count || a.title.localeCompare(b.title))
   }, [highlights])
 
-  // Deck order: by book, then position in the book. Shuffle reorders randomly.
+  // Reading order: by book, then position in the book.
   const ordered = useMemo(() => {
     let list = bookId === 'all' ? highlights : highlights.filter(h => h.book_id === bookId)
     if (q) {
@@ -79,19 +104,17 @@ export function Highlights() {
         h.books?.author?.toLowerCase().includes(q)
       )
     }
-    const sorted = [...list].sort((a, b) =>
-      (a.books?.title || '').localeCompare(b.books?.title || '') || locNumber(a.location) - locNumber(b.location)
+    return [...list].sort((a, b) =>
+      (a.books?.title || '').localeCompare(b.books?.title || '') || (locNumber(a.location ?? a.page) - locNumber(b.location ?? b.page))
     )
-    if (!shuffleSeed) return sorted
-    // Seeded Fisher–Yates so the order is stable until Shuffle is tapped again
-    let s = shuffleSeed
-    const rand = () => ((s = (s * 9301 + 49297) % 233280) / 233280)
-    for (let i = sorted.length - 1; i > 0; i--) {
-      const j = Math.floor(rand() * (i + 1));
-      [sorted[i], sorted[j]] = [sorted[j], sorted[i]]
-    }
-    return sorted
-  }, [highlights, bookId, q, shuffleSeed])
+  }, [highlights, bookId, q])
+
+  // Pages: all books in a random order (new each app launch); a single book in
+  // reading order, so paging through it feels like rereading it.
+  const pages = useMemo(
+    () => (bookId === 'all' ? seededShuffle(ordered, SESSION_SEED) : ordered),
+    [ordered, bookId]
+  )
 
   const today = todayOverride || pickDailyHighlight(highlights)
 
@@ -105,7 +128,6 @@ export function Highlights() {
 
   function selectBook(id) {
     setBookId(id)
-    setShuffleSeed(0)
     impactLight()
   }
 
@@ -167,7 +189,7 @@ export function Highlights() {
             <Search size={16} />
           </button>
           <div className={clsx('flex items-center border border-paper-200 dark:border-ink-600 rounded-lg overflow-hidden', section === 'journal' && 'hidden')}>
-            {[['cards', GalleryHorizontal, 'Card view'], ['list', LayoutList, 'List view']].map(([v, Icon, label]) => (
+            {[['cards', BookOpen, 'Page view'], ['list', LayoutList, 'List view']].map(([v, Icon, label]) => (
               <button key={v} onClick={() => setView(v)} aria-label={label} aria-pressed={view === v}
                 className={clsx('h-9 w-9 flex items-center justify-center transition-colors',
                   view === v ? 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
@@ -265,11 +287,9 @@ export function Highlights() {
       ) : ordered.length === 0 ? (
         <EmptyState icon={<Search size={40} />} title="No matches" description="Try a different word, or clear the book filter." />
       ) : effectiveView === 'cards' ? (
-        <Deck
-          items={ordered}
-          resetKey={`${bookId}|${shuffleSeed}`}
-          onShuffle={() => { setShuffleSeed(Math.floor(Math.random() * 1e6) + 1); impactLight() }}
-          shuffled={!!shuffleSeed}
+        <BookPages
+          items={pages}
+          resetKey={bookId}
           onCopy={copyHighlight}
           confirmDelete={confirmDelete}
           setConfirmDelete={setConfirmDelete}
@@ -279,7 +299,7 @@ export function Highlights() {
       ) : (
         <HighlightList
           items={ordered}
-          grouped={bookId === 'all' && !shuffleSeed}
+          grouped={bookId === 'all'}
           query={q}
           onCopy={copyHighlight}
           confirmDelete={confirmDelete}
@@ -307,16 +327,18 @@ function ShelfItem({ active, onClick, label, count, children }) {
   )
 }
 
-function Deck({ items, resetKey, onShuffle, shuffled, onCopy, confirmDelete, setConfirmDelete, onDelete, showBook }) {
+function BookPages({ items, resetKey, onCopy, confirmDelete, setConfirmDelete, onDelete, showBook }) {
   const scroller = useRef(null)
   const [index, setIndex] = useState(0)
+  const [menuFor, setMenuFor] = useState(null)
+  const [turned, setTurned] = useState(false)
 
   useEffect(() => {
     setIndex(0)
+    setMenuFor(null)
     scroller.current?.scrollTo({ left: 0 })
   }, [resetKey])
 
-  // Keep the index in range when an item is deleted
   useEffect(() => { if (index > items.length - 1) setIndex(Math.max(0, items.length - 1)) }, [items.length, index])
 
   const onScroll = useCallback(() => {
@@ -324,18 +346,21 @@ function Deck({ items, resetKey, onShuffle, shuffled, onCopy, confirmDelete, set
     if (!el) return
     const i = Math.round(el.scrollLeft / el.clientWidth)
     setIndex(prev => (prev === i ? prev : i))
+    if (i > 0) setTurned(true)
+    setMenuFor(null)
   }, [])
 
   const go = useCallback((delta) => {
     const el = scroller.current
     if (!el) return
     const next = Math.min(items.length - 1, Math.max(0, index + delta))
+    if (next !== index) impactLight()
     el.scrollTo({ left: next * el.clientWidth, behavior: 'smooth' })
   }, [index, items.length])
 
   useEffect(() => {
     function onKey(e) {
-      if (e.target.closest?.('input, textarea')) return
+      if (e.target.closest?.('input, textarea, select')) return
       if (e.key === 'ArrowRight') go(1)
       if (e.key === 'ArrowLeft') go(-1)
     }
@@ -343,80 +368,87 @@ function Deck({ items, resetKey, onShuffle, shuffled, onCopy, confirmDelete, set
     return () => window.removeEventListener('keydown', onKey)
   }, [go])
 
+  // Like an e-reader: tap the outer edge of a page to turn it.
+  function onPageTap(e) {
+    if (e.target.closest('button, a')) return
+    if (menuFor) { setMenuFor(null); return }
+    const r = e.currentTarget.getBoundingClientRect()
+    const x = (e.clientX - r.left) / r.width
+    if (x > 0.75) go(1)
+    else if (x < 0.25) go(-1)
+  }
+
   return (
-    <section className="space-y-3" aria-roledescription="carousel" aria-label="Highlights">
+    <section aria-roledescription="carousel" aria-label="Highlights, one per page">
       <div
         ref={scroller}
         onScroll={onScroll}
-        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 md:mx-0 overscroll-x-contain"
+        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 md:mx-0 overscroll-x-contain pt-1 pb-3"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
-        {items.map((h, i) => (
-          <div key={h.id} className="w-full flex-shrink-0 snap-center px-4 md:px-0" aria-roledescription="slide" aria-label={`${i + 1} of ${items.length}`}>
-            <article className="h-[min(30rem,62vh)] flex flex-col rounded-2xl border border-paper-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-card overflow-hidden">
-              <div className="flex-1 min-h-0 overflow-y-auto px-6 pt-7 pb-4 flex">
-                <div className="my-auto w-full space-y-4">
-                  <p className={clsx('font-serif italic text-ink-900 dark:text-paper-50', quoteSize(h.text))}>“{h.text.trim()}”</p>
-                  {h.note && (
-                    <p className="text-sm text-ink-600 dark:text-ink-300 border-l-2 border-amber-400 pl-3">
-                      <span className="block text-xs font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500 mb-0.5">Your note</span>
-                      {h.note}
-                    </p>
+        {items.map((h, i) => {
+          const folio = h.location ?? h.page
+          const deleting = confirmDelete === h.id
+          return (
+            <div key={h.id} className="w-full flex-shrink-0 snap-center px-5 md:px-2" aria-roledescription="page" aria-label={`Page ${i + 1} of ${items.length}`}>
+              <article onClick={onPageTap} className="book-page relative h-[min(32rem,64vh)] flex flex-col">
+                {/* Running head */}
+                <header className="relative flex items-center justify-center px-12 pt-4 pb-1">
+                  {showBook && h.books ? (
+                    <Link to={`/library/${h.book_id}`} className="running-head truncate text-[13px]">{h.books.title}</Link>
+                  ) : (
+                    <span className="running-head text-[13px]">&nbsp;</span>
                   )}
-                </div>
-              </div>
-              <footer className="flex items-center gap-3 px-4 py-3 border-t border-paper-100 dark:border-ink-700">
-                {showBook && h.books ? (
-                  <Link to={`/library/${h.book_id}`} className="flex items-center gap-2.5 min-w-0 flex-1 group">
-                    <BookCover book={h.books} size="sm" className="flex-shrink-0 !w-8" />
-                    <span className="min-w-0">
-                      <span className="block text-xs font-semibold text-ink-900 dark:text-paper-50 truncate group-hover:text-teal-700 dark:group-hover:text-teal-400">{h.books.title}</span>
-                      <span className="block text-xs text-ink-500 dark:text-ink-400 truncate">{h.location ? `Loc. ${h.location}` : h.page ? `p. ${h.page}` : h.books.author}</span>
-                    </span>
-                  </Link>
-                ) : (
-                  <span className="flex-1 text-xs text-ink-500 dark:text-ink-400 tabular-nums">{h.location ? `Location ${h.location}` : h.page ? `Page ${h.page}` : ''}</span>
-                )}
-                {confirmDelete === h.id ? (
-                  <div className="flex items-center gap-1.5">
-                    <button onClick={() => setConfirmDelete(null)} className="text-xs px-2.5 py-1.5 rounded-lg text-ink-600 dark:text-ink-300 hover:bg-paper-100 dark:hover:bg-ink-700">Keep</button>
-                    <button onClick={() => onDelete(h)} className="text-xs px-2.5 py-1.5 rounded-lg bg-rose-600 text-white font-medium">Delete</button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-0.5">
-                    <button onClick={() => onCopy(h)} aria-label="Copy highlight" className="p-2 rounded-lg text-ink-400 hover:text-teal-600 hover:bg-paper-50 dark:hover:bg-ink-700 transition-colors"><Copy size={16} /></button>
-                    <button onClick={() => setConfirmDelete(h.id)} aria-label="Delete highlight" className="p-2 rounded-lg text-ink-400 hover:text-rose-500 hover:bg-paper-50 dark:hover:bg-ink-700 transition-colors"><Trash2 size={16} /></button>
-                  </div>
-                )}
-              </footer>
-            </article>
-          </div>
-        ))}
-      </div>
+                  <button
+                    type="button"
+                    onClick={() => setMenuFor(m => (m === h.id ? null : h.id))}
+                    aria-label="Highlight options"
+                    aria-expanded={menuFor === h.id}
+                    className="absolute right-2 top-2.5 p-2 rounded-full page-muted hover:bg-black/5 dark:hover:bg-white/5"
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
+                  {menuFor === h.id && (
+                    <div role="menu" className="absolute right-3 top-11 z-10 w-44 rounded-xl bg-white dark:bg-ink-800 border border-paper-200 dark:border-ink-700 shadow-xl py-1 text-sm">
+                      <button role="menuitem" type="button" onClick={() => { onCopy(h); setMenuFor(null) }} className="w-full flex items-center gap-2.5 px-3 py-2.5 text-ink-800 dark:text-paper-100 active:bg-paper-100 dark:active:bg-ink-700"><Copy size={15} /> Copy</button>
+                      {h.book_id && <Link role="menuitem" to={`/library/${h.book_id}`} className="w-full flex items-center gap-2.5 px-3 py-2.5 text-ink-800 dark:text-paper-100 active:bg-paper-100 dark:active:bg-ink-700"><ArrowUpRight size={15} /> Open book</Link>}
+                      <button role="menuitem" type="button" onClick={() => { setConfirmDelete(h.id); setMenuFor(null) }} className="w-full flex items-center gap-2.5 px-3 py-2.5 text-rose-600 dark:text-rose-400 active:bg-paper-100 dark:active:bg-ink-700"><Trash2 size={15} /> Delete</button>
+                    </div>
+                  )}
+                </header>
 
-      {/* Deck controls */}
-      <div className="flex items-center justify-between gap-3">
-        <button onClick={() => go(-1)} disabled={index === 0} aria-label="Previous highlight"
-          className="h-10 w-10 flex items-center justify-center rounded-full border border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-300 disabled:opacity-30 hover:bg-paper-50 dark:hover:bg-ink-800 transition-colors">
-          <ChevronLeft size={18} />
-        </button>
-        <div className="flex flex-col items-center gap-1.5 min-w-0 flex-1">
-          <span className="text-xs text-ink-500 dark:text-ink-400 tabular-nums" aria-live="polite">{index + 1} of {items.length}</span>
-          <div className="h-1 w-full max-w-[12rem] rounded-full bg-paper-200 dark:bg-ink-700 overflow-hidden">
-            <div className="h-full bg-teal-600 dark:bg-teal-500 rounded-full transition-[width] duration-200" style={{ width: `${((index + 1) / items.length) * 100}%` }} />
-          </div>
-        </div>
-        <button onClick={() => go(1)} disabled={index >= items.length - 1} aria-label="Next highlight"
-          className="h-10 w-10 flex items-center justify-center rounded-full border border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-300 disabled:opacity-30 hover:bg-paper-50 dark:hover:bg-ink-800 transition-colors">
-          <ChevronRight size={18} />
-        </button>
+                {/* The passage */}
+                <div className="flex-1 min-h-0 overflow-y-auto px-7 flex">
+                  <div className="my-auto w-full py-3">
+                    <p className={clsx('page-ink', pageSize(h.text))} style={{ fontFamily: PAGE_FONT, textWrap: 'pretty' }}>{h.text.trim()}</p>
+                    {showBook && h.books?.author && (
+                      <p className="page-muted mt-5 text-right italic text-[15px]" style={{ fontFamily: PAGE_FONT }}>{h.books.author}</p>
+                    )}
+                    {h.note && (
+                      <p className="mt-5 border-l-2 border-amber-500/70 pl-3 text-sm italic page-muted">{h.note}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Folio */}
+                <footer className="h-12 flex items-center justify-center px-6">
+                  {deleting ? (
+                    <span className="flex items-center gap-2 text-sm">
+                      <button type="button" onClick={() => setConfirmDelete(null)} className="px-3 py-1.5 rounded-lg page-muted hover:bg-black/5 dark:hover:bg-white/5">Keep</button>
+                      <button type="button" onClick={() => onDelete(h)} className="px-3 py-1.5 rounded-lg bg-rose-600 text-white font-medium">Delete this highlight</button>
+                    </span>
+                  ) : (
+                    <span className="page-muted text-[15px] tabular-nums" style={{ fontFamily: PAGE_FONT }}>{folio ?? '·'}</span>
+                  )}
+                </footer>
+              </article>
+            </div>
+          )
+        })}
       </div>
-      <div className="flex justify-center">
-        <button onClick={onShuffle} className={clsx('inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors',
-          shuffled ? 'border-teal-500 text-teal-700 bg-teal-50 dark:bg-teal-900/20 dark:text-teal-400' : 'border-paper-200 dark:border-ink-600 text-ink-600 dark:text-ink-300 hover:bg-paper-50 dark:hover:bg-ink-800')}>
-          <Shuffle size={14} /> {shuffled ? 'Shuffle again' : 'Shuffle'}
-        </button>
-      </div>
+      <p className={clsx('text-center text-xs text-ink-400 dark:text-ink-500 transition-opacity duration-300', turned && 'opacity-0')} aria-hidden={turned}>
+        Swipe to turn the page
+      </p>
     </section>
   )
 }

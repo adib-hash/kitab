@@ -187,3 +187,35 @@ a, button, [role="button"], input, select, textarea, label,
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* ── Highlights: a passage set like a printed book page ──────────────────── */
+/* Warm paper, a spine shadow on the left, a stack of page edges on the right. */
+.book-page {
+  border-radius: 3px 10px 10px 3px;
+  background:
+    linear-gradient(to right, rgba(80, 55, 25, 0.13) 0, rgba(80, 55, 25, 0.04) 3.5%, transparent 9%, transparent 95%, rgba(80, 55, 25, 0.05) 100%),
+    #FBF7EE;
+  box-shadow:
+    1px 0 0 #EFE6D5, 2px 1px 0 #E2D6C1, 3px 2px 0 #EFE6D5, 4px 3px 0 #D9CBB2,
+    0 12px 28px rgba(28, 25, 23, 0.14);
+  --page-ink: #2B241F;
+  --page-muted: #8C7E6E;
+}
+.dark .book-page {
+  background:
+    linear-gradient(to right, rgba(0, 0, 0, 0.38) 0, rgba(0, 0, 0, 0.12) 3.5%, transparent 9%, transparent 95%, rgba(0, 0, 0, 0.16) 100%),
+    #2A241F;
+  box-shadow:
+    1px 0 0 #3B332C, 2px 1px 0 #322B25, 3px 2px 0 #3B332C, 4px 3px 0 #2C2520,
+    0 12px 28px rgba(0, 0, 0, 0.45);
+  --page-ink: #EDE4D6;
+  --page-muted: #A39585;
+}
+.book-page .page-ink { color: var(--page-ink); }
+.book-page .page-muted { color: var(--page-muted); }
+.book-page .running-head {
+  color: var(--page-muted);
+  font-family: 'EB Garamond', 'Iowan Old Style', Palatino, Georgia, serif;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
