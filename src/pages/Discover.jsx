@@ -5,6 +5,7 @@ import { Compass, Trash2, ChevronDown, ChevronUp, RefreshCw,
          Sparkles, Loader2 } from 'lucide-react'
 import { useLibrary } from '../hooks/useLibrary'
 import { useTags } from '../hooks/useTags'
+import { useAllHighlights } from '../hooks/useHighlights'
 import { useRecommendations, useSaveRecommendation, useDeleteRecommendation, useUpdateRecommendation } from '../hooks/useRecommendations'
 import { QueryFlow, generateRecommendations } from '../components/discover/QueryFlow'
 import { RecDetailModal } from '../components/discover/RecDetailModal'
@@ -12,6 +13,9 @@ import { timeAgo } from '../lib/utils'
 import { sizeCoverUrl } from '../lib/covers'
 
 // ── CoverThumb — small cover thumbnail for the horizontal strip ─────────────
+// Stable empty default so the prompt inputs don't change identity every render.
+const NO_HIGHLIGHTS = []
+
 function CoverThumb({ book, inLibrary, onClick }) {
   const [imgError, setImgError] = useState(false)
   const titleColor = `hsl(${(book.title?.charCodeAt(0) ?? 65) * 37 % 360}, 35%, 28%)`
@@ -142,6 +146,8 @@ function SessionSkeleton() {
 export function Discover() {
   const { data: books = [], isLoading: libraryLoading } = useLibrary()
   const { data: tags = [] } = useTags()
+  // Highlights feed the recommendation prompt alongside ratings and reviews.
+  const { data: highlights = NO_HIGHLIGHTS } = useAllHighlights()
   const { data: sessions = [], isLoading: sessionsLoading } = useRecommendations()
   const saveRec   = useSaveRecommendation()
   const deleteRec = useDeleteRecommendation()
@@ -183,7 +189,8 @@ export function Discover() {
         session.query || 'Surprise me',
         books,
         sessions,
-        tags
+        tags,
+        highlights
       )
       await saveRec.mutateAsync({
         mode: 'prompt',
@@ -244,6 +251,7 @@ export function Discover() {
               library={books}
               sessions={sessions}
               tags={tags}
+              highlights={highlights}
               onComplete={handleComplete}
             />
           </div>
@@ -276,6 +284,7 @@ export function Discover() {
                   library={books}
                   sessions={sessions}
                   tags={tags}
+                  highlights={highlights}
                   onComplete={handleComplete}
                 />
               </motion.div>

@@ -21,7 +21,9 @@
 
 const GEMINI_MODEL = 'gemini-3.8-flash'
 const CLAUDE_MODEL = 'claude-opus-5-5'
-const MAX_PROMPT_CHARS = 20000
+// The prompt carries reviews and Kindle highlights (src/lib/recPrompt.js budgets
+// those to about 50,000 characters), plus every library title.
+const MAX_PROMPT_CHARS = 100000
 
 export default async function handler(req, res) {
   // CORS — needed for iOS Capacitor (origin: capacitor://localhost)

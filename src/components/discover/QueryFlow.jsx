@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Loader2, Sparkles } from 'lucide-react'
 import { searchBooks } from '../../lib/googleBooks'
-import { findVerifiedMatch, filterUnseen } from '../../lib/recVerify'
-import { API_BASE } from '../../lib/bookSearch'
+import { verifyRecommendation, filterUnseen } from '../../lib/recVerify'
+import { buildDiscoverPrompt } from '../../lib/recPrompt'
+import { API_BASE, searchCatalog } from '../../lib/bookSearch'
 import { supabase } from '../../lib/supabase'
 
 const SUGGESTIONS = [
@@ -14,75 +15,13 @@ const SUGGESTIONS = [
   'Page-turning thriller',
 ]
 
-// Build the Claude prompt from library + user text + past recs
-function buildPrompt(userText, libraryBooks, pastRecTitles, tagNames) {
-  const topBooks = libraryBooks
-    .filter(b => b.status === 'read' && b.rating)
-    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-    .slice(0, 20)
-    .map(b => {
-      const bookTags = (b.tags || [])
-        .map(t => t.name)
-        .filter(n => !/^\d+$/.test(n)) // exclude numeric tags like "2026"
-      const tagStr = bookTags.length ? ` [${bookTags.join(', ')}]` : ''
-      const snippet = b.review
-        ? ` — "${b.review.slice(0, 100)}${b.review.length > 100 ? '...' : ''}"`
-        : ''
-      return `- "${b.title}" by ${b.author} (${b.rating}\u2605)${tagStr}${snippet}`
-    })
-    .join('\n')
-
-  const allReadTitles = libraryBooks
-    .filter(b => b.status === 'read' || b.status === 'reading' || b.status === 'tbr')
-    .map(b => `"${b.title}" by ${b.author}`)
-    .join(', ')
-
-  const genreContext = tagNames.length
-    ? `\nReader's genre categories (tags they use to organize their library):\n${tagNames.join(', ')}\n`
-    : ''
-
-  const pastRecsSection = pastRecTitles.length
-    ? `\nBooks from previous recommendation sessions (DO NOT recommend these either):\n${pastRecTitles.join(', ')}\n`
-    : ''
-
-  return `You are an expert book curator with deep knowledge of literature across all genres.
-
-The reader is looking for their next great read. They've described what they want below. Use their library, ratings, reviews, and tags to understand their taste deeply, then recommend books that fit their request.
-
-Reader's highest-rated books (with tags and review snippets where available):
-${topBooks || '(no rated books yet)'}
-${genreContext}
-All books already in their library (DO NOT recommend any of these):
-${allReadTitles || '(none)'}
-${pastRecsSection}
-Reader's request: "${userText}"
-
-Return ONLY a JSON array of exactly 8 book recommendations. No other text, no markdown, no explanation outside the JSON.
-
-Each object must have:
-- "title": exact title (no subtitles unless essential)
-- "author": full author name
-- "published_year": integer year or null
-- "genre_hint": short genre label (e.g. "literary fiction", "memoir", "sci-fi", "philosophy")
-- "why": one punchy sentence (15-25 words) explaining specifically why THIS reader will love it
-
-Rules:
-- Only recommend real, widely-available books
-- No study guides, summaries, lecture collections, omnibus sets, or companion books
-- Prioritize books with strong critical reception
-- Never recommend a book already in the reader's library or from previous sessions
-- Ensure at least 3 different genres across the 8 picks
-- No more than 2 books from the same genre
-- Include at least 1 book from a genre NOT heavily represented in the reader's library
-- The "why" must be specific, not generic ("you'll love the world-building" is bad; "the same slow-burn dread as McCarthy but set in modern Tokyo" is good)`
-}
-
 // Verify a recommended book exists in Google Books and enrich it with metadata.
 // Returns null if no credible match is found; the caller filters these out.
 // The matching rules live in lib/recVerify.js (tested against real model output).
+// Checks go to Kitab's Hardcover-first search proxy before Google Books.
 async function enrichBook(book) {
   try {
-    const match = await findVerifiedMatch(book, searchBooks)
+    const match = await verifyRecommendation(book, { catalog: searchCatalog, google: searchBooks })
     if (!match) return null
 
     return {
@@ -102,7 +41,9 @@ async function enrichBook(book) {
 }
 
 // Shared function so both QueryFlow and regenerate can call it
-export async function generateRecommendations(userText, libraryBooks, sessions, tags) {
+// highlights: rows from useAllHighlights (each with book_id); they're joined to the
+// library here so the prompt can show each book's rating and shelf.
+export async function generateRecommendations(userText, libraryBooks, sessions, tags, highlights = []) {
   const pastRecTitles = (sessions || [])
     .slice(0, 10)
     .flatMap(s => (s.books || []).map(b => `"${b.title}" by ${b.author}`))
@@ -111,7 +52,13 @@ export async function generateRecommendations(userText, libraryBooks, sessions, 
     .map(t => t.name)
     .filter(n => !/^\d+$/.test(n)) // exclude numeric tags
 
-  const prompt = buildPrompt(userText, libraryBooks, pastRecTitles, tagNames)
+  const byId = new Map(libraryBooks.map(b => [b.id, b]))
+  const bookHighlights = (highlights || [])
+    .filter(h => byId.has(h.book_id))
+    .sort((a, b) => (a.location ?? a.page ?? 0) - (b.location ?? b.page ?? 0))
+    .map(h => ({ text: h.text, book: byId.get(h.book_id) }))
+
+  const prompt = buildDiscoverPrompt({ userText, libraryBooks, highlights: bookHighlights, pastRecTitles, tagNames })
 
   // /api/recommend verifies this token server-side before spending model credit.
   // getSession() refreshes an expired access token itself.
@@ -158,7 +105,7 @@ export async function generateRecommendations(userText, libraryBooks, sessions, 
   return filtered
 }
 
-export function QueryFlow({ library, sessions, tags, onComplete }) {
+export function QueryFlow({ library, sessions, tags, highlights, onComplete }) {
   const [inputText, setInputText] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -171,7 +118,7 @@ export function QueryFlow({ library, sessions, tags, onComplete }) {
     setError(null)
 
     try {
-      const books = await generateRecommendations(text, library, sessions, tags)
+      const books = await generateRecommendations(text, library, sessions, tags, highlights)
       onComplete({
         mode: 'prompt',
         query: text,
