@@ -1,3 +1,13 @@
+## v3.0.4 — 2026-09-27
+
+### Changed
+- **Highlights read like a book.** The flashcard deck (with its "1 of 104" counter, progress bar, arrows and Shuffle button) is replaced by book pages: warm paper with a spine shadow and page edges, the book's title as a small-caps running head, the passage set in EB Garamond, the author beneath it, and the Kindle location at the foot where a page number would be. Your notes appear as marginalia. Swipe to turn the page, or tap the left or right edge like an e-reader. "All books" opens in a fresh random order every time the app launches; a single book pages through in reading order. Copy, Open book and Delete are in the "⋯" menu at the top of each page.
+- **Faster sheets, modals and search.** Search now opens in 0.16 s with the keyboard up immediately (it waited 80 ms before focusing, which can stop iOS showing the keyboard, and slid in on a spring). Modals and the long-press sheet use short, iOS-style timing instead of springs, the long-press sheet opens after 0.38 s instead of 0.5 s, and the status and rating sub-menus open instantly instead of animating their height. The blur behind modals, search and the sticky header, the most expensive effect in iOS web views and barely visible, is gone.
+
+### Fixed
+- **Recommendation covers no longer turn into "image not available".** The Discover detail view asked Google Books for a larger scan than the strip does, and for many books Google has no larger scan: it returns its own "image not available" picture with a success status, so the app couldn't tell. Covers that come back as that placeholder now fall back to the thumbnail that does exist, everywhere covers are shown.
+- **The status menu in the long-press sheet no longer looks like overlapping boxes.** The Status row and its options now form one panel, with a checkmark on the current status. Hover highlights also no longer stick to the last thing you tapped on iPhone.
+
 ## v3.0.3 — 2026-09-26
 
 ### Changed

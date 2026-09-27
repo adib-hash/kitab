@@ -1,6 +1,6 @@
 # Kitab
 
-Personal reading tracker: web app plus a Capacitor iOS app with widgets and a share extension. Live at kitab.ihsan.build (Vercel, deploys on push to `main`). Supabase project `kitab` (`tlallvcrogadqgtzuoko`). **Current version:** v3.0.3
+Personal reading tracker: web app plus a Capacitor iOS app with widgets and a share extension. Live at kitab.ihsan.build (Vercel, deploys on push to `main`). Supabase project `kitab` (`tlallvcrogadqgtzuoko`). **Current version:** v3.0.4
 
 This file lists only what isn't obvious from the code. Read the code and query the live schema (Supabase MCP) for everything else.
 
