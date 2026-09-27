@@ -1,3 +1,12 @@
+## v3.0.5 — 2026-09-27
+
+### Added
+- **Tap the reading goal on Home to open this year's stats.** The card now has a chevron and opens Stats, which starts on the current year.
+
+### Fixed
+- **Holding a long-press no longer starts selecting text.** The quick-actions sheet opens while your finger is still down; holding a moment longer made iOS start selecting the sheet's title and author, which stuttered. On phones, interface text (titles, labels, buttons) is no longer selectable, the way a native app behaves, and any selection is cleared the instant the sheet opens. Reading text (highlight passages, notes, reviews, book descriptions) can still be selected and copied.
+- **Long book titles no longer push the Highlights page down.** The heading above the book shelf sits on one fixed-height line: longer titles step down in size, and very long ones end in an ellipsis, so picking a book never shifts the shelf or pages.
+
 ## v3.0.4 — 2026-09-27
 
 ### Changed
