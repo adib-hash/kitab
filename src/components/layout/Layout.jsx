@@ -4,8 +4,27 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { BottomNav } from './BottomNav'
 import { GlobalSearch } from '../search/GlobalSearch'
-import { Toaster } from 'react-hot-toast'
+import toast, { Toaster, ToastBar, useToasterStore } from 'react-hot-toast'
 import { Capacitor } from '@capacitor/core'
+
+// react-hot-toast pauses a toast's countdown on mouseenter and resumes on
+// mouseleave. On iPhone a tap on the toast sends the enter but never the leave,
+// so the toast paused forever and stuck on screen. This dismisses any toast
+// still visible 1.5 s past its normal lifetime, whatever paused it.
+const TOAST_DEFAULT_MS = { success: 2000, error: 4000, blank: 4000, custom: 4000 }
+function ToastWatchdog() {
+  const { toasts } = useToasterStore()
+  useEffect(() => {
+    const timers = toasts
+      .filter(t => t.visible && t.type !== 'loading' && t.duration !== Infinity)
+      .map(t => {
+        const lifetime = (t.duration ?? TOAST_DEFAULT_MS[t.type] ?? 4000) + 1500
+        return setTimeout(() => toast.dismiss(t.id), Math.max(0, t.createdAt + lifetime - Date.now()))
+      })
+    return () => timers.forEach(clearTimeout)
+  }, [toasts])
+  return null
+}
 
 export function Layout({ children }) {
   const [searchOpen, setSearchOpen] = useState(false)
@@ -90,7 +109,15 @@ export function Layout({ children }) {
             borderRadius: '12px',
           },
         }}
-      />
+      >
+        {t => (
+          // Tap a toast to dismiss it. Taps on a button inside (e.g. "Edit") still work.
+          <div onClick={e => { if (!e.target.closest('button')) toast.dismiss(t.id) }} className="cursor-pointer">
+            <ToastBar toast={t} />
+          </div>
+        )}
+      </Toaster>
+      <ToastWatchdog />
     </>
   )
 }
