@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, BookOpen, ArrowRight, Target, Settings, Star, FileText, CheckCircle, Moon, Sun, RefreshCw, Zap, AlertCircle, Loader2, CalendarHeart, Ruler } from 'lucide-react'
+import { Plus, BookOpen, ArrowRight, Target, Settings, Star, FileText, CheckCircle, Moon, Sun, RefreshCw, Zap, AlertCircle, Loader2, CalendarHeart, Ruler, ChevronRight } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Capacitor } from '@capacitor/core'
 import { useLibrary } from '../hooks/useLibrary'
@@ -141,14 +141,18 @@ export function Dashboard() {
 
       {/* Reading goal */}
       {goal && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="card p-4">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          {/* Tapping the goal opens Stats, which defaults to the current year */}
+          <Link to="/stats" aria-label={`${thisYear} reading goal: ${booksThisYear} of ${goal.target}. Open ${thisYear} stats`}
+            className="card p-4 block active:scale-[0.99] transition-transform">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Target size={15} className="text-amber-600" />
               <p className="font-medium text-sm text-ink-800 dark:text-ink-300">{thisYear} Reading Goal</p>
             </div>
-            <p className="text-sm font-semibold text-ink-900 dark:text-paper-50">
+            <p className="text-sm font-semibold text-ink-900 dark:text-paper-50 flex items-center gap-1">
               {booksThisYear} / {goal.target}
+              <ChevronRight size={16} className="text-ink-400 dark:text-ink-500" aria-hidden="true" />
             </p>
           </div>
           <ProgressBar value={booksThisYear} max={goal.target} className="h-2" gradient />
@@ -157,6 +161,7 @@ export function Dashboard() {
               ? <span className="flex items-center gap-1"><CheckCircle size={13} className="text-teal-600" /> Goal achieved!</span>
               : `${goal.target - booksThisYear} more to go`}
           </p>
+          </Link>
         </motion.div>
       )}
 
@@ -177,7 +182,7 @@ export function Dashboard() {
           <div className="relative space-y-4">
             <div>
               <p
-                className="font-serif leading-relaxed italic text-ink-800 dark:text-paper-100"
+                className="selectable font-serif leading-relaxed italic text-ink-800 dark:text-paper-100"
                 style={{
                   fontSize: '0.9375rem',
                   lineHeight: '1.7',
