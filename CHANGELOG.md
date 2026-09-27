@@ -1,3 +1,23 @@
+## v3.0.0 — 2026-09-26
+
+The Commonplace Book. Each book now holds what it meant to you, not just that you read it.
+
+### Added
+- **A journal on every book page.** Write a note, or save a passage, right on the book. Everything about the book then sits in one timeline, newest first: your notes, passages you typed, your Kindle highlights (grouped by the day they synced and ordered by where they appear in the book, three at a time with "Show all"), your review, and when you finished it.
+- **Typed highlights for paper books.** Switch the composer to "Passage", paste or type it (on iPhone, Live Text copies text straight off a printed page), and add a page number if you like. Typed passages are real highlights: they show on the Highlights page and in the deck, are searchable, and join the daily highlight rotation, the widget and the notification.
+- **Notes on highlights.** Tap the note button on any highlight, Kindle or typed, to attach a thought to it. Notes sit under the highlight they belong to, and can be edited or deleted.
+- **Journal view on the Highlights tab.** A Highlights / Journal switch at the top. Journal shows every note, passage and Kindle sync across all your books, newest first, grouped by month, and follows the book shelf filter.
+- **Add from anywhere.** The plus button on the Highlights tab opens a composer with a book picker, defaulting to what you're currently reading.
+- **Works offline.** A note or passage saved with no connection appears straight away, marked "Waiting to sync", and is sent automatically, in order, when you're back online, including after the app has been closed. It keeps the time you wrote it, not the time it synced.
+
+### Changed
+- The Highlights section on the book page (a collapsed accordion) is replaced by the journal. The review keeps its own card at the top of the page and also appears in the timeline.
+
+### Technical
+- New `book_notes` table with row-level security (own rows only; inserts also require the book to be yours), and `source` and `page` columns on `highlights`. Additive: all 105 existing highlights are marked as Kindle and nothing else changed. Migration in `supabase/migrations/20260926_commonplace_book.sql`.
+- New `src/lib/outbox.js` (client-generated ids, ordered replay, five attempts before giving up with an error), `src/hooks/useNotes.js`, and `src/components/journal/Journal.jsx`.
+- Verified with a render harness against a fake database: book journal, journal feed and Highlights page render with no errors, and saving a note, a passage, and a note offline each appear, with the offline one queued.
+
 ## v2.14.0 — 2026-09-26
 
 ### Changed
