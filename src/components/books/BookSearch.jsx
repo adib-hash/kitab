@@ -1,9 +1,12 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
-import { Search, Loader2, BookOpen, ArrowRight, ExternalLink } from 'lucide-react'
+import { Search, Loader2, BookOpen, ArrowRight, ExternalLink, Plus } from 'lucide-react'
 import { Modal } from '../ui/index.jsx'
 import { searchCatalog as searchBooks, searchCatalogByISBN as searchByISBN } from '../../lib/bookSearch'
 import { BookCover } from './BookCover'
 import { useDebounce } from '../../hooks/useDebounce'
+import { useAddBook } from '../../hooks/useLibrary'
+import { useQueryClient } from '@tanstack/react-query'
+import { notifySuccess } from '../../lib/haptics'
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import toast from 'react-hot-toast'
 
@@ -71,11 +74,51 @@ export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '
     return () => { stale = true }
   }, [debounced])
 
-  function handleSelect(book) {
-    onSelect(book)
+  const addBook = useAddBook()
+  const qc = useQueryClient()
+  const [addingId, setAddingId] = useState(null)
+
+  function closeAndReset() {
     setQuery('')
     setResults([])
     onClose()
+  }
+
+  // One tap adds the book to the bottom of TBR. The toast offers Edit, which
+  // opens the saved book in the caller's form (onSelect now receives the saved
+  // row, with its id, rather than a draft).
+  async function handleSelect(book) {
+    if (addingId) return
+    const norm = s => (s || '').trim().toLowerCase()
+    const existing = (qc.getQueryData(['books']) || []).find(
+      b => norm(b.title) === norm(book.title) && norm(b.author) === norm(book.author)
+    )
+    if (existing) {
+      toast(`“${existing.title}” is already in your library`, { id: 'book-added' })
+      return
+    }
+    setAddingId(book.google_books_id)
+    try {
+      const { source: _source, ...fields } = book // `source` is search metadata, not a column
+      const saved = await addBook.mutateAsync({ book: { ...fields, status: 'tbr' }, tagIds: [] })
+      notifySuccess()
+      toast.success(t => (
+        <span className="flex items-center gap-3">
+          <span>Added “{saved.title}” to TBR</span>
+          <button
+            onClick={() => { toast.dismiss(t.id); onSelect?.(saved) }}
+            className="font-semibold text-teal-400 hover:text-teal-300 flex-shrink-0"
+          >
+            Edit
+          </button>
+        </span>
+      ), { id: 'book-added', duration: 4500 })
+      closeAndReset()
+    } catch {
+      // useAddBook already showed the error
+    } finally {
+      setAddingId(null)
+    }
   }
 
   async function openScanner() {
@@ -144,7 +187,7 @@ export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '
           {results.length === 0 && !loading && !scanLookingUp && !query && (
             <div className="flex flex-col items-center py-10 text-ink-400">
               <BookOpen size={40} className="mb-3 opacity-40" />
-              <p className="text-sm">Search for a book to add to your library</p>
+              <p className="text-sm">Search, then tap a book to add it to your TBR</p>
             </div>
           )}
 
@@ -168,7 +211,9 @@ export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '
               <button
                 key={book.google_books_id}
                 onClick={() => handleSelect(book)}
-                className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-paper-50 dark:hover:bg-ink-700 transition-colors text-left group"
+                disabled={!!addingId}
+                aria-label={`Add ${book.title} to TBR`}
+                className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-paper-50 dark:hover:bg-ink-700 transition-colors text-left group disabled:opacity-60"
               >
                 <div className="flex-shrink-0">
                   <BookCover book={book} size="sm" />
@@ -182,6 +227,9 @@ export function BookSearchModal({ open, onClose, onSelect, onManual, prefill = '
                     {[book.published_year, book.page_count && `${book.page_count} pages`].filter(Boolean).join(' · ')}
                   </p>
                 </div>
+                <span className="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30">
+                  {addingId === book.google_books_id ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                </span>
               </button>
             ))}
           </div>

@@ -134,7 +134,7 @@ export function BookForm({ open, onClose, initialBook, editingId, editingTags, d
   const inpStyle = { fontSize: '16px' }
 
   return (
-    <Modal open={open} onClose={onClose} title={editingId ? 'Edit Book' : 'Add to Library'} size="xl">
+    <Modal open={open} onClose={onClose} title={resolvedEditingId ? 'Edit Book' : 'Add to Library'} size="xl">
       <form onSubmit={handleSubmit}>
         {/* ── Mobile-optimised two-column header ────────────────────────── */}
         <div className="flex gap-3 p-4">
