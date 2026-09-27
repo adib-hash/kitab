@@ -60,6 +60,8 @@ npm run build && npx cap sync ios
 │   │   │   ├── StarRating.jsx
 │   │   │   ├── StatusBadge.jsx
 │   │   │   └── TagInput.jsx
+│   │   ├── journal/
+│   │   │   └── Journal.jsx      # Commonplace Book: Composer, HighlightEntry, NoteEntry, BookJournal (book page), JournalFeed (Highlights tab), AddToJournal
 │   │   ├── discover/
 │   │   │   ├── QueryFlow.jsx    # Prompt input + generateRecommendations() (calls /api/recommend with the session token)
 │   │   │   └── RecDetailModal.jsx  # Recommendation detail + add to TBR
@@ -84,6 +86,7 @@ npm run build && npx cap sync ios
 │   │   ├── useKindleSyncFlow.js # Manual Kindle sync via the visible in-app browser
 │   │   ├── useLibrary.js        # CRUD for books (useBook, useAddBook, useUpdateBook [optimistic], useDeleteBook, useReorderTBR)
 │   │   ├── useLongPress.js      # Long press gesture hook
+│   │   ├── useNotes.js          # book_notes CRUD (useBookNotes, useAllNotes, useAddNote, useUpdateNote, useDeleteNote)
 │   │   ├── useNetworkStatus.js  # Online/offline state (native + web)
 │   │   ├── useRecommendations.js # Discover sessions CRUD (recommendations table)
 │   │   └── useTags.js           # Tags CRUD + useReadingGoal + useSetReadingGoal
@@ -96,7 +99,9 @@ npm run build && npx cap sync ios
 │   │   ├── kindleAutoSync.js    # Automatic daily Kindle sync (drain nightly payload / headless scrape)
 │   │   ├── kindleSyncState.js   # Which Kindle books have been scraped; builds scraper config
 │   │   ├── notifications.js     # Local notifications (iOS)
-│   │   ├── offlineQueue.js      # Reconnect listener — invalidates queries when back online
+│   │   ├── offlineQueue.js      # Reconnect listener — flushes the outbox, then invalidates queries
+│   │   ├── outbox.js            # Offline outbox for notes and typed highlights (client ids, replay in order)
+│   │   ├── dailyHighlight.js    # The one "highlight of the day" rule (≤180 chars, local day index); mirrored in the widget
 │   │   ├── openLibrary.js       # findCoverUrl() — Open Library cover fallback
 │   │   ├── supabase.js          # Supabase client
 │   │   ├── utils.js             # computeStats(), formatDate(), daysBetween(), pluralize(), STATUS_LABELS
@@ -151,7 +156,13 @@ npm run build && npx cap sync ios
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
 
-### `tags` + `book_tags` + `reading_goals` + `highlights` — see existing schema
+### `highlights`
+Kindle and typed highlights. `source` is `'kindle'` (default) or `'manual'` (typed for paper books); `page` is set for typed ones, `location` for Kindle. `clipping_hash` (unique, nullable) is the Kindle dedupe key; typed highlights leave it null.
+
+### `book_notes` (v3.0)
+`id, user_id (default auth.uid()), book_id → books ON DELETE CASCADE, highlight_id → highlights ON DELETE CASCADE (null = standalone note), body (≤5000), page, created_at, updated_at`. RLS: own rows only; insert also requires the book to be yours. Migration: `supabase/migrations/20260926_commonplace_book.sql`.
+
+### `tags` + `book_tags` + `reading_goals` — see existing schema
 
 ---
 
