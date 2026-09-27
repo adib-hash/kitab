@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react'
-import { Target, BookOpen, FileText, Star, Bookmark, Maximize2, Minimize2, BookMarked, XCircle, BarChart2, CheckCircle, Users, Ruler } from 'lucide-react'
+import { Target, BookOpen, FileText, Star, Bookmark, Maximize2, Minimize2, BookMarked, XCircle, BarChart2, CheckCircle, Users, Ruler, Swords, ChevronRight } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { useLibrary } from '../hooks/useLibrary'
 import { useReadingGoal, useSetReadingGoal } from '../hooks/useTags'
 import { StatCard, ProgressBar, EmptyState } from '../components/ui/index.jsx'
 import { computeStats } from '../lib/utils'
 import { clsx } from 'clsx'
+import { Link } from 'react-router-dom'
 
 const CHART_COLORS = ['#0F766E','#0D9488','#14B8A6','#2DD4BF','#99F6E4','#047857','#065F46','#6EE7B7']
 
@@ -81,6 +82,18 @@ export function Stats() {
       <div className="flex items-baseline gap-3">
         <h1 className="page-title">Statistics</h1>
       </div>
+
+      {/* Rank lives here now; the bottom bar's fifth tab went to Highlights */}
+      <Link to="/rank" className="card p-4 flex items-center gap-4 group hover:border-teal-400 transition-colors">
+        <span className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center flex-shrink-0">
+          <Swords size={20} className="text-amber-600 dark:text-amber-400" />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block font-medium text-ink-900 dark:text-paper-50">Rank your books</span>
+          <span className="block text-sm text-ink-500 dark:text-ink-400">Head-to-head matchups build your all-time ranking</span>
+        </span>
+        <ChevronRight size={18} className="text-ink-400 group-hover:text-teal-600 flex-shrink-0" />
+      </Link>
 
       {/* Year selector */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1">

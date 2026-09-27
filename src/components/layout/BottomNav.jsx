@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, BookOpen, BookMarked, Compass, Swords } from 'lucide-react'
+import { Home, BookOpen, BookMarked, Compass, Quote } from 'lucide-react'
 import { clsx } from 'clsx'
 import { impactLight } from '../../lib/haptics'
 
@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { path: '/library', icon: BookOpen, label: 'Library' },
   { path: '/tbr', icon: BookMarked, label: 'TBR' },
   { path: '/discover', icon: Compass, label: 'Discover' },
-  { path: '/rank', icon: Swords, label: 'Rank' },
+  { path: '/highlights', icon: Quote, label: 'Highlights' },
 ]
 
 export function BottomNav() {
