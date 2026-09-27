@@ -14,3 +14,7 @@ skills-lock.json
 scripts/bakeoff-report.html
 scripts/bakeoff-library.json
 .vercel
+
+# rec LLM bake-off (personal data + generated output)
+scripts/rec-bakeoff-*.json
+REC-BAKEOFF-REPORT.html
