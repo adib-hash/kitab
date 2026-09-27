@@ -1,11 +1,11 @@
 import { useRef, useCallback } from 'react'
 
 /**
- * useLongPress — detect 500ms hold on mobile
+ * useLongPress — detect a ~0.4 s hold on mobile
  * Cancels if finger moves >8px (scroll or swipe intent)
  * Returns spread-able touch handlers
  */
-export function useLongPress(onLongPress, threshold = 500) {
+export function useLongPress(onLongPress, threshold = 380) {
   const timerRef = useRef(null)
   const startPos = useRef(null)
   const fired = useRef(false)

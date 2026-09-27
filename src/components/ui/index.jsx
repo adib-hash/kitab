@@ -51,7 +51,8 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-ink-900/50 backdrop-blur-sm z-[250]"
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 bg-ink-900/60 z-[250]"
             onClick={onClose}
           />
           {/*
@@ -85,10 +86,10 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
           <motion.div
             ref={scrollRef}
             onScroll={checkScroll}
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ type: 'spring', duration: 0.3 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ type: 'tween', duration: 0.16, ease: [0.32, 0.72, 0, 1] }}
             style={{ maxHeight: '100%', pointerEvents: 'auto', WebkitOverflowScrolling: 'touch' }}
             className={clsx(
               'relative bg-white dark:bg-ink-800 rounded-2xl shadow-2xl border border-paper-200 dark:border-ink-700 overflow-y-auto overflow-x-hidden w-full',
@@ -162,7 +163,7 @@ export function ProgressBar({ value, max, className, color = 'teal', gradient = 
       <motion.div
         initial={{ width: 0 }}
         animate={{ width: `${pct}%` }}
-        transition={{ duration: 0.8, ease: 'easeOut' }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
         className={clsx('h-full rounded-full', !gradient && {
           'bg-teal-600': color === 'teal',
           'bg-amber-500': color === 'amber',

@@ -2,6 +2,9 @@
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   darkMode: 'class',
+  // iOS leaves :hover stuck on the last thing tapped (e.g. a highlighted row after
+  // closing a menu). Hover styles now apply only on devices that can hover.
+  future: { hoverOnlyWhenSupported: true },
   theme: {
     extend: {
       fontFamily: {

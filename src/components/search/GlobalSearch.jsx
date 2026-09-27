@@ -23,7 +23,7 @@ export function GlobalSearch({ open, onClose }) {
 
   useEffect(() => {
     if (open) {
-      setTimeout(() => inputRef.current?.focus(), 80)
+      inputRef.current?.focus() // immediately: a delayed focus can stop iOS showing the keyboard
     } else {
       setQuery('')
     }
@@ -65,20 +65,22 @@ export function GlobalSearch({ open, onClose }) {
         {open && (
           <>
             <motion.div
-              className="fixed inset-0 z-[400] bg-ink-900/60 backdrop-blur-sm"
+              className="fixed inset-0 z-[400] bg-ink-900/60"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
               onClick={onClose}
             />
             <motion.div
               className="fixed top-0 left-0 right-0 z-[410] bg-white dark:bg-ink-900 shadow-2xl"
               style={{ paddingTop: 'env(safe-area-inset-top)' }}
-              initial={{ y: -40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -40, opacity: 0 }}
-              transition={{ type: 'spring', damping: 28, stiffness: 380 }}
+              initial={{ y: -16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -16, opacity: 0 }}
+              transition={{ type: 'tween', duration: 0.16, ease: [0.32, 0.72, 0, 1] }}
             >
               <div className="flex items-center gap-3 px-4 py-3 border-b border-paper-200 dark:border-ink-700">
                 <Search size={18} className="text-ink-400 flex-shrink-0" />
                 <input
                   ref={inputRef}
+                  autoFocus
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder="Search your library..."

@@ -71,7 +71,7 @@ export function Layout({ children }) {
       <div className="md:hidden bg-paper-50 dark:bg-ink-900 min-h-screen">
         {/* Mobile top bar with search — paddingTop accounts for iOS notch/status bar */}
         <div
-          className="sticky top-0 z-[150] flex items-center justify-between px-4 pb-3 bg-paper-50/90 dark:bg-ink-900/90 backdrop-blur border-b border-paper-200 dark:border-ink-800"
+          className="sticky top-0 z-[150] flex items-center justify-between px-4 pb-3 bg-paper-50/95 dark:bg-ink-900/95 border-b border-paper-200 dark:border-ink-800"
           style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)' }}
         >
           <Link to="/" className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-50">Kitab</Link>
