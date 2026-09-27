@@ -1,3 +1,10 @@
+## v2.14.0 — 2026-09-26
+
+### Changed
+- **Adding a book is one tap.** Tap a search result (or scan a barcode) and it's saved to the bottom of your TBR straight away, with an "Edit" button in the confirmation if you want to change anything. Previously it opened a two-tab form that had to be filled in and saved first. Books already in your library are recognised and not added twice.
+- **Highlights has its own tab.** The fifth slot in the bottom bar is now Highlights. Rank moved to a card at the top of the Stats page (still in the desktop sidebar too).
+- **One set of status names and colours.** Currently Reading (teal), To Be Read (amber), Read (emerald), Did Not Finish (rose), everywhere: pills, card dots, the quick-actions sheet, filters, the share sheet and Settings. Before, the same status was "Finished" in one place and "Read" in another, TBR was blue on cards but amber on pills, and Reading was a blue pill with a teal dot.
+
 ## v2.13.0 — 2026-09-26
 
 ### Added

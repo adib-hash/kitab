@@ -7,7 +7,7 @@ import { useTags, useUpdateTag, useDeleteTag, useReadingGoal } from '../hooks/us
 import { Button } from '../components/ui/index.jsx'
 import { useUIStore } from '../store/uiStore'
 import { useShallow } from 'zustand/react/shallow'
-import { buildGoodreadsCSV } from '../lib/utils'
+import { buildGoodreadsCSV, STATUS } from '../lib/utils'
 import { searchBooks } from '../lib/googleBooks'
 import { findCoverUrl } from '../lib/openLibrary'
 import { sizeCoverUrl } from '../lib/covers'
@@ -619,7 +619,7 @@ export function Settings() {
         </button>
         <div>
           <h1 className="page-title">Settings</h1>
-          <p className="text-sm text-ink-400 dark:text-ink-400 mt-0.5">Kitab · v2.13.0</p>
+          <p className="text-sm text-ink-400 dark:text-ink-400 mt-0.5">Kitab · v2.14.0</p>
         </div>
       </div>
 
@@ -751,7 +751,7 @@ export function Settings() {
           </div>
           {['read','reading','tbr','dnf'].map(s => (
             <div key={s} className="flex justify-between">
-              <span className="text-ink-500 dark:text-ink-400 capitalize">{s === 'tbr' ? 'To be read' : s === 'dnf' ? 'Did not finish' : s}</span>
+              <span className="text-ink-500 dark:text-ink-400">{STATUS[s].label}</span>
               <span className="font-medium text-ink-900 dark:text-paper-50">{books.filter(b=>b.status===s).length}</span>
             </div>
           ))}
