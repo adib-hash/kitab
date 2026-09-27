@@ -1,7 +1,7 @@
 import { useState, useEffect, memo } from 'react'
 import { getCoverFallback } from '../../lib/utils'
 import { getCachedCoverUrl } from '../../lib/coverCache'
-import { sizeCoverUrl } from '../../lib/covers'
+import { sizeCoverUrl, isGooglePlaceholder, googleThumbnail } from '../../lib/covers'
 import { clsx } from 'clsx'
 
 export const BookCover = memo(function BookCover({ book, className, size = 'md' }) {
@@ -62,6 +62,13 @@ export const BookCover = memo(function BookCover({ book, className, size = 'md' 
       loading="lazy"
       decoding="async"
       onError={() => setError(true)}
+      onLoad={e => {
+        if (!isGooglePlaceholder(e.currentTarget, book.cover_url)) return
+        // Larger scan doesn't exist: use the thumbnail, or the fallback tile if even that is a placeholder.
+        const thumb = googleThumbnail(sizeCoverUrl(book.cover_url, size))
+        if (displayUrl !== thumb) setDisplayUrl(thumb)
+        else setError(true)
+      }}
       className={clsx(
         'book-cover object-cover rounded-md',
         sizeClasses[size],

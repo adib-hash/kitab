@@ -3,7 +3,7 @@ import { BookmarkPlus, Check, ChevronDown, ChevronUp, Loader2, BookOpen, Calenda
 import { useAddBook } from '../../hooks/useLibrary'
 import { TagInput } from '../books/TagInput'
 import { useUIStore } from '../../store/uiStore'
-import { sizeCoverUrl } from '../../lib/covers'
+import { BookCover } from '../books/BookCover'
 import { Modal } from '../ui/index'
 
 export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
@@ -53,16 +53,7 @@ export function RecDetailModal({ book, open, onClose, inLibrary = false }) {
           {/* Cover + title */}
           <div className="flex gap-4">
             <div className="flex-shrink-0 w-20">
-              {book.cover_url ? (
-                <img src={sizeCoverUrl(book.cover_url, 'lg')} alt={book.title} loading="lazy" decoding="async" className="w-full rounded-lg shadow-book object-cover book-cover" />
-              ) : (
-                <div
-                  className="w-full book-cover rounded-lg flex items-center justify-center text-lg font-serif font-bold text-white"
-                  style={{ backgroundColor: `hsl(${(book.title.charCodeAt(0) * 37) % 360}, 35%, 30%)` }}
-                >
-                  {book.title.slice(0, 2).toUpperCase()}
-                </div>
-              )}
+              <BookCover book={book} size="full" className="shadow-book !rounded-lg" />
             </div>
             <div className="flex-1 min-w-0 pt-1">
               <h2 className="font-serif text-base font-bold text-ink-900 dark:text-paper-50 leading-snug">{book.title}</h2>

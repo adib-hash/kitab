@@ -30,6 +30,23 @@ export function sizeCoverUrl(url, size = 'md') {
   return url
 }
 
+// Google Books answers a missing larger scan with an "image not available" PNG
+// and a 200 status, so onError never fires. It is always one of these exact
+// sizes; anything else is a real cover. (Measured 2026-09-26: zoom=2 placeholder
+// 300x391, zoom=3 placeholder 575x750. Real covers at those sizes are ~300x440.)
+const GOOGLE_PLACEHOLDER_SIZES = new Set(['300x391', '575x750'])
+
+export function isGooglePlaceholder(img, src) {
+  if (!img || !src || !(src.includes('books.google') || src.includes('googleusercontent'))) return false
+  return GOOGLE_PLACEHOLDER_SIZES.has(`${img.naturalWidth}x${img.naturalHeight}`)
+}
+
+/** The smallest Google Books scan (zoom=1), which exists whenever any cover does. */
+export function googleThumbnail(url) {
+  if (!url) return url
+  return /([?&])zoom=\d+/.test(url) ? url.replace(/([?&])zoom=\d+/, '$1zoom=1') : url
+}
+
 // Build an Open Library cover URL from an ISBN (the lightest, most reliable cover source
 // when a book has an ISBN). `default=false` makes a missing cover 404 instead of returning
 // a blank placeholder, so onError fallbacks fire cleanly.
