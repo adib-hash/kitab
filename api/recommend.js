@@ -6,14 +6,16 @@
 // spending any model credit. Vercel publishes every file in api/ as a public
 // route, so without this check anyone could run prompts on our keys.
 //
-// Primary model:  Gemini 3.5 Flash (Google Generative Language API, free tier).
+// Primary model:  Gemini 3.8 Flash with light thinking (Google Generative Language API).
+//                  Chosen by the Sep 2026 bake-off (scripts/rec-bakeoff.mjs): better picks
+//                  and fewer invented books than 3.5 Flash, same ~3 s wait, under half the cost.
 // Fallback model: Claude Haiku 4.5 — used only when GEMINI_API_KEY is not set,
 //                 so the feature never breaks while the Vercel env var rolls out.
 //
 // Returns the Anthropic Messages shape the client already parses:
 //   data.content.find(b => b.type === 'text').text
 
-const GEMINI_MODEL = 'gemini-3.5-flash'
+const GEMINI_MODEL = 'gemini-3.8-flash'
 const MAX_PROMPT_CHARS = 20000
 
 export default async function handler(req, res) {
@@ -62,15 +64,17 @@ export default async function handler(req, res) {
   }
 }
 
-// --- Gemini 3.5 Flash (primary) ---
-// Thinking is disabled (thinkingBudget: 0) for a fast, single-shot answer.
-async function callGemini(prompt, apiKey, thinking = false) {
+// --- Gemini 3.8 Flash (primary) ---
+// Light thinking ('low') adds almost no latency here and cut invented or
+// misattributed books from 6 to 1 in 144 picks versus thinking off.
+// Thinking tokens count against maxOutputTokens, hence the 8192 headroom.
+async function callGemini(prompt, apiKey) {
   const body = {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: {
       temperature: 1,
-      maxOutputTokens: thinking ? 8192 : 4096,
-      ...(thinking ? {} : { thinkingConfig: { thinkingBudget: 0 } }),
+      maxOutputTokens: 8192,
+      thinkingConfig: { thinkingLevel: 'low' },
     },
   }
 
@@ -85,8 +89,6 @@ async function callGemini(prompt, apiKey, thinking = false) {
   const data = await resp.json()
 
   if (!resp.ok) {
-    // A few Gemini variants reject an explicit thinkingBudget of 0 — retry once with thinking on.
-    if (!thinking && /thinking/i.test(JSON.stringify(data))) return callGemini(prompt, apiKey, true)
     const e = new Error(data.error?.message || 'Gemini upstream error')
     e.status = resp.status
     throw e
@@ -94,9 +96,7 @@ async function callGemini(prompt, apiKey, thinking = false) {
 
   const parts = data.candidates?.[0]?.content?.parts || []
   const text = parts.filter(p => p.text && !p.thought).map(p => p.text).join('')
-
-  // If the answer was starved by thinking tokens, retry once with more headroom.
-  if (!text.trim() && !thinking) return callGemini(prompt, apiKey, true)
+  // An empty answer throws, which sends the request to the Claude fallback.
   if (!text.trim()) throw new Error('Empty response from Gemini')
   return text
 }
