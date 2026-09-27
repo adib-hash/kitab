@@ -20,6 +20,8 @@ This file lists only what isn't obvious from the code. Read the code and query t
 - **Type scale.** Original scale: `text-xs` captions and labels, `text-sm` body and buttons, inputs 16px. A 14px-floor sweep made the phone UI feel oversized and was reversed in v3.0.1; don't reapply it.
 - **Toasts.** `ToastWatchdog` in `Layout.jsx` exists because iOS taps pause react-hot-toast indefinitely; keep it.
 - **Scroll lock.** Use `useBodyScrollLock` (`position: fixed`), never `overflow: hidden`.
+- **Google cover placeholders.** Asking Google Books for a larger scan than exists returns an "image not available" PNG with a 200 status (300×391 at zoom 2, 575×750 at zoom 3). `BookCover` detects those sizes on load and falls back to zoom 1; render covers through `BookCover`, not a bare `<img>`.
+- **Motion.** Short tweens (0.15–0.24 s, iOS curve), no springs, no `backdrop-blur`, no height animations on menus. Tailwind `hoverOnlyWhenSupported` is on because iOS leaves `:hover` stuck after a tap.
 
 ## Kindle sync
 - There is no Kindle API. `public/kindle-scraper.js` drives a logged-in read.amazon.com session in a WKWebView. The manual path (`useKindleSyncFlow.js`) opens a visible browser, which is where the Amazon sign-in happens. The automatic path (`KindleSyncPlugin.swift` + `src/lib/kindleAutoSync.js`) runs offscreen: a nightly `BGProcessingTask` plus a foreground fallback.
