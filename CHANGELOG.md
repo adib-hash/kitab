@@ -1,3 +1,14 @@
+## v3.0.7 — 2026-09-27
+
+### Changed
+- **A stronger backup for Discover.** When Gemini is busy or returns something unusable, Discover now asks Claude Opus 5.5 instead of Claude Haiku 4.5. In the bake-off, Haiku came last: 11 invented or misattributed books and 10 books you already owned across 18 requests. Opus 5.5 made none and wrote some of the best lists. It takes about 10 seconds instead of 3, but it only runs when Gemini can't answer.
+
+### Fixed
+- **Real books no longer disappear from your recommendations.** Every pick is checked against Google Books before you see it, and that check threw away many real books: ones with subtitles ("Range: Why Generalists Triumph…"), co-authors ("Douglas Preston and Lincoln Child"), or a lookup that simply came back empty. When the precise lookup finds nothing, Discover now tries a looser search that still requires the title and an author's surname to match. Tested on the bake-off's picks: 33 of 36 real books that used to vanish now come through, all 27 invented or misattributed books are still rejected, and all 200 books that passed before still pass. The check also no longer counts words like "the" as a title match, which had let "The Secrets of the Dead" pass as "The Silence of the Sea".
+- **No more repeats.** Books already recommended in an earlier Discover session are now filtered out, as well as books already in your library. Titles are compared with and without subtitles, so "The Wager" is recognised as your "The Wager: A Tale of Shipwreck, Mutiny and Murder".
+- **Fewer "couldn't read the response" errors.** Gemini is now required to answer in the exact format the app expects, and answers from either model are cleaned up before they reach the app. All four answers that failed to parse in the bake-off now come through.
+- **Regenerate now tells you when it fails,** instead of silently doing nothing.
+
 ## v3.0.6 — 2026-09-27
 
 ### Changed
