@@ -1,3 +1,22 @@
+## v2.13.0 — 2026-09-26
+
+### Added
+- **Year finished is automatic.** The Library filter panel has a "Year finished" row built from each book's finish date, so a book counts toward its year the moment you mark it finished, with no tag to remember. The four-digit year tags ("2024", "2025", "2026") used for backfill are now hidden from tag lists, filters, the tag chart, Rank and Discover. They are still in the database and can be deleted whenever you like. (Stats were already counting by finish date; every year-tagged book in the library already had a matching finish date, so no numbers change.)
+- **Average length.** A new "Avg Length" stat, in pages per book, on Stats (for the selected year) and on the Dashboard (for this year). For 2026 it is 363 pages.
+- **Native barcode scanner on iOS.** Tapping the barcode icon now opens a full-screen native camera scanner instead of a camera feed inside the web view.
+
+### Changed
+- **Highlights, redesigned.** Instead of one long scrolling list, the page opens on today's highlight, then a shelf of the books you've highlighted (with counts), then a swipeable deck that shows one passage at a time in large type sized to its length, with position, shuffle, copy and delete. A list view is one tap away, and searching switches to it automatically with matches marked.
+- **One "highlight of the day" everywhere.** The Dashboard, the Highlights page, the widget and the notification now all show the same quote on the same day. Only highlights short enough to read in full (180 characters or fewer, 54 of your 105) are used for the daily pick.
+
+### Fixed
+- **Widgets were empty.** Capacitor 8 only loads native plugins listed in a config file that `cap sync` regenerates from npm packages, so the two plugins written directly in the iOS project were never loaded. Every call to save widget data failed silently. They are now registered at startup by a small custom bridge view controller.
+- **Automatic Kindle sync never ran.** Same cause: the plugin behind v2.11.0's nightly sync was never loaded, so only the manual Sync button worked. It is registered now too.
+- **Daily highlight notifications were truncated and repeated.** They were one repeating notification with the text fixed when it was scheduled, so the same quote arrived every morning until you next opened the app, and long passages were cut mid-sentence. Now the next seven days are scheduled individually, each with that day's short highlight, and the schedule rolls forward every time the app opens.
+- **The widget quote now changes at midnight** on its own, fits without an ellipsis, and uses larger type.
+- **Barcode scanning didn't work.** The old scanner read a low-resolution feed from the main camera, which on recent Pro iPhones can't focus closer than about 20 cm, so a book held at a normal distance never decoded. The native scanner uses the multi-lens camera that switches to macro automatically and the hardware barcode detector, prefers the ISBN when a price barcode is also in view, and explains how to allow camera access if it's off. The web scanner also asks for an HD feed and decodes harder.
+- **Tapping a widget now opens the right screen.** Widgets link to a book or to your stats, but the app only handled share-extension links, so a tap just opened the app wherever it was.
+
 ## v2.12.0 — 2026-09-25
 
 A cleanup release: no new features, but a long list of small fixes, performance work, and dead-code removal across the app. Grouped by kind below.
