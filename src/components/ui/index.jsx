@@ -54,16 +54,22 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
             className="fixed inset-0 bg-ink-900/50 backdrop-blur-sm z-[250]"
             onClick={onClose}
           />
+          {/*
+            Every modal opens with its top edge on the same line, just under the
+            mobile header, and grows downward (scrolling inside once it reaches
+            the bottom bar). Centring made short modals float mid-screen, behind
+            the keyboard, and jump upward as their content grew (Add a Book).
+          */}
           <div
             style={{
               position: 'fixed',
-              top: 'calc(env(safe-area-inset-top, 0px) + 56px)',
+              top: 'calc(env(safe-area-inset-top, 0px) + 72px)',
               bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)',
               left: '1rem',
               right: '1rem',
               zIndex: 260,
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               justifyContent: 'center',
               pointerEvents: 'none',
             }}

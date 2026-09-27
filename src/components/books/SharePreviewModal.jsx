@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { ExternalLink, Search } from 'lucide-react'
 import { BookCover } from './BookCover'
 import { useAddBook } from '../../hooks/useLibrary'
-import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
+import { Modal } from '../ui/index.jsx'
 import { STATUS } from '../../lib/utils'
 import { searchCatalog as searchBooks, searchCatalogByISBN as searchByISBN, API_BASE } from '../../lib/bookSearch'
 
@@ -159,8 +159,6 @@ export function SharePreviewModal({ open, sharedUrl, onClose, onEditDetails, onF
   const [status, setStatus] = useState('tbr')
   const addBook = useAddBook()
 
-  useBodyScrollLock(open)
-
   // Auto-lookup on open. Cancelled if the modal closes mid-lookup, so a late
   // result can't repopulate it or pop the search modal open after dismissal.
   useEffect(() => {
@@ -205,17 +203,8 @@ export function SharePreviewModal({ open, sharedUrl, onClose, onEditDetails, onF
   }
 
   return (
-    <div className="fixed inset-0 z-[500] flex items-center justify-center px-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-      />
-
-      {/* Modal */}
-      <div className="relative z-10 w-full max-w-sm bg-paper-50 dark:bg-ink-900 rounded-2xl shadow-2xl overflow-hidden">
-
-        <div className="px-5 pb-6 pt-5">
+    <Modal open={open} onClose={onClose} size="sm">
+        <div className="px-5 pb-6 pt-8">
           {loading && <LoadingSkeleton hostname={hostname} />}
 
           {notFound && (
@@ -325,7 +314,6 @@ export function SharePreviewModal({ open, sharedUrl, onClose, onEditDetails, onF
             </>
           )}
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

@@ -14,7 +14,7 @@ import { useLibrary, useReorderTBR, useUpdateBook, useDeleteBook } from '../hook
 import { BookCover } from '../components/books/BookCover'
 import { BookSearchModal } from '../components/books/BookSearch'
 import { BookForm } from '../components/books/BookForm'
-import { EmptyState } from '../components/ui/index.jsx'
+import { EmptyState, Modal } from '../components/ui/index.jsx'
 import { QuickActionsSheet } from '../components/ui/QuickActionsSheet'
 import { useLongPress } from '../hooks/useLongPress'
 import { Link } from 'react-router-dom'
@@ -250,9 +250,8 @@ function SortableBook({ book }) {
 // ── Shuffle modal ─────────────────────────────────────────────────────────────
 function ShufflePickModal({ book, onClose, onShuffleAgain }) {
   return (
-    <div className="fixed inset-0 z-[400] flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white dark:bg-ink-800 rounded-2xl shadow-2xl p-6 max-w-xs w-full text-center">
+    <Modal open onClose={onClose} size="sm">
+      <div className="p-6 text-center">
         <p className="text-xs font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-widest mb-3">
           Your Next Read
         </p>
@@ -285,7 +284,7 @@ function ShufflePickModal({ book, onClose, onShuffleAgain }) {
           Dismiss
         </button>
       </div>
-    </div>
+    </Modal>
   )
 }
 
