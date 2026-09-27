@@ -1,6 +1,6 @@
 # Kitab
 
-Personal reading tracker: web app plus a Capacitor iOS app with widgets and a share extension. Live at kitab.ihsan.build (Vercel, deploys on push to `main`). Supabase project `kitab` (`tlallvcrogadqgtzuoko`). **Current version:** v3.0.7
+Personal reading tracker: web app plus a Capacitor iOS app with widgets and a share extension. Live at kitab.ihsan.build (Vercel, deploys on push to `main`). Supabase project `kitab` (`tlallvcrogadqgtzuoko`). **Current version:** v3.0.8
 
 This file lists only what isn't obvious from the code. Read the code and query the live schema (Supabase MCP) for everything else.
 
@@ -21,6 +21,7 @@ This file lists only what isn't obvious from the code. Read the code and query t
 - **Toasts.** `ToastWatchdog` in `Layout.jsx` exists because iOS taps pause react-hot-toast indefinitely; keep it.
 - **Scroll lock.** Use `useBodyScrollLock` (`position: fixed`), never `overflow: hidden`.
 - **Google cover placeholders.** Asking Google Books for a larger scan than exists returns an "image not available" PNG with a 200 status (300×391 at zoom 2, 575×750 at zoom 3). `BookCover` detects those sizes on load and falls back to zoom 1; render covers through `BookCover`, not a bare `<img>`.
+- **Discover.** The prompt is built in `src/lib/recPrompt.js` (ratings, excerpted reviews, Kindle highlights, within a size budget) and picks are checked in `src/lib/recVerify.js`, Hardcover proxy first, Google Books only as a fallback. Change either through the bake-offs in `scripts/` (`rec-bakeoff.mjs` for models, `rec-prompt-bakeoff.mjs` for prompts). Bake-offs must use `BAKEOFF_GOOGLE_BOOKS_API_KEY`, never the app's key: hundreds of lookups exhaust its daily quota and break Discover.
 - **Motion.** Short tweens (0.15–0.24 s, iOS curve), no springs, no `backdrop-blur`, no height animations on menus. Tailwind `hoverOnlyWhenSupported` is on because iOS leaves `:hover` stuck after a tap.
 
 ## Kindle sync

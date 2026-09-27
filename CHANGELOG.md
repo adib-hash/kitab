@@ -1,3 +1,10 @@
+## v3.0.8 — 2026-09-27
+
+### Changed
+- **Discover now reads your reviews and highlights.** Until now the prompt carried only the first 100 characters of 3 of your 19 reviews, and none of your Kindle highlights. It now includes every review (up to about 1,500 characters each) and every highlight, so recommendations can follow what you actually praised, criticised and marked while reading. In a bake-off of six prompt versions on your real requests, two blinded judges scored this version 7.5 out of 10 against 6.1 for the old prompt, and 7.8 against 5.6 on how well the picks understand you. It answers just as fast, in about 4 seconds. As your reviews and highlights grow, the prompt keeps within a size budget by favouring your highest-rated and most recent books and spreading passages across each book.
+- **Reasons describe your taste honestly.** The model is now told to match your actual rating when it describes how you felt about a book, not to imply you've read something that's only on your want-to-read list, and to say "you highlighted" only for highlights.
+- **Recommendations are checked against Kitab's own book search first.** Each pick used to be looked up directly on Google Books, whose daily query limit is shared with the rest of the app. Picks are now matched through Kitab's search service, which uses Hardcover and caches results, and Google Books is only asked when that finds nothing. In testing, the new check confirmed 153 of 156 real books and rejected all 27 invented or misattributed ones without a single Google lookup. It also now matches hyphenated surnames like Brodesser-Akner and names like Sigurðardóttir.
+
 ## v3.0.7 — 2026-09-27
 
 ### Changed
